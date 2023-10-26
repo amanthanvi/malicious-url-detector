@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <title>Malicious URL Detector</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-4">Malicious URL Detector</h1>
+        <form method="post">
+            <div class="form-group">
+                <label for="url">Enter URL:</label>
+                <input type="text" class="form-control" id="url" name="url" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Check URL</button>
+        </form>
+
+        {% if message %}
+        <div class="alert {{ alert_class }} mt-3" role="alert">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        <!-- Detailed Analysis Section -->
+        {% if detailed_results %}
+        <div class="mt-4">
+            <h2>Detailed Results:</h2>
+        
+            {% for service, results in detailed_results.items() %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    {{ service.capitalize() }} Analysis
+                </div>
+                <div class="card-body">
+                    {% if results %}
+                    <table class="table">
+                        <tbody>
+                            {% for key, value in results.items() %}
+                            <tr>
+                                <th>{{ key.capitalize() }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No detailed data available from {{ service }}.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // jQuery to toggle the visibility of the detailed results
+        $(document).ready(function () {
+            $("#toggleDetails").click(function () {
+                $("#detailedResults").slideToggle("slow");
+            });
+        });
+    </script>
+</body>
+
+</html>

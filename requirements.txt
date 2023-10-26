@@ -1,0 +1,7 @@
+Flask
+transformers
+torch
+torchvision
+torchaudio
+requests
+python-dotenv
