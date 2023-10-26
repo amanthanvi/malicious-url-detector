@@ -10,9 +10,9 @@ app.secret_key = os.urandom(24)
 
 # Hugging Face API setup
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/elftsdmr/malware-url-detect"
-huggingface_api_key = os.environ.get('HUGGINGFACE_API_KEY')
+HUGGINGFACE_API_KEY = os.environ.get('HUGGINGFACE_API_KEY')
 headers = {
-    "Authorization": f"Bearer {huggingface_api_key}"
+    "Authorization": f"Bearer {HUGGINGFACE_API_KEY}"
 }
 
 # VirusTotal API setup
