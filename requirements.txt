@@ -1,7 +1,6 @@
-Flask
-transformers
-torch
-torchvision
-torchaudio
+os
+re
 requests
+Flask
 python-dotenv
+time
