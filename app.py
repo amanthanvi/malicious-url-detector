@@ -200,4 +200,4 @@ def home():
     return render_template('index.html', message=message, alert_class=alert_class, detailed_results=detailed_results)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
