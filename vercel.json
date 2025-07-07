@@ -3,9 +3,5 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "regions": ["iad1"],
-  "env": {
-    "VIRUSTOTAL_API_KEY": "@virustotal-api-key",
-    "HUGGINGFACE_API_KEY": "@huggingface-api-key"
-  }
+  "regions": ["iad1"]
 }

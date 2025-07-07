@@ -148,7 +148,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [VirusTotal](https://www.virustotal.com) for their comprehensive threat intelligence API
-- [HuggingFace](https://huggingface.co) for the [malware-url-detect](https://huggingface.co/elftsdmr/malware-url-detect) model
+- [HuggingFace](https://huggingface.co) for the [final-complete-malicious-url-model](https://huggingface.co/r3ddkahili/final-complete-malicious-url-model)
 - [Vercel](https://vercel.com) for hosting and deployment
 
 ## 📧 Contact

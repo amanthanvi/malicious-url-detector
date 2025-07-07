@@ -55,7 +55,7 @@ npm run lint
 
 2. **API Integration** (`/app/api/analyze/route.ts`):
    - **VirusTotal**: Asynchronous analysis with polling (up to 10 retries, 15s intervals)
-   - **Hugging Face**: Synchronous inference call to `elftsdmr/malware-url-detect` model
+   - **Hugging Face**: Synchronous inference call to `r3ddkahili/final-complete-malicious-url-model`
    - Both APIs handle timeouts and errors gracefully
 
 3. **Result Classification Logic**:

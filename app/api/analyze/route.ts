@@ -149,7 +149,7 @@ async function analyzeWithHuggingFace(url: string): Promise<HuggingFaceResult | 
   
   try {
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/elftsdmr/malware-url-detect',
+      'https://api-inference.huggingface.co/models/r3ddkahili/final-complete-malicious-url-model',
       {
         method: 'POST',
         headers: {
@@ -165,15 +165,35 @@ async function analyzeWithHuggingFace(url: string): Promise<HuggingFaceResult | 
     }
     
     const data = await response.json()
-    const result = data[0] || data
     
+    // Handle the response - the model returns an array of results
+    if (Array.isArray(data) && data.length > 0) {
+      // Get the top prediction
+      const predictions = Array.isArray(data[0]) ? data[0] : data
+      const topPrediction = predictions.reduce((prev: any, current: any) => 
+        (current.score > prev.score) ? current : prev
+      )
+      
+      return {
+        label: topPrediction.label || 'UNKNOWN',
+        score: topPrediction.score || 0,
+        prediction: topPrediction.label?.toLowerCase().includes('malicious') || 
+                   topPrediction.label?.toLowerCase().includes('phishing') ||
+                   topPrediction.label?.toLowerCase().includes('defacement') ? 'malicious' : 'safe'
+      }
+    }
+    
+    // Fallback for unexpected response format
+    const result = data[0] || data
     const label = result.label || 'UNKNOWN'
     const score = result.score || 0
     
     return {
       label,
       score,
-      prediction: label.toLowerCase().includes('malicious') ? 'malicious' : 'safe'
+      prediction: label.toLowerCase().includes('malicious') || 
+                 label.toLowerCase().includes('phishing') ||
+                 label.toLowerCase().includes('defacement') ? 'malicious' : 'safe'
     }
   } catch (error) {
     console.error('HuggingFace error:', error)
