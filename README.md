@@ -1,75 +1,157 @@
-# Malicious URL Detector
+# URL Threat Analyzer
 
-Malicious URL Detector is a web application designed to identify potentially dangerous or malicious URLs using multiple services for a comprehensive safety profile. This tool integrates with external APIs, including VirusTotal and [this Hugging Face API](https://huggingface.co/elftsdmr/malware-url-detect), to provide a robust analysis of URLs.
+A modern, AI-powered web application for analyzing URLs and detecting potential security threats. Built with Next.js 14, TypeScript, and Tailwind CSS, featuring real-time threat analysis using VirusTotal and HuggingFace APIs.
 
-## Features
+## ✨ Features
 
-- **URL Validation**: Ensures that the input is a properly structured URL.
-- **VirusTotal Integration**: Checks the URL against VirusTotal's database and analysis.
-- **Hugging Face Integration**: Uses machine learning (provided by a model on Hugging Face) to predict the likelihood of a URL being malicious.
-- **Comprehensive Results**: Provides detailed results, including the response from external services and overall safety rating.
-- **User-Friendly Interface**: Easy-to-use web interface for inputting URLs and receiving feedback.
+### Core Functionality
+- **Real-time URL Analysis**: Instant threat detection using multiple security services
+- **Dual-Engine Detection**: Combines VirusTotal's comprehensive database with AI-powered analysis
+- **Batch Analysis**: Analyze multiple URLs simultaneously (up to 10 per batch)
+- **Smart Caching**: 15-minute result caching to reduce API calls
+- **URL History**: Track and re-analyze previously checked URLs
 
-You can either use the web-app version [here](https://athanvi.pythonanywhere.com/) or run it locally (Note: if you run it locally, you will have to get your own API keys for VirusTotal and HuggingFace).
+### Enhanced User Experience
+- **Modern UI/UX**: Beautiful, responsive interface with smooth animations
+- **Dark Mode**: Full dark mode support with system preference detection
+- **Educational Content**: Learn about phishing, malware, and URL safety
+- **Detailed Results**: Comprehensive threat information with actionable recommendations
+- **Export Functionality**: Download batch analysis results as CSV
 
-## Prerequisites
+### Technical Features
+- **Progressive Web App**: Optimized for all devices
+- **Server-Side Rendering**: Fast initial load with Next.js
+- **Type Safety**: Full TypeScript implementation
+- **API Routes**: Secure backend API with proper error handling
+- **Vercel-Ready**: Optimized for deployment on Vercel
 
-Before you begin, ensure you have met the following requirements:
+## 🚀 Getting Started
 
-- You have installed the latest version of Python.
-- You have a basic understanding of Python programming.
-- You have read the documentation of the APIs used in this project.
+### Prerequisites
+- Node.js 18+ and npm
+- VirusTotal API key
+- HuggingFace API key
 
-## Installation
-
-To install Malicious URL Detector, follow these steps:
+### Installation
 
 1. Clone the repository:
-
 ```bash
-git clone https://github.com/your-username/malicious-url-detector.git
-```
-
-2. Navigate to the project directory and install the dependencies:
-
-```bash
+git clone https://github.com/amanthanvi/malicious-url-detector.git
 cd malicious-url-detector
-pip install -r requirements.txt
 ```
 
-## Usage
+2. Install dependencies:
+```bash
+npm install
+```
 
-To use Malicious URL Detector, follow these steps:
+3. Set up environment variables:
+Create a `.env.local` file in the root directory:
+```env
+VIRUSTOTAL_API_KEY=your_virustotal_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key
+```
 
-1. Start the server:
+4. Run the development server:
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## 🔧 Available Scripts
 
 ```bash
-python app.py
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
 ```
 
-2. Open a web browser and navigate to:
+## 🌐 Deployment
 
+### Deploy to Vercel
+
+The easiest way to deploy is using Vercel:
+
+1. Push your code to GitHub
+2. Import your repository on [Vercel](https://vercel.com)
+3. Add environment variables in Vercel dashboard:
+   - `VIRUSTOTAL_API_KEY`
+   - `HUGGINGFACE_API_KEY`
+4. Deploy!
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/amanthanvi/malicious-url-detector)
+
+## 🛠️ Technology Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Headless UI, Hero Icons
+- **Animations**: Framer Motion
+- **State Management**: Zustand
+- **API Integration**: Axios
+- **Theme**: next-themes
+- **Analytics**: Vercel Analytics
+
+## 📚 API Documentation
+
+### POST /api/analyze
+
+Analyzes a single URL for threats.
+
+**Request Body:**
+```json
+{
+  "url": "https://example.com"
+}
 ```
-http://localhost:5000
+
+**Response:**
+```json
+{
+  "url": "https://example.com",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "status": "safe|suspicious|malicious|error",
+  "summary": "Analysis summary",
+  "details": {
+    "virusTotal": { ... },
+    "huggingFace": { ... }
+  },
+  "threatInfo": { ... }
+}
 ```
 
-3. Enter a URL you want to check for potential security threats.
+## 🔐 Security Considerations
 
-## Contributing
+- API keys are stored as environment variables
+- Input validation on all user inputs
+- Rate limiting implemented via caching
+- No user data is permanently stored
+- HTTPS enforced in production
 
-Any contributions are are greatly appreciated!
+## 🤝 Contributing
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/feature-name`)
-3. Commit your changes (`git commit -m 'Add some feature-name'`)
-4. Push to the branch (`git push origin feature/feature-name`)
-5. Open a pull request
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## 📄 License
 
-## Contact
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [VirusTotal](https://www.virustotal.com) for their comprehensive threat intelligence API
+- [HuggingFace](https://huggingface.co) for the [malware-url-detect](https://huggingface.co/elftsdmr/malware-url-detect) model
+- [Vercel](https://vercel.com) for hosting and deployment
+
+## 📧 Contact
 
 Aman Thanvi - contact@amanthanvi.com | aman_thanvi@outlook.com
 
