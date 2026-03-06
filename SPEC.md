@@ -4,7 +4,7 @@
 
 - Status update: the restart is implemented, verified locally, and deployed to Vercel preview and production.
 - Rationale: the audit confirmed meaningful drift between docs and code, including missing batch API support, no test harness, vulnerable production dependencies, missing metadata assets, and misleading error-to-threat behavior.
-- Toolchain decision: the rebuild targets `next@16.1.6`, `react@19.2.4`, and Node 22 LTS for engines and CI.
+- Toolchain decision: the rebuild targets `next@16.1.6`, `react@19.2.4`, and Node `22.x` for engines and CI so Vercel stays on the Node 22 major line without auto-upgrading to a future major.
 - Linting decision: use ESLint directly from npm scripts; do not use `next lint`.
 - Streaming decision: API responses stream `application/x-ndjson` over `fetch`, not SSE.
 - Framework decision: Next.js 16 deprecates `middleware.ts`, so request gating is implemented in `proxy.ts`.
