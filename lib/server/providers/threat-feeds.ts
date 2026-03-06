@@ -1,0 +1,88 @@
+import { getEnv } from "@/lib/config/env";
+import type { ThreatFeedsData } from "@/lib/domain/types";
+import { simplifyUrlForMatching } from "@/lib/domain/url";
+import { fetchWithTimeout } from "@/lib/server/http";
+import { checkOpenPhishFeed } from "@/lib/server/providers/openphish-feed";
+
+export async function runThreatFeedsProvider(
+  url: string,
+): Promise<ThreatFeedsData> {
+  const warnings: string[] = [];
+  const matches: ThreatFeedsData["matches"] = [];
+
+  const [urlhausResult, openPhishResult] = await Promise.allSettled([
+    checkUrlhaus(url),
+    checkOpenPhishFeed(url),
+  ]);
+
+  if (urlhausResult.status === "fulfilled" && urlhausResult.value) {
+    matches.push(urlhausResult.value);
+  }
+
+  if (openPhishResult.status === "fulfilled" && openPhishResult.value) {
+    matches.push(openPhishResult.value);
+  }
+
+  if (urlhausResult.status === "rejected") {
+    warnings.push(
+      urlhausResult.reason instanceof Error
+        ? urlhausResult.reason.message
+        : "URLhaus lookup failed.",
+    );
+  }
+
+  if (openPhishResult.status === "rejected") {
+    warnings.push(
+      openPhishResult.reason instanceof Error
+        ? openPhishResult.reason.message
+        : "OpenPhish lookup failed.",
+    );
+  }
+
+  if (matches.length === 0 && warnings.length === 2) {
+    throw new Error("All threat-feed lookups failed.");
+  }
+
+  return {
+    checkedAt: new Date().toISOString(),
+    matches,
+    warnings,
+  };
+}
+
+async function checkUrlhaus(url: string) {
+  const env = getEnv();
+  const response = await fetchWithTimeout(
+    "https://urlhaus-api.abuse.ch/v1/url/",
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/x-www-form-urlencoded",
+        ...(env.URLHAUS_AUTH_KEY ? { "Auth-Key": env.URLHAUS_AUTH_KEY } : {}),
+      },
+      body: new URLSearchParams({ url }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`URLhaus lookup failed with status ${response.status}.`);
+  }
+
+  const payload = (await response.json()) as {
+    query_status?: string;
+    url_status?: string;
+    threat?: string;
+  };
+
+  if (payload.query_status !== "ok") {
+    return null;
+  }
+
+  return {
+    feed: "urlhaus" as const,
+    matchedUrl: simplifyUrlForMatching(url),
+    detail: payload.threat ?? payload.url_status ?? "listed in URLhaus",
+    confidence: "high" as const,
+  };
+}

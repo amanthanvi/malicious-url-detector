@@ -1,0 +1,174 @@
+# PLAN.md
+
+Living execution plan for the Malicious URL Detector v2 restart. This file now reflects the implemented and deployed ship state reached on 2026-03-06.
+
+## Status Legend
+
+- `[ ]` not started
+- `[-]` in progress
+- `[x]` completed
+- `[!]` blocked / needs revisit
+
+## Current Snapshot
+
+- Date: 2026-03-06
+- Execution status: `P13 completed and deployed`
+- Platform:
+  - Next.js `16.1.6`
+  - React `19.2.x`
+  - Node `22 LTS`
+  - NDJSON streaming over `fetch`
+- Architecture:
+  - `proxy.ts` enforces rate limits on `/api/analyze` request paths.
+  - Node.js route handlers orchestrate eight signals and stream normalized results.
+  - IndexedDB stores client-only history, export state, and re-scan sources.
+  - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
+- Intentional baseline decision:
+  - `package-lock.json` drift from the restart bootstrap was kept intentionally because the project was fully re-scaffolded onto the new dependency graph.
+
+## Verification Summary
+
+Completed local verification:
+
+- `npm run lint`
+- `npm run format -- --check .`
+- `npm run typecheck`
+- `npm run test:unit -- --run`
+- `npm run test:integration -- --run`
+- `npm run test:e2e -- --grep @smoke`
+- `npm run build`
+- `npm audit --omit=dev`
+- `npm run lighthouse`
+
+Completed deployment verification:
+
+- `npx vercel env ls --scope aman-thanvis-projects`
+- `npx vercel inspect https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
+- `npx vercel inspect https://malicious-url-detector-gmt0z5cv5-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
+- `HEAD https://malicious-url-detector-phi.vercel.app`
+- `POST https://malicious-url-detector-phi.vercel.app/api/analyze`
+
+Observed results:
+
+- Unit tests: `5` files passed, `12` tests passed.
+- Integration tests: single-stream and batch-stream route coverage passed.
+- Playwright smoke: single-scan, batch-scan, accessibility, and keyboard navigation checks passed.
+- Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- Security audit: `0` production vulnerabilities reported.
+- Lighthouse:
+  - Performance `0.99`
+  - Accessibility `1.00`
+  - Best Practices `0.96`
+  - SEO `1.00`
+- Vercel preview deployment: `Ready` at `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
+- Vercel production deployment: `Ready` at `https://malicious-url-detector-phi.vercel.app`
+- Public production API smoke: `POST /api/analyze` returned NDJSON `200`, streamed all expected events, and produced a safe verdict for `https://example.com/`
+- Post-key-sync production smoke: Google Safe Browsing resolved successfully, URLhaus stopped warning once the `Auth-Key` header fix shipped, and the threat-feed source set was simplified to URLhaus plus the OpenPhish community feed.
+
+## Work Items
+
+### P01 Reset the baseline and living docs
+
+- [x] Create `PLAN.md` and keep it current.
+- [x] Replace stale project-local `AGENTS.md`.
+- [x] Update `SPEC.md` with audit-resolved implementation notes and feasibility corrections.
+- [x] Keep the regenerated `package-lock.json` as part of the intentional restart scaffold.
+
+### P02 Re-scaffold the platform and scripts
+
+- [x] Upgrade to current stable Next/React stack and pin Node 22 engines.
+- [x] Reduce direct dependencies to the set used by the rebuilt app.
+- [x] Replace `next lint` with ESLint CLI.
+- [x] Add `typecheck`, `format`, and fresh metadata/static asset plumbing.
+
+### P03 Add the harness first
+
+- [x] Add Vitest for unit and integration coverage.
+- [x] Add MSW for network-backed integration tests.
+- [x] Add Playwright for E2E smoke and UI regressions.
+- [x] Add Lighthouse CI for performance/accessibility gatekeeping.
+
+### P04 Define the core domain and config contracts
+
+- [x] Centralize env validation and runtime config.
+- [x] Define normalized URL parsing and private-network rejection.
+- [x] Define result, signal, event, and verdict types.
+- [x] Define cache keys, log redaction, and API error contracts.
+
+### P05 Implement fast local enrichment signals
+
+- [x] DNS enrichment.
+- [x] TLS/certificate enrichment.
+- [x] Redirect chain enrichment.
+- [x] RDAP-backed registration enrichment behind the public `whois` signal name.
+
+### P06 Implement external threat intel and classifier adapters
+
+- [x] VirusTotal adapter.
+- [x] Google Safe Browsing adapter.
+- [x] URLhaus adapter.
+- [x] OpenPhish cached feed ingestion.
+- [x] Remove the deprecated PhishTank path and standardize on the OpenPhish community feed.
+- [x] Hosted Hugging Face classifier plus local lexical scorer ensemble.
+
+### P07 Build orchestration and streaming APIs
+
+- [x] Shared orchestration service for all eight signals.
+- [x] `POST /api/analyze` NDJSON stream.
+- [x] `POST /api/analyze/batch` NDJSON stream with concurrency cap of `3`.
+- [x] Cache-aware short-circuit path with fresh scan IDs on cached hits.
+- [x] Final verdict logic that never fabricates threat info on total failure.
+
+### P08 Add rate limiting, cache policy, and observability
+
+- [x] Proxy-based IP rate limiting with Upstash when configured.
+- [x] In-memory fallback when shared Redis is unavailable.
+- [x] Structured safe logging and timing metadata.
+- [x] Documented cache behavior in code and living docs.
+
+### P09 Build the design system and app shell
+
+- [x] Distinct visual direction and theme tokens.
+- [x] Responsive app shell and navigation.
+- [x] Metadata, icon, OG image, robots, and sitemap routes.
+- [x] Accessible primitives and loading/error skeletons.
+
+### P10 Ship the single-scan experience
+
+- [x] Streamed single-scan UI.
+- [x] Summary / Full Report toggle.
+- [x] Per-signal loading and retry states.
+- [x] Clear differentiation between provider failure and malicious verdicts.
+
+### P11 Ship batch, history, export, and share
+
+- [x] Batch streaming UI and drill-down details.
+- [x] IndexedDB history with search, filter, and re-scan.
+- [x] CSV/JSON export for batch and history.
+- [x] Optional client-only share links.
+
+### P12 Finish security, accessibility, and content hardening
+
+- [x] Remove dependency vulnerabilities.
+- [x] Add CSP-safe rendering and security headers.
+- [x] Refresh educational content into the side-panel guidance copy.
+- [x] Run automated accessibility checks plus keyboard smoke tests.
+
+### P13 Final integration and ship gate
+
+- [x] Run the full local CI-equivalent chain.
+- [x] Reconcile `PLAN.md`, `SPEC.md`, `AGENTS.md`, and user docs.
+- [x] Validate actual preview and production deployments on Vercel.
+
+## Notes / Discoveries
+
+- 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
+- 2026-03-06: Rate limiting must not import the full analysis orchestrator, or the request proxy bundle will inherit Node-only signal modules and fail build-time edge checks.
+- 2026-03-06: A fail-closed production proxy made the first live deploy unusable without Upstash credentials; the shipped behavior now degrades to process-local rate limiting and logs a warning instead.
+- 2026-03-06: Metadata routes must be owned by the app (`/icon`, `/opengraph-image`, `/robots.txt`, `/sitemap.xml`) or build/runtime drift resurfaces quickly.
+- 2026-03-06: Hugging Face retired `api-inference.huggingface.co`; the hosted classifier now uses `router.huggingface.co/hf-inference/models/...` with `DunnBC22/codebert-base-Malicious_URLs`.
+- 2026-03-06: Lighthouse on this repo required the same explicit host-bound production start command that succeeded manually: `npm run start -- --hostname 127.0.0.1 --port 3000`.
+- 2026-03-06: Vercel preview deployments in this project return `401` to anonymous HTTP requests; `vercel inspect` is the reliable verification path for preview readiness.
+- 2026-03-06: Vercel KV exposes Upstash-compatible REST credentials as `KV_REST_API_URL` and `KV_REST_API_TOKEN`; the deployed rate-limit config now honors those aliases in addition to `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+- 2026-03-06: URLhaus authorization is strict about the documented header spelling: `Auth-Key` works and `AuthKey` returns `401 Unauthorized`.
+- 2026-03-06: OpenPhish's free community TXT feed is sufficient for the shipped threat-feed role here, so the PhishTank integration was removed instead of carrying a flaky Cloudflare-challenged path.

@@ -1,40 +1,51 @@
 {
   "name": "malicious-url-detector",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier",
+    "test:unit": "vitest --config vitest.unit.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:e2e": "npm run build && node ./scripts/run-e2e.mjs",
+    "lighthouse": "lhci autorun --config=./lighthouserc.json"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.17",
-    "@heroicons/react": "^2.0.18",
-    "@vercel/analytics": "^1.1.1",
-    "axios": "^1.6.2",
-    "clsx": "^2.0.0",
-    "framer-motion": "^10.16.16",
-    "lru-cache": "^10.1.0",
-    "next": "14.1.0",
-    "next-themes": "^0.2.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-hot-toast": "^2.4.1",
-    "react-markdown": "^9.0.1",
-    "recharts": "^2.10.3",
-    "sharp": "^0.33.1",
-    "zustand": "^4.4.7"
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.35.0",
+    "idb": "^8.0.3",
+    "lucide-react": "^0.577.0",
+    "next": "16.1.6",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "14.1.0",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.3"
+    "@axe-core/playwright": "^4.11.1",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^25.3.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "16.1.6",
+    "msw": "^2.12.10",
+    "postcss": "^8.5.8",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

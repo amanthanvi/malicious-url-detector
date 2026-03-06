@@ -1,51 +1,48 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import { ThemeProvider } from '@/app/components/ThemeProvider'
-import { Toaster } from 'react-hot-toast'
-import { Analytics } from '@vercel/analytics/react'
+import type { Metadata } from "next";
+
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import "@/app/globals.css";
+
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://malicious-url-detector.vercel.app'),
-  title: 'URL Threat Analyzer - Advanced Malicious URL Detection',
-  description: 'Analyze URLs for potential security threats using advanced AI and threat intelligence. Protect yourself from phishing, malware, and malicious websites.',
-  keywords: 'url security, malware detection, phishing protection, cybersecurity, threat analysis',
+  metadataBase: new URL(siteUrl),
+  title: "Malicious URL Detector v2",
+  description:
+    "Stream VirusTotal, Safe Browsing, TLS, DNS, redirect, registration, threat-feed, and ML signals into one modern malicious URL report.",
   openGraph: {
-    title: 'URL Threat Analyzer',
-    description: 'Advanced malicious URL detection powered by AI',
-    type: 'website',
-    images: ['/og-image.png'],
+    title: "Malicious URL Detector v2",
+    description:
+      "Streamed multi-signal malicious URL analysis for suspicious links.",
+    url: siteUrl,
+    siteName: "Malicious URL Detector",
+    images: ["/opengraph-image"],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'URL Threat Analyzer',
-    description: 'Advanced malicious URL detection powered by AI',
+    card: "summary_large_image",
+    title: "Malicious URL Detector v2",
+    description:
+      "Streamed multi-signal malicious URL analysis for suspicious links.",
+    images: ["/opengraph-image"],
   },
-}
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans">
+      <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <SiteHeader />
           {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              className: '',
-              style: {
-                background: '#1f2937',
-                color: '#fff',
-                borderRadius: '0.5rem',
-              },
-            }}
-          />
-          <Analytics />
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

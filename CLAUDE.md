@@ -9,6 +9,7 @@ This is a modern URL threat analyzer web application built with Next.js 14, Type
 ## Common Development Commands
 
 ### Setup and Running
+
 ```bash
 # Install dependencies
 npm install
@@ -31,6 +32,7 @@ npm run lint
 ```
 
 ### Development Notes
+
 - The application runs on `http://localhost:3000` by default
 - Uses Next.js App Router with TypeScript
 - Vercel-optimized for deployment
@@ -39,6 +41,7 @@ npm run lint
 ## Architecture and Code Structure
 
 ### Application Pattern
+
 - **Next.js 14 App Router Architecture**:
   - API Routes: `/app/api/analyze/route.ts` for backend logic
   - Components: Modular React components in `/app/components/`
@@ -88,6 +91,7 @@ npm run lint
 ## Environment Configuration
 
 Required environment variables in `.env.local`:
+
 ```
 VIRUSTOTAL_API_KEY=your_virustotal_api_key
 HUGGINGFACE_API_KEY=your_huggingface_api_key

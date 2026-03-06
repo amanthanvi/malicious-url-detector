@@ -1,158 +1,130 @@
-# URL Threat Analyzer
+# Malicious URL Detector v2
 
-A modern, AI-powered web application for analyzing URLs and detecting potential security threats. Built with Next.js 14, TypeScript, and Tailwind CSS, featuring real-time threat analysis using VirusTotal and HuggingFace APIs.
+Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 App Router. It streams eight signals over NDJSON, supports batch scans, keeps local IndexedDB history, exports CSV/JSON, offers client-only share links, and hardens the app with proxy-based rate limiting plus production security headers.
 
-## ✨ Features
+## Features
 
-### Core Functionality
-- **Real-time URL Analysis**: Instant threat detection using multiple security services
-- **Dual-Engine Detection**: Combines VirusTotal's comprehensive database with AI-powered analysis
-- **Batch Analysis**: Analyze multiple URLs simultaneously (up to 10 per batch)
-- **Smart Caching**: 15-minute result caching to reduce API calls
-- **URL History**: Track and re-analyze previously checked URLs
+- Streamed single-URL analysis with `scan_started`, `signal_result`, `scan_complete`, and `scan_error` NDJSON events.
+- Batch analysis for up to 10 URLs with a concurrency cap of 3 and per-URL completion streaming.
+- Eight normalized signals on every result: `virusTotal`, `mlEnsemble`, `googleSafeBrowsing`, `threatFeeds`, `ssl`, `whois`, `dns`, and `redirectChain`.
+- Client-only history in IndexedDB with search, verdict filters, export, and re-scan support.
+- Summary and Full Report modes, per-signal retry affordances, theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
+- Upstash-backed production rate limiting with a process-local fallback when Redis is not configured.
 
-### Enhanced User Experience
-- **Modern UI/UX**: Beautiful, responsive interface with smooth animations
-- **Dark Mode**: Full dark mode support with system preference detection
-- **Educational Content**: Learn about phishing, malware, and URL safety
-- **Detailed Results**: Comprehensive threat information with actionable recommendations
-- **Export Functionality**: Download batch analysis results as CSV
+## Stack
 
-### Technical Features
-- **Progressive Web App**: Optimized for all devices
-- **Server-Side Rendering**: Fast initial load with Next.js
-- **Type Safety**: Full TypeScript implementation
-- **API Routes**: Secure backend API with proper error handling
-- **Vercel-Ready**: Optimized for deployment on Vercel
+- Next.js `16.1.6`
+- React `19.2.0`
+- TypeScript `5.9`
+- Tailwind CSS `4`
+- Vitest + MSW
+- Playwright + axe-core
+- Lighthouse CI
 
-## 🚀 Getting Started
+## Prerequisites
 
-### Prerequisites
-- Node.js 18+ and npm
-- VirusTotal API key
-- HuggingFace API key
+- Node.js `22.x`
+- npm
 
-### Installation
+Optional provider environment variables:
 
-1. Clone the repository:
-```bash
-git clone https://github.com/amanthanvi/malicious-url-detector.git
-cd malicious-url-detector
+```env
+VIRUSTOTAL_API_KEY=
+GOOGLE_SAFE_BROWSING_API_KEY=
+HUGGINGFACE_API_KEY=
+URLHAUS_AUTH_KEY=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
+OPENPHISH_FEED_URL=https://openphish.com/feed.txt
+NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
 ```
 
-2. Install dependencies:
+The app still functions in a degraded mode without third-party keys; local enrichment signals continue to run and provider failures are surfaced explicitly instead of being mislabeled as malicious findings.
+Rate limiting accepts either `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` or the Vercel KV aliases `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
+Threat-feed coverage uses the OpenPhish community TXT feed plus URLhaus. The OpenPhish integration is feed-backed and cached, not a paid database/API lookup.
+
+## Development
+
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-Create a `.env.local` file in the root directory:
-```env
-VIRUSTOTAL_API_KEY=your_virustotal_api_key
-HUGGINGFACE_API_KEY=your_huggingface_api_key
-```
+Start the app:
 
-4. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## 🔧 Available Scripts
+For browser automation or local audits, the proven host-bound form is:
 
 ```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
+npm run dev -- --hostname 127.0.0.1 --port 3000
 ```
 
-## 🌐 Deployment
+## Scripts
 
-### Deploy to Vercel
-
-The easiest way to deploy is using Vercel:
-
-1. Push your code to GitHub
-2. Import your repository on [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard:
-   - `VIRUSTOTAL_API_KEY`
-   - `HUGGINGFACE_API_KEY`
-4. Deploy!
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/amanthanvi/malicious-url-detector)
-
-## 🛠️ Technology Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Headless UI, Hero Icons
-- **Animations**: Framer Motion
-- **State Management**: Zustand
-- **API Integration**: Axios
-- **Theme**: next-themes
-- **Analytics**: Vercel Analytics
-
-## 📚 API Documentation
-
-### POST /api/analyze
-
-Analyzes a single URL for threats.
-
-**Request Body:**
-```json
-{
-  "url": "https://example.com"
-}
+```bash
+npm run lint
+npm run format -- --check .
+npm run typecheck
+npm run test:unit -- --run
+npm run test:integration -- --run
+npm run test:e2e -- --grep @smoke
+npm run build
+npm audit --omit=dev
+npm run lighthouse
 ```
 
-**Response:**
-```json
-{
-  "url": "https://example.com",
-  "timestamp": "2024-01-01T00:00:00Z",
-  "status": "safe|suspicious|malicious|error",
-  "summary": "Analysis summary",
-  "details": {
-    "virusTotal": { ... },
-    "huggingFace": { ... }
-  },
-  "threatInfo": { ... }
-}
+## Architecture
+
+- `app/api/analyze/route.ts`: single-scan NDJSON API.
+- `app/api/analyze/batch/route.ts`: batch NDJSON API.
+- `proxy.ts`: request gating and rate limiting for `/api/analyze`.
+- `lib/server/`: orchestration, provider adapters, local signal collectors, cache, logging, rate limiting, and stream helpers.
+- `components/scan/`: main analyzer UI, signal cards, history, and batch presentation.
+- `hooks/`: NDJSON client readers and IndexedDB-backed history hooks.
+- `tests/`: unit, integration, E2E smoke, accessibility, and keyboard checks.
+
+## Verification Snapshot
+
+The current rebuilt state has been verified locally with:
+
+```bash
+npm run lint
+npm run format -- --check .
+npm run typecheck
+npm run test:unit -- --run
+npm run test:integration -- --run
+npm run test:e2e -- --grep @smoke
+npm run build
+npm audit --omit=dev
+npm run lighthouse
 ```
 
-## 🔐 Security Considerations
+Latest Lighthouse scores from `.lighthouseci/lhr-*.json`:
 
-- API keys are stored as environment variables
-- Input validation on all user inputs
-- Rate limiting implemented via caching
-- No user data is permanently stored
-- HTTPS enforced in production
+- Performance: `0.99`
+- Accessibility: `1.00`
+- Best Practices: `0.96`
+- SEO: `1.00`
 
-## 🤝 Contributing
+Deployment verification completed on Vercel:
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- Preview: `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
+- Production: `https://malicious-url-detector-phi.vercel.app`
+- Public production smoke: `POST /api/analyze` returned streamed NDJSON `200`
+- Current live provider state: Google Safe Browsing succeeds, URLhaus succeeds with the documented `Auth-Key` header, and OpenPhish is sourced from the free community feed.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Deployment
 
-## 📄 License
+The app is configured for Vercel with:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- `npm install`
+- `npm run build`
+- `npm run dev`
 
-## 🙏 Acknowledgments
-
-- [VirusTotal](https://www.virustotal.com) for their comprehensive threat intelligence API
-- [HuggingFace](https://huggingface.co) for the [final-complete-malicious-url-model](https://huggingface.co/r3ddkahili/final-complete-malicious-url-model)
-- [Vercel](https://vercel.com) for hosting and deployment
-
-## 📧 Contact
-
-Aman Thanvi - contact@amanthanvi.com | aman_thanvi@outlook.com
-
-Project Link: [https://github.com/amanthanvi/malicious-url-detector](https://github.com/amanthanvi/malicious-url-detector)
+Local production behavior has been verified with `npm run build` and `npm run start -- --hostname 127.0.0.1 --port 3000`, and the current build has also been deployed on Vercel preview and production. Preview requests are protection-gated in this project, so `vercel inspect` is the reliable readiness check when anonymous HTTP requests return `401`.

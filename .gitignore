@@ -7,6 +7,9 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+.lighthouseci
 
 # next.js
 /.next/
@@ -34,6 +37,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# lint / format
+.eslintcache
 
 # flask backup
 /flask-backup
