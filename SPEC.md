@@ -485,10 +485,10 @@ Then all content is readable and interactive without horizontal scrolling
 
 ### Risks
 
-| Risk                                   | Likelihood | Impact | Mitigation                                                                       |
-| -------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------------- |
-| VT free tier quota exhausted           | Medium     | High   | Rate limiting + caching + partial-failure-safe verdicts                          |
-| Hugging Face hosted inference drifts   | Medium     | Medium | Keep the lexical scorer as a local fallback and surface hosted-model errors      |
-| RDAP source instability                | Medium     | Medium | Treat registration data as one signal, not a hard requirement for completion     |
-| Upstash credentials missing in deploy  | Medium     | Medium | Process-local fallback keeps the app usable, but shared rate-limit state is lost |
-| Real preview environment drift         | Low        | Medium | Preview and production deployments were both validated on Vercel                 |
+| Risk                                  | Likelihood | Impact | Mitigation                                                                       |
+| ------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------------- |
+| VT free tier quota exhausted          | Medium     | High   | Rate limiting + caching + partial-failure-safe verdicts                          |
+| Hugging Face hosted inference drifts  | Medium     | Medium | Keep the lexical scorer as a local fallback and surface hosted-model errors      |
+| RDAP source instability               | Medium     | Medium | Treat registration data as one signal, not a hard requirement for completion     |
+| Upstash credentials missing in deploy | Medium     | Medium | Process-local fallback keeps the app usable, but shared rate-limit state is lost |
+| Real preview environment drift        | Low        | Medium | Preview and production deployments were both validated on Vercel                 |
