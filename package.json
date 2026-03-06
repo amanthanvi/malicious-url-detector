@@ -15,7 +15,7 @@
     "test:unit": "vitest --config vitest.unit.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
     "test:e2e": "npm run build && node ./scripts/run-e2e.mjs",
-    "lighthouse": "lhci autorun --config=./lighthouserc.json"
+    "lighthouse": "node ./scripts/run-lighthouse.mjs"
   },
   "dependencies": {
     "@upstash/ratelimit": "^2.0.8",
@@ -32,14 +32,15 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.38.0",
     "eslint-config-next": "16.1.6",
+    "lighthouse": "^13.0.3",
     "msw": "^2.12.10",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",

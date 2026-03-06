@@ -16,7 +16,11 @@
   - Accept either `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` or Vercel KV `KV_REST_API_URL` / `KV_REST_API_TOKEN` for shared Redis configuration.
   - URLhaus authorization must use the documented `Auth-Key` header.
   - Use the free OpenPhish community TXT feed for phishing-feed coverage instead of the removed PhishTank path.
+- Runtime decision:
+  - Redirect tracing should not fail on invalid certificate chains that are already reported by the SSL signal; trace redirects through header-only Node HTTP(S) requests with relaxed certificate validation.
 - Testing decision: harness-first is required; Vitest, MSW, Playwright, and Lighthouse land before large feature clusters.
+- Tooling decision:
+  - Replace `@lhci/cli` with a direct `lighthouse` + `chrome-launcher` script so the verification path does not carry stale vulnerable transitive dependencies.
 - Security decision: ship CSP and related browser hardening headers from `next.config.ts` in production responses.
 - Verification note: local verification passed for lint, format, typecheck, unit, integration, E2E smoke, production build, audit, and Lighthouse, and Vercel preview/production deployments were verified with `vercel inspect` plus a public production API smoke.
 - Documentation decision: `PLAN.md` is the live execution tracker and must stay in sync with this spec.

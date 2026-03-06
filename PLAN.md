@@ -37,7 +37,7 @@ Completed local verification:
 - `npm run test:integration -- --run`
 - `npm run test:e2e -- --grep @smoke`
 - `npm run build`
-- `npm audit --omit=dev`
+- `npm audit`
 - `npm run lighthouse`
 
 Completed deployment verification:
@@ -50,11 +50,11 @@ Completed deployment verification:
 
 Observed results:
 
-- Unit tests: `5` files passed, `12` tests passed.
+- Unit tests: `7` files passed, `18` tests passed.
 - Integration tests: single-stream and batch-stream route coverage passed.
 - Playwright smoke: single-scan, batch-scan, accessibility, and keyboard navigation checks passed.
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
-- Security audit: `0` production vulnerabilities reported.
+- Security audit: `0` vulnerabilities reported across prod and dev dependencies.
 - Lighthouse:
   - Performance `0.99`
   - Accessibility `1.00`
@@ -64,6 +64,7 @@ Observed results:
 - Vercel production deployment: `Ready` at `https://malicious-url-detector-phi.vercel.app`
 - Public production API smoke: `POST /api/analyze` returned NDJSON `200`, streamed all expected events, and produced a safe verdict for `https://example.com/`
 - Post-key-sync production smoke: Google Safe Browsing resolved successfully, URLhaus stopped warning once the `Auth-Key` header fix shipped, and the threat-feed source set was simplified to URLhaus plus the OpenPhish community feed.
+- Local production smoke: `redirectChain` now returns `success` for `https://example.com/`, and the scan no longer reports a false partial failure from TLS chain validation.
 
 ## Work Items
 
@@ -168,7 +169,9 @@ Observed results:
 - 2026-03-06: Metadata routes must be owned by the app (`/icon`, `/opengraph-image`, `/robots.txt`, `/sitemap.xml`) or build/runtime drift resurfaces quickly.
 - 2026-03-06: Hugging Face retired `api-inference.huggingface.co`; the hosted classifier now uses `router.huggingface.co/hf-inference/models/...` with `DunnBC22/codebert-base-Malicious_URLs`.
 - 2026-03-06: Lighthouse on this repo required the same explicit host-bound production start command that succeeded manually: `npm run start -- --hostname 127.0.0.1 --port 3000`.
+- 2026-03-06: `@lhci/cli` carried the only remaining open advisories (`lodash` and `tmp` via old `inquirer`); replacing it with a direct `lighthouse` + `chrome-launcher` script brought `npm audit` back to zero.
 - 2026-03-06: Vercel preview deployments in this project return `401` to anonymous HTTP requests; `vercel inspect` is the reliable verification path for preview readiness.
 - 2026-03-06: Vercel KV exposes Upstash-compatible REST credentials as `KV_REST_API_URL` and `KV_REST_API_TOKEN`; the deployed rate-limit config now honors those aliases in addition to `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
 - 2026-03-06: URLhaus authorization is strict about the documented header spelling: `Auth-Key` works and `AuthKey` returns `401 Unauthorized`.
 - 2026-03-06: OpenPhish's free community TXT feed is sufficient for the shipped threat-feed role here, so the PhishTank integration was removed instead of carrying a flaky Cloudflare-challenged path.
+- 2026-03-06: Redirect tracing should not depend on fetch-level certificate trust, because SSL trust errors are already captured separately by the SSL signal; the shipped tracer now inspects headers through Node HTTP(S) requests with relaxed certificate validation.

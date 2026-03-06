@@ -36,7 +36,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 - E2E smoke: `npm run test:e2e -- --grep @smoke`
 - Build: `npm run build`
 - Lighthouse: `npm run lighthouse`
-- Security audit: `npm audit --omit=dev`
+- Security audit: `npm audit`
 
 ## Conventions
 
@@ -75,3 +75,5 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-06: Vercel KV exposes Upstash-compatible REST credentials as `KV_REST_API_URL` / `KV_REST_API_TOKEN`; the rate-limit config needs to honor those aliases.
 - 2026-03-06: URLhaus rejects `AuthKey`; use the documented `Auth-Key` header.
 - 2026-03-06: OpenPhish community feed is the supported free phishing-feed source here; the PhishTank path was removed after repeated Cloudflare challenge failures.
+- 2026-03-06: Redirect tracing should use a header-only Node HTTP(S) request with relaxed certificate validation, because SSL trust errors belong to the SSL signal and not to `redirectChain`.
+- 2026-03-06: `@lhci/cli` drags in vulnerable `lodash`/`tmp` transitive dependencies; use the direct `lighthouse` + `chrome-launcher` script path instead.

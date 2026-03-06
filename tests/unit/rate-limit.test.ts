@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  applyRateLimit,
-  getRedisRestConfig,
-} from "@/lib/server/rate-limit";
+import { applyRateLimit, getRedisRestConfig } from "@/lib/server/rate-limit";
 
 describe("applyRateLimit", () => {
   it("enforces the per-minute limit in development mode", async () => {

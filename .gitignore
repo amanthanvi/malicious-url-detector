@@ -21,6 +21,8 @@
 # misc
 .DS_Store
 *.pem
+!tests/fixtures/localhost-self-signed.key.pem
+!tests/fixtures/localhost-self-signed.cert.pem
 
 # debug
 npm-debug.log*

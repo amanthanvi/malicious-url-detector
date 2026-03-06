@@ -75,7 +75,7 @@ npm run test:unit -- --run
 npm run test:integration -- --run
 npm run test:e2e -- --grep @smoke
 npm run build
-npm audit --omit=dev
+npm audit
 npm run lighthouse
 ```
 
@@ -101,7 +101,7 @@ npm run test:unit -- --run
 npm run test:integration -- --run
 npm run test:e2e -- --grep @smoke
 npm run build
-npm audit --omit=dev
+npm audit
 npm run lighthouse
 ```
 
@@ -118,6 +118,8 @@ Deployment verification completed on Vercel:
 - Production: `https://malicious-url-detector-phi.vercel.app`
 - Public production smoke: `POST /api/analyze` returned streamed NDJSON `200`
 - Current live provider state: Google Safe Browsing succeeds, URLhaus succeeds with the documented `Auth-Key` header, and OpenPhish is sourced from the free community feed.
+- Redirect tracing is resilient to invalid upstream certificate chains and no longer causes a false partial failure for `https://example.com/`.
+- Full `npm audit` is clean after replacing the legacy Lighthouse CLI dependency chain with a script-backed `lighthouse` + `chrome-launcher` setup.
 
 ## Deployment
 
