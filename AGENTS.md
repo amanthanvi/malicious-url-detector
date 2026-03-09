@@ -12,6 +12,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 
 - Framework: Next.js App Router on the Node.js runtime.
 - UI: React client/server components with Tailwind CSS v4, selective shadcn/ui primitives, and `next-themes`.
+- Home route rendering is intentionally split: the page shell renders on the server, while smaller client islands handle scan orchestration, history hydration, and footer telemetry.
 - Request boundary: Next.js `proxy.ts` handles rate limiting for `/api/analyze` routes. Do not reintroduce deprecated `middleware.ts`.
 - API surface:
   - `POST /api/analyze` streams NDJSON events for a single scan.
@@ -82,3 +83,4 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-06: `@lhci/cli` drags in vulnerable `lodash`/`tmp` transitive dependencies; use the direct `lighthouse` + `chrome-launcher` script path instead.
 - 2026-03-09: The current UI is intentionally hybrid: branded `components/scrutinix/*` screens backed by selective shadcn/ui primitives, not a full rewrite onto generic shadcn layouts.
 - 2026-03-09: Next.js App Router no longer accepts `themeColor` in `metadata`; move it to the `viewport` export to avoid build warnings.
+- 2026-03-09: Keep IndexedDB history out of the root home-page runtime; the scan shell now renders server-first, and the history rail hydrates as its own client island.

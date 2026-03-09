@@ -86,7 +86,7 @@ npm run lighthouse
 - `app/api/analyze/batch/route.ts`: batch NDJSON API.
 - `proxy.ts`: request gating and rate limiting for `/api/analyze`.
 - `lib/server/`: orchestration, provider adapters, local signal collectors, cache, logging, rate limiting, and stream helpers.
-- `components/scrutinix/`: branded analyzer UI, signal cards, history, batch presentation, and app shell.
+- `components/scrutinix/`: branded analyzer UI, server-rendered shell components, and smaller client runtime islands for scan orchestration, history, and footer telemetry.
 - `components/ui/`: selective shadcn/ui primitives used for buttons, inputs, tabs, cards, badges, scroll areas, and notifications.
 - `hooks/`: NDJSON client readers and IndexedDB-backed history hooks.
 - `tests/`: unit, integration, E2E smoke, accessibility, and keyboard checks.
@@ -109,12 +109,12 @@ npm run lighthouse
 
 Latest Lighthouse scores from `.lighthouseci/lhr-*.json`:
 
-- Performance: `0.85`
+- Performance: `0.99`
 - Accessibility: `1.00`
 - Best Practices: `1.00`
 - SEO: `1.00`
 
-The current UI audit is clean on accessibility, best practices, and SEO. Performance remains below the original `0.90` target in the scripted mobile Lighthouse pass, with the remaining drag concentrated in initial client-side JavaScript.
+The current UI audit is clean across the scripted mobile Lighthouse pass, and the server-shell/client-island split restored the performance budget after the Scrutinix redesign work.
 
 Deployment verification completed on Vercel:
 

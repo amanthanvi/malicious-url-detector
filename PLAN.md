@@ -22,6 +22,7 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
   - `proxy.ts` enforces rate limits on `/api/analyze` request paths.
   - Node.js route handlers orchestrate eight signals and stream normalized results.
   - IndexedDB stores client-only history, export state, and re-scan sources.
+  - The home page now renders a server-first shell with smaller client islands for scan orchestration, history hydration, and footer telemetry to keep startup JavaScript down.
   - The UI now uses selective shadcn/ui primitives on top of the branded `components/scrutinix/*` surface, with dark/light theme tokens in `app/globals.css` and brand motion/effects in `app/scrutinix.css`.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
@@ -57,7 +58,7 @@ Observed results:
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
 - Security audit: `0` vulnerabilities reported across prod and dev dependencies.
 - Lighthouse:
-  - Performance `0.85`
+  - Performance `0.99`
   - Accessibility `1.00`
   - Best Practices `1.00`
   - SEO `1.00`
@@ -180,4 +181,4 @@ Observed results:
 - 2026-03-09: The shipped UI moved from ad-hoc control styling to selective shadcn/ui primitives (`Button`, `Input`, `Textarea`, `Tabs`, `Card`, `Badge`, `ScrollArea`, `sonner`) without discarding the custom Scrutinix hero, motion, or signal rendering.
 - 2026-03-09: Tailwind v4 theme tokens now live in `app/globals.css`, while `app/scrutinix.css` is reserved for the branded atmosphere, radar, marquee, and animation layer.
 - 2026-03-09: Next.js `themeColor` metadata must move to the `viewport` export on App Router pages, or builds emit warnings.
-- 2026-03-09: The current scripted Lighthouse run is still limited by initial client-side JavaScript on the home page; the repo now records the true local score (`0.85`) instead of the earlier pre-refactor snapshot.
+- 2026-03-09: Moving the home route to a server-rendered shell plus smaller client islands pushed the scripted local Lighthouse score back to `0.99` after the Scrutinix redesign had regressed it.

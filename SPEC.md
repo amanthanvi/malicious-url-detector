@@ -193,6 +193,7 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
                          │
 ┌──────────────────────────────────────────────────────┐
 │                  Client Experience                  │
+│  - server-rendered shell + smaller client islands   │
 │  - streamed result hero and signal cards            │
 │  - batch result table                               │
 │  - IndexedDB history, export, and re-scan           │
