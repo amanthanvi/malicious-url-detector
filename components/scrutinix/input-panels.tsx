@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 interface SingleInputProps {
   url: string;
   onUrlChange: (v: string) => void;
+  error?: string | null;
   streaming: boolean;
   onSubmit: () => void;
   onCancel: () => void;
@@ -22,6 +23,7 @@ interface SingleInputProps {
 export function SingleInput({
   url,
   onUrlChange,
+  error,
   streaming,
   onSubmit,
   onCancel,
@@ -35,14 +37,21 @@ export function SingleInput({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-        <span>Target Acquisition</span>
+        <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
+          Scan target
+        </h2>
         {streaming && (
           <span className="sx-pulse text-[var(--sx-suspicious)]">
             [SCANNING...]
           </span>
         )}
       </div>
-      <div className="flex items-center rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-3 focus-within:border-[var(--sx-active-accent)]">
+      <div
+        className="flex items-center rounded border bg-[var(--sx-surface)] px-3 focus-within:border-[var(--sx-accent)]"
+        style={{
+          borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
+        }}
+      >
         <label htmlFor="sx-url-input" className="sr-only">
           URL to analyze
         </label>
@@ -65,11 +74,18 @@ export function SingleInput({
             }
             if (e.key === "Enter" && !streaming) onSubmit();
           }}
-          placeholder="example.com, https://login.example.org"
+          placeholder="Paste a suspicious or unexpected URL"
           aria-label="URL to analyze"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "sx-url-error" : undefined}
           className="h-auto border-0 bg-transparent px-0 py-2.5 text-[var(--sx-accent)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
+      {error && (
+        <p id="sx-url-error" className="text-xs text-[var(--sx-suspicious)]">
+          {error}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
@@ -113,6 +129,7 @@ export function SingleInput({
 interface BatchInputProps {
   value: string;
   onChange: (v: string) => void;
+  error?: string | null;
   streaming: boolean;
   onSubmit: () => void;
   onCancel: () => void;
@@ -124,6 +141,7 @@ interface BatchInputProps {
 export function BatchInput({
   value,
   onChange,
+  error,
   streaming,
   onSubmit,
   onCancel,
@@ -144,18 +162,29 @@ export function BatchInput({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-        <span>Batch -- One URL per line (max 10, scans 3 at a time)</span>
+        <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
+          Batch queue
+        </h2>
         {urlCount > 0 && (
-          <span className="text-[var(--sx-info)]">
+          <span className="rounded-full border border-[var(--sx-border)] px-2 py-1 text-[11px] text-[var(--sx-info)]">
             {urlCount} URL{urlCount !== 1 ? "s" : ""}
           </span>
         )}
       </div>
+      <p className="text-xs text-[var(--sx-text-muted)]">
+        One URL per line, up to 10 at a time. Scrutinix processes 3 in parallel
+        and keeps each URL isolated if another one fails.
+      </p>
       <label htmlFor="sx-batch-input" className="sr-only">
         URLs to analyze (one per line)
       </label>
       {/* Terminal-chrome wrapper for batch textarea */}
-      <div className="rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] focus-within:border-[var(--sx-active-accent)]">
+      <div
+        className="rounded border bg-[var(--sx-surface)] focus-within:border-[var(--sx-accent)]"
+        style={{
+          borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
+        }}
+      >
         <div className="flex items-start px-3 pt-2.5">
           <span
             className="mt-0.5 mr-2 shrink-0 text-sm text-[var(--sx-accent)]"
@@ -173,15 +202,23 @@ export function BatchInput({
                 onCancel();
                 return;
               }
-              if (e.key === "Enter" && e.metaKey && !streaming) onSubmit();
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !streaming)
+                onSubmit();
             }}
             rows={5}
             placeholder={"https://example.com\nhttps://malicious.test"}
             aria-label="URLs to analyze, one per line"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "sx-batch-error" : undefined}
             className="min-h-0 resize-none border-0 bg-transparent px-0 pb-2.5 text-[var(--sx-accent)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
       </div>
+      {error && (
+        <p id="sx-batch-error" className="text-xs text-[var(--sx-suspicious)]">
+          {error}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"

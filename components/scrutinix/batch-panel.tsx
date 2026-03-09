@@ -7,7 +7,7 @@ import type { AnalysisResult } from "@/lib/domain/types";
 import { verdictColor } from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BatchItem {
@@ -34,11 +34,12 @@ export function BatchPanel({
     return (
       <Card className="border-dashed">
         <CardContent className="px-6 py-8 text-center">
-          <p className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
+          <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
             Batch results will appear here
-          </p>
-          <p className="mt-2 text-xs text-[var(--sx-text-muted)]">
-            Enter URLs above and start a batch scan.
+          </h2>
+          <p className="mt-2 text-sm text-[var(--sx-text-muted)]">
+            Queue multiple URLs, stream each result independently, and inspect
+            any finished row without losing the rest of the batch.
           </p>
         </CardContent>
       </Card>
@@ -53,9 +54,9 @@ export function BatchPanel({
       <Card>
         <CardHeader className="gap-3 border-b border-[var(--sx-border)] py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
+            <h2 className="sx-font-sans text-xs font-semibold tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
               Batch Stream -- {results.length}/{items.length} Complete
-            </CardTitle>
+            </h2>
             <Badge variant={isStreaming ? "suspicious" : "safe"}>
               {isStreaming ? "In Progress" : "Complete"}
             </Badge>
@@ -115,10 +116,18 @@ export function BatchPanel({
                       <td className="px-4 py-2">
                         <Badge
                           variant={
-                            item.status === "complete" ? "safe" : "suspicious"
+                            item.status === "complete"
+                              ? item.result?.verdict === "error"
+                                ? "error"
+                                : "safe"
+                              : "suspicious"
                           }
                         >
-                          {item.status === "complete" ? "Done" : "Wait"}
+                          {item.status === "complete"
+                            ? item.result?.verdict === "error"
+                              ? "Error"
+                              : "Done"
+                            : "Wait"}
                         </Badge>
                       </td>
                       <td className="px-4 py-2">

@@ -13,6 +13,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 - Framework: Next.js App Router on the Node.js runtime.
 - UI: React client/server components with Tailwind CSS v4, selective shadcn/ui primitives, and `next-themes`.
 - Home route rendering is intentionally split: the page shell renders on the server, while smaller client islands handle scan orchestration, history hydration, and footer telemetry.
+- The public site includes an onboarding/trust panel on `/` plus dedicated `/about` and `/privacy` routes; keep those aligned with actual logging, retention, and scoring behavior.
 - Request boundary: Next.js `proxy.ts` handles rate limiting for `/api/analyze` routes. Do not reintroduce deprecated `middleware.ts`.
 - API surface:
   - `POST /api/analyze` streams NDJSON events for a single scan.
@@ -87,3 +88,4 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-09: Deferring the history rail behind idle or first-interaction hooks looked promising on paper but regressed the scripted Lighthouse score from `0.99` to `0.92`; keep the current eager history island unless a future chunk-analysis proves a net win.
 - 2026-03-09: The SSL signal can be technically correct while the verdict still understates it; keep invalid or untrusted certificates weighted high enough to move the overall verdict into at least the suspicious band.
 - 2026-03-09: Clean verdicts can still look overconfident when a primary reputation source times out; cap safe-result confidence whenever VirusTotal, Google Safe Browsing, or threat-feed coverage fails to complete.
+- 2026-03-09: Tailwind arbitrary text-color utilities with raw CSS vars can be misleading on critical CTAs; prefer an explicit color utility or inline style when contrast correctness matters.

@@ -7,7 +7,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "sx-btn-press sx-font-sans inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-semibold tracking-[0.14em] uppercase transition-all outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--sx-active-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "sx-btn-press sx-font-sans inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-xs font-semibold tracking-[0.14em] uppercase transition-all outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--sx-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
       variant: {
@@ -25,9 +25,9 @@ const buttonVariants = cva(
         view: "border border-transparent bg-transparent text-[var(--sx-text-muted)] data-[state=active]:bg-[var(--sx-active-accent)] data-[state=active]:text-[var(--sx-accent-fg)] hover:text-[var(--sx-text)]",
       },
       size: {
-        default: "px-4 py-2",
-        sm: "px-2.5 py-1.5 text-[11px]",
-        icon: "h-9 w-9 px-0 py-0",
+        default: "min-h-11 px-4 py-2.5",
+        sm: "min-h-11 px-3 py-2 text-[11px]",
+        icon: "h-11 w-11 px-0 py-0",
       },
     },
     defaultVariants: {

@@ -88,7 +88,7 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 
 **Flow 1: Single URL Scan**
 
-1. User lands on home page with prominent URL input field
+1. User lands on home page with a prominent URL input field, a short value proposition, and trust/privacy context
 2. Pastes URL, client-side validation, submits
 3. Streaming results appear: verdict first, then enrichment signals populate as they resolve
 4. Default: Summary view (verdict + top 3 signals). Toggle to Full Report for all data
@@ -98,7 +98,7 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 
 1. User switches to Batch tab with textarea for multiple URLs (newline-separated, max 10)
 2. Submits: all URLs process concurrently (with concurrency limit)
-3. Results stream in as each URL completes with summary grid showing status per URL
+3. Results stream in as each URL completes with summary grid showing status per URL, and one failed URL does not abort the rest of the batch
 4. Click any URL to expand its full result
 5. Export all results as CSV
 
@@ -107,16 +107,16 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 1. Previous scans stored in IndexedDB (client-side)
 2. History panel shows recent scans with status badges
 3. Click to view cached result, re-scan button for fresh analysis
-4. Export history as CSV or JSON
+4. Export history as CSV or JSON, or undo a local clear immediately from the history rail
 
 ### 2.3 UX states checklist
 
 - **Loading/streaming:** Skeleton cards per enrichment source. Each card populates independently as its API resolves. Progress indicator shows which sources are still pending
-- **Empty:** Clean landing state with URL input, brief description of what the tool does, example URLs to try
+- **Empty:** Clean landing state with URL input, brief description of what the tool does, scanner jump-off controls, and links to privacy/methodology context
 - **Error (partial):** Failed or non-applicable sources show "failed", "caveat", or "n/a" state with the reason surfaced inline. Verdict is computed from available data, safe-result confidence is capped when primary reputation coverage is missing, and the user can rerun the full scan from the primary controls
 - **Error (total):** All sources failed — show error message with "Retry All" button and suggestion to check network
 - **Offline/degraded:** N/A (server-side tool, requires network). Client-side history remains accessible offline via IndexedDB
-- **Accessibility:** WCAG 2.1 AA compliance. Semantic HTML, ARIA labels on interactive elements, keyboard navigable, sufficient color contrast, screen reader friendly status announcements
+- **Accessibility:** WCAG 2.1 AA compliance. Semantic HTML, ARIA labels on interactive elements, skip-to-content navigation, 44x44 touch targets, sufficient color contrast, stable focus indicators, and screen reader friendly status announcements
 
 ### 2.4 View modes
 
@@ -146,20 +146,21 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 - **FR-12** MUST provide Summary / Full Report view toggle
 - **FR-13** MUST show partial results when some sources fail, with clear signal-level status messaging and a full-scan rerun path
 - **FR-14** MUST support batch URL analysis (up to 10 URLs, concurrent processing)
-- **FR-15** MUST show batch results as a grid with per-URL drill-down
+- **FR-15** MUST show batch results as a grid with per-URL drill-down and per-URL error isolation
 
 ### History & Export
 
 - **FR-16** SHOULD persist scan history in IndexedDB with search/filter
 - **FR-17** SHOULD support CSV/JSON export for individual and batch results
-- **FR-18** SHOULD support history export
+- **FR-18** SHOULD support history export and a short undo window after clearing local history
 
 ### Polish
 
 - **FR-19** MUST support dark and light themes
 - **FR-20** MUST be responsive (mobile-friendly)
 - **FR-21** SHOULD include educational content about URL threats
-- **FR-22** MAY include shareable result links (URL-encoded state, no server persistence)
+- **FR-22** SHOULD surface lightweight trust/privacy/methodology context on the public site
+- **FR-23** MAY include shareable result links (URL-encoded state, no server persistence)
 
 ## 4) System Design
 
@@ -196,10 +197,11 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
                          │
 ┌──────────────────────────────────────────────────────┐
 │                  Client Experience                  │
+│  - onboarding/value layer + trust routes            │
 │  - server-rendered shell + smaller client islands   │
 │  - streamed result hero and signal cards            │
 │  - batch result table                               │
-│  - IndexedDB history, export, and re-scan           │
+│  - IndexedDB history, export, re-scan, and undo     │
 │  - theme toggle, share links, educational guidance  │
 └──────────────────────────────────────────────────────┘
 ```
@@ -312,6 +314,7 @@ Implementation note: batch streams also emit `batch_started`, `url_started`, and
 
 - **Authn/authz:** None. Anonymous usage. No user accounts
 - **PII:** No PII collected or stored server-side. URLs submitted are cached temporarily (15 min) then discarded. Client-side history is user-controlled
+- **Public disclosure:** `/privacy` explains local history, hashed server logging, and client-only share links; `/about` explains the scoring and signal model
 - **Abuse cases + mitigations:**
 
 | Abuse case                                       | Mitigation                                                            |
@@ -458,24 +461,25 @@ Then all content is readable and interactive without horizontal scrolling
 
 ## 10) Decision Log
 
-| Date       | Decision                                                                                  | Alternatives                              | Rationale                                                                                                     | Consequences                                                                  |
-| ---------- | ----------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 2026-03-04 | Complete greenfield rebuild                                                               | Incremental upgrade                       | Old codebase has too many issues — cheaper to restart                                                         | Lose git history of old code                                                  |
-| 2026-03-04 | Next.js + Vercel (web-first)                                                              | SPA + separate API; Astro; Remix          | Web-first product, Vercel free tier fits budget, familiar ecosystem                                           | API not independently consumable                                              |
-| 2026-03-04 | Multi-model ML ensemble + threat feeds                                                    | Single model; drop ML; train own          | Multiple signals = higher confidence. Feeds catch known-bad URLs                                              | Higher aggregation complexity                                                 |
-| 2026-03-04 | Free APIs + self-computed enrichment                                                      | Premium threat intel APIs                 | Budget constraint, portfolio project                                                                          | Less reliable data sources                                                    |
-| 2026-03-04 | IP-based rate limiting                                                                    | Token bucket + fingerprint; auth-based    | Simple, effective, no auth needed                                                                             | Shared IP could hit limits unfairly                                           |
-| 2026-03-04 | IndexedDB for history                                                                     | localStorage; server-side DB              | Richer than localStorage, no server cost, privacy-friendly                                                    | More complex, but idb library helps                                           |
-| 2026-03-04 | Streaming results                                                                         | Wait for all; polling                     | Best UX — data within seconds vs 30s+ wait                                                                    | More complex client/server impl                                               |
-| 2026-03-04 | Big bang deploy                                                                           | Phased; MVP + fast follow                 | Portfolio — first impression matters                                                                          | Longer time to first deploy                                                   |
-| 2026-03-04 | Modern bold aesthetic                                                                     | Dark hacker; clinical; brutalist          | Stands out, avoids AI-slop, signals quality                                                                   | Need custom design investment                                                 |
-| 2026-03-04 | Full test pyramid                                                                         | E2E only; unit + integration; minimal     | Security tool demands confidence                                                                              | More upfront test writing                                                     |
-| 2026-03-06 | Upgrade to latest stable Next/React at restart time                                       | Stay on Next 14.1                         | Existing baseline is already stale and carries known vulnerabilities and removed tooling assumptions          | Re-scaffold is required                                                       |
-| 2026-03-06 | Use NDJSON over fetch for streaming contracts                                             | SSE; wait-for-all JSON                    | Works cleanly with App Router route handlers and shared client parsers                                        | Client needs a stream reader                                                  |
-| 2026-03-06 | Keep public `whois` signal name but implement via RDAP-style registration data            | Raw WHOIS only; rename the signal         | Preserves the user-facing contract while avoiding brittle raw WHOIS assumptions                               | UI copy should mention registration lookup rather than raw WHOIS where needed |
-| 2026-03-06 | Add Upstash-backed `proxy.ts` rate limiting with an in-memory degraded fallback           | Dev/prod in-memory only                   | Shared state is preferred for deployed abuse controls, but the app should remain usable when Redis is absent  | Multi-instance deployments lose shared rate-limit state until Upstash is set  |
-| 2026-03-06 | Add production security headers in `next.config.ts`                                       | no CSP; reverse-proxy-only hardening      | The app renders untrusted URL text and should ship browser-enforced guardrails alongside safe React rendering | CSP must allow Next runtime scripts and local dev websocket connections       |
-| 2026-03-06 | Switch hosted classifier to Hugging Face router + `DunnBC22/codebert-base-Malicious_URLs` | Keep retired endpoint/model; lexical only | The old Hugging Face inference host was retired and the previous model was not served on the supported router | Hosted ML depends on a currently routed third-party model                     |
+| Date       | Decision                                                                                  | Alternatives                              | Rationale                                                                                                      | Consequences                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 2026-03-04 | Complete greenfield rebuild                                                               | Incremental upgrade                       | Old codebase has too many issues — cheaper to restart                                                          | Lose git history of old code                                                   |
+| 2026-03-04 | Next.js + Vercel (web-first)                                                              | SPA + separate API; Astro; Remix          | Web-first product, Vercel free tier fits budget, familiar ecosystem                                            | API not independently consumable                                               |
+| 2026-03-04 | Multi-model ML ensemble + threat feeds                                                    | Single model; drop ML; train own          | Multiple signals = higher confidence. Feeds catch known-bad URLs                                               | Higher aggregation complexity                                                  |
+| 2026-03-04 | Free APIs + self-computed enrichment                                                      | Premium threat intel APIs                 | Budget constraint, portfolio project                                                                           | Less reliable data sources                                                     |
+| 2026-03-04 | IP-based rate limiting                                                                    | Token bucket + fingerprint; auth-based    | Simple, effective, no auth needed                                                                              | Shared IP could hit limits unfairly                                            |
+| 2026-03-04 | IndexedDB for history                                                                     | localStorage; server-side DB              | Richer than localStorage, no server cost, privacy-friendly                                                     | More complex, but idb library helps                                            |
+| 2026-03-04 | Streaming results                                                                         | Wait for all; polling                     | Best UX — data within seconds vs 30s+ wait                                                                     | More complex client/server impl                                                |
+| 2026-03-04 | Big bang deploy                                                                           | Phased; MVP + fast follow                 | Portfolio — first impression matters                                                                           | Longer time to first deploy                                                    |
+| 2026-03-04 | Modern bold aesthetic                                                                     | Dark hacker; clinical; brutalist          | Stands out, avoids AI-slop, signals quality                                                                    | Need custom design investment                                                  |
+| 2026-03-04 | Full test pyramid                                                                         | E2E only; unit + integration; minimal     | Security tool demands confidence                                                                               | More upfront test writing                                                      |
+| 2026-03-06 | Upgrade to latest stable Next/React at restart time                                       | Stay on Next 14.1                         | Existing baseline is already stale and carries known vulnerabilities and removed tooling assumptions           | Re-scaffold is required                                                        |
+| 2026-03-06 | Use NDJSON over fetch for streaming contracts                                             | SSE; wait-for-all JSON                    | Works cleanly with App Router route handlers and shared client parsers                                         | Client needs a stream reader                                                   |
+| 2026-03-06 | Keep public `whois` signal name but implement via RDAP-style registration data            | Raw WHOIS only; rename the signal         | Preserves the user-facing contract while avoiding brittle raw WHOIS assumptions                                | UI copy should mention registration lookup rather than raw WHOIS where needed  |
+| 2026-03-06 | Add Upstash-backed `proxy.ts` rate limiting with an in-memory degraded fallback           | Dev/prod in-memory only                   | Shared state is preferred for deployed abuse controls, but the app should remain usable when Redis is absent   | Multi-instance deployments lose shared rate-limit state until Upstash is set   |
+| 2026-03-06 | Add production security headers in `next.config.ts`                                       | no CSP; reverse-proxy-only hardening      | The app renders untrusted URL text and should ship browser-enforced guardrails alongside safe React rendering  | CSP must allow Next runtime scripts and local dev websocket connections        |
+| 2026-03-06 | Switch hosted classifier to Hugging Face router + `DunnBC22/codebert-base-Malicious_URLs` | Keep retired endpoint/model; lexical only | The old Hugging Face inference host was retired and the previous model was not served on the supported router  | Hosted ML depends on a currently routed third-party model                      |
+| 2026-03-09 | Add onboarding/trust surfaces on `/`, `/about`, and `/privacy`                            | Tool-only landing page                    | The UI audit showed that first-time visitors lacked value framing, methodology context, and privacy disclosure | Slightly larger static surface area that must stay aligned with implementation |
 
 ## 11) Assumptions, Open Questions, Risks
 

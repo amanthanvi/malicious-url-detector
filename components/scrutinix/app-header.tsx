@@ -10,7 +10,7 @@ const ThemeToggle = dynamic(
     loading: () => (
       <div
         aria-hidden="true"
-        className="h-9 w-9 rounded-full border border-[var(--sx-border)]"
+        className="h-11 w-11 rounded-full border border-[var(--sx-border)]"
       />
     ),
   },

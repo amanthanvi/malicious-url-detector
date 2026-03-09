@@ -588,7 +588,7 @@ export function HeaderMetrics() {
               style={{ left: `${threshold.value}%` }}
             >
               <div className="h-1.5 w-px bg-[var(--sx-border-muted)]" />
-              <span className="mt-0.5 text-[9px] leading-none tracking-[0.08em] text-[var(--sx-text)] uppercase">
+              <span className="mt-0.5 text-[10px] leading-none tracking-[0.1em] text-[var(--sx-text)] uppercase">
                 {threshold.label}
               </span>
             </div>
@@ -642,7 +642,10 @@ export function AnalyzerWorkspace() {
   } = useAnalyzerRuntime();
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[1fr_minmax(0,1fr)]">
+    <div
+      id="scan-console"
+      className="grid gap-5 md:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)] xl:grid-cols-[1fr_minmax(0,1fr)]"
+    >
       <div className="order-1 space-y-5 xl:order-2">
         <Tabs
           value={activeTab}
@@ -662,7 +665,11 @@ export function AnalyzerWorkspace() {
               <TabsContent value="single" className="mt-0 outline-none">
                 <SingleInput
                   url={singleUrl}
-                  onUrlChange={setSingleUrl}
+                  onUrlChange={(value) => {
+                    setFormError(null);
+                    setSingleUrl(value);
+                  }}
+                  error={activeTab === "single" ? formError : null}
                   streaming={scan.state.isStreaming}
                   onSubmit={() => void startSingleScan()}
                   onCancel={scan.cancelScan}
@@ -684,7 +691,11 @@ export function AnalyzerWorkspace() {
               <TabsContent value="batch" className="mt-0 outline-none">
                 <BatchInput
                   value={batchInput}
-                  onChange={setBatchInput}
+                  onChange={(value) => {
+                    setFormError(null);
+                    setBatchInput(value);
+                  }}
+                  error={activeTab === "batch" ? formError : null}
                   streaming={batch.state.isStreaming}
                   onSubmit={() => void startBatchScan()}
                   onCancel={batch.cancelBatch}
@@ -707,11 +718,6 @@ export function AnalyzerWorkspace() {
                 />
               </TabsContent>
 
-              {formError && (
-                <div className="mt-3 rounded-lg border border-[var(--sx-suspicious)] bg-[color-mix(in_srgb,var(--sx-suspicious)_8%,transparent)] px-3 py-2 text-xs text-[var(--sx-suspicious)]">
-                  {formError}
-                </div>
-              )}
               {scan.state.error && (
                 <div className="mt-3 rounded-lg border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-3 py-2 text-xs text-[var(--sx-malicious)]">
                   {scan.state.error.message}
@@ -760,9 +766,9 @@ export function AnalyzerWorkspace() {
       <div className="order-2 xl:order-1">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
-              Signal Grid
-            </p>
+            <h2 className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
+              {activeTab === "single" ? "Signal grid" : "Batch inspection"}
+            </h2>
             {activeTab === "single" && done > 0 && viewMode === "summary" ? (
               <p className="text-[11px] text-[var(--sx-text-muted)]">
                 Showing the highest-priority {visibleSignals.length} of{" "}
@@ -771,36 +777,43 @@ export function AnalyzerWorkspace() {
                   ? `${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable or n/a signals remain in Full view.`
                   : "No hidden caveats remain outside this summary."}
               </p>
+            ) : activeTab === "batch" ? (
+              <p className="text-[11px] text-[var(--sx-text-muted)]">
+                Completed batch rows stay isolated in the stream table until you
+                choose one to inspect in single-scan mode.
+              </p>
             ) : null}
           </div>
-          <div
-            className="inline-flex rounded-lg border border-[var(--sx-border)] bg-[var(--sx-bg)] p-1"
-            role="group"
-            aria-label="Signal view mode"
-          >
-            <Button
-              type="button"
-              variant="view"
-              size="sm"
-              aria-pressed={viewMode === "summary"}
-              data-state={viewMode === "summary" ? "active" : undefined}
-              onClick={() => setViewMode("summary")}
-              className="min-w-24"
+          {activeTab === "single" ? (
+            <div
+              className="inline-flex rounded-lg border border-[var(--sx-border)] bg-[var(--sx-bg)] p-1"
+              role="group"
+              aria-label="Signal view mode"
             >
-              Summary
-            </Button>
-            <Button
-              type="button"
-              variant="view"
-              size="sm"
-              aria-pressed={viewMode === "full"}
-              data-state={viewMode === "full" ? "active" : undefined}
-              onClick={() => setViewMode("full")}
-              className="min-w-20"
-            >
-              Full
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="view"
+                size="sm"
+                aria-pressed={viewMode === "summary"}
+                data-state={viewMode === "summary" ? "active" : undefined}
+                onClick={() => setViewMode("summary")}
+                className="min-w-24"
+              >
+                Summary
+              </Button>
+              <Button
+                type="button"
+                variant="view"
+                size="sm"
+                aria-pressed={viewMode === "full"}
+                data-state={viewMode === "full" ? "active" : undefined}
+                onClick={() => setViewMode("full")}
+                className="min-w-20"
+              >
+                Full
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         {activeTab === "single" ? (
@@ -813,7 +826,7 @@ export function AnalyzerWorkspace() {
                   : "Awaiting scan."}
             </p>
             {visibleSignals.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid auto-rows-fr grid-cols-1 gap-3 xl:grid-cols-2">
                 {visibleSignals.map((signalName, index) => (
                   <SignalCard
                     key={signalName}
@@ -836,15 +849,16 @@ export function AnalyzerWorkspace() {
             )}
           </div>
         ) : (
-          <Card className="hidden border-dashed bg-[var(--sx-surface)] xl:block">
+          <Card className="border-dashed bg-[var(--sx-surface)]">
             <CardContent className="px-6 py-12 text-center">
               <p className="text-xs tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                Batch results stay in the right-hand console.
+                Batch runs stay isolated until you inspect one.
               </p>
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Select any completed batch item to inspect its full signal grid,
-                verdict rationale, and confidence breakdown in the single-scan
-                workspace.
+                Every row can finish cleanly, fail independently, or surface a
+                verdict error without aborting the rest of the batch. Select any
+                completed item to open its full signal grid, verdict rationale,
+                and confidence breakdown in single-scan mode.
               </p>
             </CardContent>
           </Card>
@@ -858,12 +872,14 @@ export function HistoryRail() {
   const { historyEvent, selectHistoryEntry } = useAnalyzerRuntime();
   const {
     addResult,
+    canUndoClear,
     clearHistory,
     filteredEntries,
     filterVerdict,
     historyQuery,
     setFilterVerdict,
     setHistoryQuery,
+    undoClearHistory,
   } = useScanHistory();
 
   useEffect(() => {
@@ -880,6 +896,8 @@ export function HistoryRail() {
       onFilterVerdictChange={setFilterVerdict}
       onSelect={selectHistoryEntry}
       onClear={() => void clearHistory()}
+      canUndoClear={canUndoClear}
+      onUndoClear={() => void undoClearHistory()}
     />
   );
 }
@@ -891,7 +909,7 @@ export function FooterTicker() {
     <AppFooter>
       {ticker.length > 0 ? (
         live ? (
-          <div className="flex w-full overflow-hidden whitespace-nowrap">
+          <div className="flex w-full overflow-hidden whitespace-nowrap transition-opacity duration-300">
             <div className="sx-marquee flex items-center gap-6 text-xs text-[var(--sx-text-muted)]">
               {[...ticker, ...ticker].map((event, index) => (
                 <span key={`${event.id}-${index}`} className="shrink-0">
@@ -903,7 +921,7 @@ export function FooterTicker() {
             </div>
           </div>
         ) : (
-          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-1 py-1 text-xs text-[var(--sx-text-muted)]">
+          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-1 py-1 text-xs text-[var(--sx-text-muted)] transition-opacity duration-300">
             {ticker.slice(-4).map((event) => (
               <span key={event.id}>
                 <span className="text-[var(--sx-info)]">{event.time}</span>
@@ -914,12 +932,12 @@ export function FooterTicker() {
           </div>
         )
       ) : (
-        <div className="sx-font-sans flex items-center gap-4 text-xs text-[var(--sx-text-muted)]">
+        <div className="sx-font-sans flex items-center gap-4 text-xs text-[var(--sx-text-muted)] transition-opacity duration-300">
           <span>SCRUTINIX</span>
           <span className="text-[var(--sx-border-muted)]">|</span>
           <span>8 SIGNALS</span>
           <span className="text-[var(--sx-border-muted)]">|</span>
-          <span>NDJSON</span>
+          <span>STREAMED SIGNALS</span>
           <span className="text-[var(--sx-border-muted)]">|</span>
           <span>{live ? "STREAM ACTIVE" : "AWAITING TARGET"}</span>
         </div>

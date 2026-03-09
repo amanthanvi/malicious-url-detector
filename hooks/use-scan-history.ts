@@ -30,6 +30,9 @@ export function useScanHistory() {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [historyQuery, setHistoryQuery] = useState("");
   const [filterVerdict, setFilterVerdict] = useState<Verdict | "all">("all");
+  const [lastClearedEntries, setLastClearedEntries] = useState<HistoryEntry[]>(
+    [],
+  );
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -53,18 +56,37 @@ export function useScanHistory() {
             ...previous.filter((item) => item.id !== entry.id),
           ]),
         );
+        setLastClearedEntries([]);
       });
     },
     [startTransition],
   );
 
   const clearHistory = useCallback(async () => {
+    const snapshot = entries;
     const db = await getDatabase();
     await db.clear(STORE_NAME);
     startTransition(() => {
       setEntries([]);
+      setLastClearedEntries(snapshot);
     });
-  }, [startTransition]);
+  }, [entries, startTransition]);
+
+  const undoClearHistory = useCallback(async () => {
+    if (!lastClearedEntries.length) {
+      return;
+    }
+
+    const db = await getDatabase();
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    await Promise.all(lastClearedEntries.map((entry) => tx.store.put(entry)));
+    await tx.done;
+
+    startTransition(() => {
+      setEntries(sortEntries(lastClearedEntries));
+      setLastClearedEntries([]);
+    });
+  }, [lastClearedEntries, startTransition]);
 
   const filteredEntries = useMemo(() => {
     const query = historyQuery.trim().toLowerCase();
@@ -88,6 +110,8 @@ export function useScanHistory() {
     setFilterVerdict,
     addResult,
     clearHistory,
+    undoClearHistory,
+    canUndoClear: lastClearedEntries.length > 0,
   };
 }
 

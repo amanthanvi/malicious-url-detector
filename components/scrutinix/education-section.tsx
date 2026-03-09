@@ -21,12 +21,12 @@ export function EducationSection() {
         aria-controls={contentId}
         className="flex w-full items-center justify-between px-4 py-3 text-left"
       >
-        <span
+        <h2
           id="reading-results-heading"
           className="text-xs font-semibold tracking-[0.15em] text-[var(--sx-text-muted)] uppercase"
         >
           Reading the results
-        </span>
+        </h2>
         <ChevronDown
           className={clsx(
             "h-4 w-4 text-[var(--sx-text-muted)] transition-transform",

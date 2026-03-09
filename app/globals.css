@@ -16,7 +16,7 @@
   --secondary: #dde8f0;
   --secondary-foreground: #10202d;
   --muted: #e8eef4;
-  --muted-foreground: #506272;
+  --muted-foreground: #425667;
   --accent: #0d6948;
   --accent-foreground: #f7fffd;
   --destructive: #c0374f;
@@ -24,6 +24,7 @@
   --border: #c7d4dd;
   --input: #d7e1e8;
   --ring: #0d6948;
+  --sx-focus-ring: #0d6948;
 
   --sx-bg: #f3f7fb;
   --sx-surface: #ffffff;
@@ -31,7 +32,7 @@
   --sx-border: #c7d4dd;
   --sx-border-muted: #a7bac8;
   --sx-text: #10202d;
-  --sx-text-muted: #506272;
+  --sx-text-muted: #425667;
   --sx-accent: #0d6948;
   --sx-accent-fg: #f7fffd;
   --sx-safe: #0d6948;
@@ -67,6 +68,7 @@
   --border: #1a2030;
   --input: #243040;
   --ring: #00e639;
+  --sx-focus-ring: #00e639;
 
   --sx-bg: #080c10;
   --sx-surface: #0d1117;

@@ -2,6 +2,11 @@ import { normalizeUrlInput } from "@/lib/domain/url";
 import { runAnalysis } from "@/lib/server/analyze";
 import { createApiError } from "@/lib/server/api-error";
 import { createNdjsonResponse } from "@/lib/server/stream";
+import {
+  createPendingSignalResults,
+  signalNames,
+  type AnalysisResult,
+} from "@/lib/domain/types";
 
 export const runtime = "nodejs";
 
@@ -69,40 +74,81 @@ export async function POST(request: Request) {
       startedAt: new Date().toISOString(),
     });
 
-    const results = await mapWithConcurrency(
-      urls,
-      CONCURRENCY,
-      async (url, index) => {
-        writer.send({
-          type: "url_started",
-          index,
-          url,
-        });
+    try {
+      const results = await mapWithConcurrency(
+        urls,
+        CONCURRENCY,
+        async (url, index) => {
+          const scanId = crypto.randomUUID();
+          const startedAt = new Date().toISOString();
 
-        const outcome = await runAnalysis(url, {
-          scanId: crypto.randomUUID(),
-          startedAt: new Date().toISOString(),
-        });
+          writer.send({
+            type: "url_started",
+            index,
+            url,
+          });
 
-        if (!outcome.ok) {
-          throw new Error(outcome.error.message);
-        }
+          try {
+            const outcome = await runAnalysis(url, {
+              scanId,
+              startedAt,
+            });
 
-        writer.send({
-          type: "url_complete",
-          index,
-          url: outcome.result.url,
-          result: outcome.result,
-        });
+            const result = outcome.ok
+              ? outcome.result
+              : createBatchErrorResult(
+                  url,
+                  scanId,
+                  startedAt,
+                  outcome.error.message,
+                );
 
-        return outcome.result;
-      },
-    );
+            writer.send({
+              type: "url_complete",
+              index,
+              url: result.url,
+              result,
+            });
 
-    writer.send({
-      type: "batch_complete",
-      results,
-    });
+            return result;
+          } catch (error) {
+            const result = createBatchErrorResult(
+              url,
+              scanId,
+              startedAt,
+              error instanceof Error
+                ? error.message
+                : "The batch item failed unexpectedly.",
+            );
+
+            writer.send({
+              type: "url_complete",
+              index,
+              url: result.url,
+              result,
+            });
+
+            return result;
+          }
+        },
+      );
+
+      writer.send({
+        type: "batch_complete",
+        results,
+      });
+    } catch (error) {
+      writer.send({
+        type: "batch_error",
+        error: createApiError(
+          "batch_failed",
+          error instanceof Error
+            ? error.message
+            : "The batch failed unexpectedly.",
+          true,
+        ),
+      });
+    }
   });
 }
 
@@ -140,4 +186,44 @@ async function mapWithConcurrency<T, R>(
 
   await Promise.all(runners);
   return results;
+}
+
+function createBatchErrorResult(
+  input: string,
+  scanId: string,
+  startedAt: string,
+  message: string,
+): AnalysisResult {
+  const normalized = normalizeUrlInput(input);
+  const url = normalized.ok ? normalized.value.normalizedUrl : input;
+  const completedAt = new Date().toISOString();
+  const signals = createPendingSignalResults();
+  const signalMessage = `Batch item failed before Scrutinix could complete signal execution: ${message}`;
+
+  for (const signalName of signalNames) {
+    signals[signalName] = {
+      status: "error",
+      data: null,
+      error: signalMessage,
+      durationMs: 0,
+    };
+  }
+
+  return {
+    id: scanId,
+    url,
+    verdict: "error",
+    threatInfo: null,
+    signals,
+    metadata: {
+      scanId,
+      startedAt,
+      completedAt,
+      cacheHit: false,
+      partialFailure: true,
+      signalCount: signalNames.length,
+      durationMs:
+        new Date(completedAt).getTime() - new Date(startedAt).getTime(),
+    },
+  };
 }

@@ -163,6 +163,84 @@ describe("analysis routes", () => {
     ).toHaveLength(2);
     expect(events.at(-1)?.type).toBe("batch_complete");
   });
+
+  it("keeps the batch stream alive when one URL fails internally", async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/server/analyze", async (importOriginal) => {
+      const actual =
+        await importOriginal<typeof import("@/lib/server/analyze")>();
+      const { createApiError } = await import("@/lib/server/api-error");
+
+      return {
+        ...actual,
+        runAnalysis: vi.fn(async (input: string, options = {}) => {
+          if (input.includes("bad.example")) {
+            return {
+              ok: false as const,
+              status: 502,
+              error: createApiError(
+                "provider_failed",
+                "Synthetic batch failure.",
+                true,
+              ),
+            };
+          }
+
+          return actual.runAnalysis(input, options);
+        }),
+      };
+    });
+
+    const { POST } = await import("@/app/api/analyze/batch/route");
+    installHandlers();
+
+    const response = await POST(
+      new Request("http://localhost/api/analyze/batch", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          urls: ["example.com", "https://bad.example/test"],
+        }),
+      }),
+    );
+
+    const text = await response.text();
+    const events = text
+      .trim()
+      .split("\n")
+      .map(
+        (line) =>
+          JSON.parse(line) as {
+            type: string;
+            url?: string;
+            result?: {
+              verdict?: string;
+              metadata?: { partialFailure?: boolean };
+            };
+          },
+      );
+
+    expect(
+      events.filter((event) => event.type === "url_complete"),
+    ).toHaveLength(2);
+    expect(events.at(-1)?.type).toBe("batch_complete");
+    expect(
+      events.find(
+        (event) =>
+          event.type === "url_complete" && event.url?.includes("bad.example"),
+      )?.result,
+    ).toMatchObject({
+      verdict: "error",
+      metadata: {
+        partialFailure: true,
+      },
+    });
+
+    vi.doUnmock("@/lib/server/analyze");
+    vi.resetModules();
+  });
 });
 
 function installHandlers(options: { rdapStatus?: number } = {}) {

@@ -65,9 +65,9 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
             className="rounded bg-[var(--sx-bg)] px-2 py-1 text-xs text-[var(--sx-text)]"
           >
             <span className="mr-1 text-[var(--sx-info)]">{hop.status}</span>
-            <span className="truncate">{hop.url}</span>
+            <span className="break-all">{hop.url}</span>
             {hop.location && (
-              <span className="text-[var(--sx-text-muted)]">
+              <span className="break-all text-[var(--sx-text-muted)]">
                 {" "}
                 → {hop.location}
               </span>
@@ -129,7 +129,7 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
             className="rounded bg-[var(--sx-bg)] px-2 py-1 text-xs"
           >
             <span className="text-[var(--sx-text-muted)]">{e.label}: </span>
-            <span className="text-[var(--sx-text)]">{e.value}</span>
+            <span className="break-words text-[var(--sx-text)]">{e.value}</span>
           </div>
         ))}
       </div>
@@ -149,7 +149,9 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
             <span className="font-semibold text-[var(--sx-text)]">
               {m.feed}
             </span>
-            <span className="ml-1 text-[var(--sx-text-muted)]">{m.detail}</span>
+            <span className="ml-1 break-words text-[var(--sx-text-muted)]">
+              {m.detail}
+            </span>
           </div>
         ))}
       </div>
@@ -168,7 +170,9 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
           <span className="shrink-0 text-[var(--sx-text-muted)]">
             {entry.label}:
           </span>
-          <span className="truncate text-[var(--sx-text)]">{entry.value}</span>
+          <span className="break-words text-[var(--sx-text)]">
+            {entry.value}
+          </span>
         </div>
       ))}
     </div>
@@ -210,7 +214,7 @@ function SignalCardInner({
         transitionDelay: index > 0 ? `${index * 60}ms` : undefined,
       }}
       className={clsx(
-        "rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-[border-color,box-shadow,transform] duration-200",
+        "h-full rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
         "hover:border-[var(--sx-active-accent)]/40 hover:shadow-[0_0_8px_color-mix(in_srgb,var(--sx-active-accent)_22%,transparent)]",
@@ -277,7 +281,12 @@ function SignalCardInner({
           </p>
         )}
         {isSuccess && result.data && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-[var(--sx-text-muted)]">
+          <p
+            className={clsx(
+              "text-xs leading-relaxed text-[var(--sx-text-muted)]",
+              viewMode === "summary" ? "line-clamp-2" : "line-clamp-3",
+            )}
+          >
             {getSignalSummary(name, result.data)}
           </p>
         )}
@@ -286,7 +295,19 @@ function SignalCardInner({
       {viewMode === "full" &&
         isSuccess &&
         result.data &&
-        renderRichDetails(name, result.data)}
+        (() => {
+          const details = renderRichDetails(name, result.data);
+          if (!details) return null;
+
+          return (
+            <details className="mt-2" open>
+              <summary className="cursor-pointer text-[11px] tracking-[0.14em] text-[var(--sx-info)] uppercase">
+                Full evidence
+              </summary>
+              {details}
+            </details>
+          );
+        })()}
     </article>
   );
 }

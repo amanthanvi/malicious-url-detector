@@ -118,7 +118,7 @@ function RadarSvg({ fast }: { fast: boolean }) {
 function ScoreRing({ score, color }: { score: number; color: string }) {
   const dashOffset = scoreArcOffset(score);
   return (
-    <div className="relative mx-auto h-32 w-32 sm:h-40 sm:w-40">
+    <div className="relative mx-auto h-36 w-36 sm:h-40 sm:w-40">
       <svg
         viewBox="0 0 100 100"
         className="h-full w-full -rotate-90"
@@ -189,7 +189,7 @@ export function VerdictHero({
             <RadarSvg fast={false} />
           </div>
           <p className="sx-pulse text-sm tracking-[0.2em] text-[var(--sx-accent)] uppercase">
-            Awaiting Target Acquisition
+            Awaiting URL
           </p>
           <p className="mt-2 text-xs leading-relaxed text-[var(--sx-text-muted)]">
             Submit a URL to stream a multi-signal threat report. Signals arrive
@@ -218,7 +218,7 @@ export function VerdictHero({
             <RadarSvg fast />
           </div>
           <p className="sx-pulse text-xs tracking-[0.15em] text-[var(--sx-accent)] uppercase">
-            Acquiring Signals...
+            Resolving signals...
           </p>
           <p className="mt-2 truncate text-sm text-[var(--sx-text)]">
             {displayUrl}
@@ -381,19 +381,23 @@ export function VerdictHero({
 
       {evidenceReasons.length > 0 ? (
         <div className="mt-4 space-y-2">
-          <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
             Why this verdict
-          </p>
+          </h3>
           <div className="sx-font-hack space-y-1">
             {evidenceReasons.slice(0, 6).map((reason, i) => (
               <div
                 key={`${i}-${reason}`}
                 className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs text-[var(--sx-text)]"
               >
-                <span className="mr-1" style={{ color }}>
-                  {result?.verdict === "safe" ? "[OK]" : "[!]"}
+                <span className="inline-flex items-start gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span>{reason}</span>
                 </span>
-                {reason}
               </div>
             ))}
           </div>
@@ -410,9 +414,9 @@ export function VerdictHero({
 
       {limitations.length ? (
         <div className="mt-4 space-y-2">
-          <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
             Signal caveats
-          </p>
+          </h3>
           {limitations.slice(0, 4).map((item, index) => (
             <div
               key={`${index}-${item}`}
@@ -428,9 +432,9 @@ export function VerdictHero({
       {result && (
         <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           <div className="rounded border border-[var(--sx-border)] bg-[var(--sx-bg)] px-3 py-3">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
               Verdict confidence
-            </p>
+            </h3>
             <p className="mt-1 text-sm font-semibold text-[var(--sx-text)]">
               {confidenceLabel}{" "}
               <span className="text-[var(--sx-text-muted)]">
@@ -453,9 +457,9 @@ export function VerdictHero({
             </ul>
           </div>
           <div className="rounded border border-[var(--sx-border)] bg-[var(--sx-bg)] px-3 py-3 text-xs text-[var(--sx-text-muted)]">
-            <p className="text-[11px] tracking-[0.16em] uppercase">
+            <h3 className="text-[11px] tracking-[0.16em] uppercase">
               Scan metadata
-            </p>
+            </h3>
             <div className="mt-2 flex flex-wrap gap-3">
               <span>
                 SIGNALS:{" "}
@@ -482,9 +486,9 @@ export function VerdictHero({
 
       {recommendations.length ? (
         <div className="mt-4 rounded border border-[var(--sx-border)] bg-[var(--sx-bg)] px-3 py-3">
-          <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
             Recommended next steps
-          </p>
+          </h3>
           <ul className="mt-2 space-y-1 text-xs leading-relaxed text-[var(--sx-text)]">
             {recommendations.map((item) => (
               <li key={item}>

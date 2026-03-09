@@ -8,9 +8,11 @@ Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 A
 - Batch analysis for up to 10 URLs with a concurrency cap of 3 and per-URL completion streaming.
 - Eight normalized signals on every result: `virusTotal`, `mlEnsemble`, `googleSafeBrowsing`, `threatFeeds`, `ssl`, `whois`, `dns`, and `redirectChain`.
 - Client-only history in IndexedDB with search, verdict filters, export, and re-scan support.
-- Summary and Full Report modes, per-signal unavailable/caveat states with full-scan rerun controls, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
+- Summary and Full Report modes, per-signal unavailable/caveat states with full-scan rerun controls, expandable full-evidence cards, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
 - A scan-header shell that stays idle before a run, then shows threat score plus signal coverage without implying a result before one exists.
+- A first-visit onboarding layer with privacy/trust messaging plus dedicated `/about` and `/privacy` routes.
 - Upstash-backed production rate limiting with a process-local fallback when Redis is not configured.
+- Batch scans isolate per-URL failures instead of aborting the whole stream, and cleared history can be undone immediately from the history rail.
 
 ## Stack
 
@@ -86,6 +88,7 @@ npm run lighthouse
 
 - `app/api/analyze/route.ts`: single-scan NDJSON API.
 - `app/api/analyze/batch/route.ts`: batch NDJSON API.
+- `app/about/page.tsx` and `app/privacy/page.tsx`: static trust and privacy surfaces linked from the home route.
 - `proxy.ts`: request gating and rate limiting for `/api/analyze`.
 - `lib/server/`: orchestration, provider adapters, local signal collectors, cache, logging, rate limiting, and stream helpers.
 - `components/scrutinix/`: branded analyzer UI, server-rendered shell components, and smaller client runtime islands for scan orchestration, history, and footer telemetry.
@@ -111,12 +114,12 @@ npm run lighthouse
 
 Latest Lighthouse scores from `.lighthouseci/lhr-*.json`:
 
-- Performance: `0.99`
+- Performance: `0.91`
 - Accessibility: `1.00`
 - Best Practices: `1.00`
 - SEO: `1.00`
 
-The current UI audit is clean across the scripted mobile Lighthouse pass, and the server-shell/client-island split restored the performance budget after the Scrutinix redesign work.
+The current UI audit findings have been folded back into the product surface: the home route now has an onboarding/value layer, explicit privacy/trust pages, accessible touch targets, a skip link, full-evidence access for signal cards, inline validation feedback, batch error isolation, and history undo.
 
 Deployment verification completed on Vercel:
 
@@ -126,6 +129,7 @@ Deployment verification completed on Vercel:
 - Current live provider state: Google Safe Browsing succeeds, URLhaus succeeds with the documented `Auth-Key` header, and OpenPhish is sourced from the free community feed.
 - Redirect tracing is resilient to invalid upstream certificate chains and no longer causes a false partial failure for `https://example.com/`.
 - Full `npm audit` is clean after replacing the legacy Lighthouse CLI dependency chain with a script-backed `lighthouse` + `chrome-launcher` setup.
+- The public production experience now centers the `scrutinix.net` brand and exposes `/about` plus `/privacy` for trust-building and disclosure.
 
 ## Deployment
 

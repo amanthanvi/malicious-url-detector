@@ -23,6 +23,7 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
   - Node.js route handlers orchestrate eight signals and stream normalized results.
   - IndexedDB stores client-only history, export state, and re-scan sources.
   - The home page now renders a server-first shell with smaller client islands for scan orchestration, history hydration, and footer telemetry to keep startup JavaScript down.
+  - The home route now includes an onboarding/trust panel plus dedicated `/about` and `/privacy` routes so first-time visitors get value framing, methodology context, and privacy disclosure before touching the scanner.
   - The UI now uses selective shadcn/ui primitives on top of the branded `components/scrutinix/*` surface, with dark/light theme tokens in `app/globals.css` and brand motion/effects in `app/scrutinix.css`.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
@@ -52,13 +53,13 @@ Completed deployment verification:
 
 Observed results:
 
-- Unit tests: `7` files passed, `18` tests passed.
-- Integration tests: single-stream and batch-stream route coverage passed.
-- Playwright smoke: single-scan, batch-scan, accessibility, and keyboard navigation checks passed.
+- Unit tests: `8` files passed, `27` tests passed.
+- Integration tests: `2` files passed, `6` tests passed, including batch per-URL failure isolation.
+- Playwright smoke: `5` tests passed, covering single-scan, batch-scan, accessibility, keyboard navigation, and history clear undo.
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
 - Security audit: `0` vulnerabilities reported across prod and dev dependencies.
 - Lighthouse:
-  - Performance `0.99`
+  - Performance `0.91`
   - Accessibility `1.00`
   - Best Practices `1.00`
   - SEO `1.00`
@@ -136,6 +137,7 @@ Observed results:
 - [x] Responsive app shell and navigation.
 - [x] Metadata, icon, OG image, robots, and sitemap routes.
 - [x] Accessible primitives and loading/error skeletons.
+- [x] Onboarding/value framing plus trust/privacy disclosure routes.
 
 ### P10 Ship the single-scan experience
 
@@ -147,7 +149,9 @@ Observed results:
 ### P11 Ship batch, history, export, and share
 
 - [x] Batch streaming UI and drill-down details.
+- [x] Batch per-URL failure isolation so one broken URL does not kill the rest of the stream.
 - [x] IndexedDB history with search, filter, and re-scan.
+- [x] Undo path after clearing local history.
 - [x] CSV/JSON export for batch and history.
 - [x] Optional client-only share links.
 
@@ -157,6 +161,7 @@ Observed results:
 - [x] Add CSP-safe rendering and security headers.
 - [x] Refresh educational content into the side-panel guidance copy.
 - [x] Run automated accessibility checks plus keyboard smoke tests.
+- [x] Resolve the Claude UI audit findings that still applied to the live branch and remove the now-stale audit artifact.
 
 ### P13 Final integration and ship gate
 
@@ -186,3 +191,4 @@ Observed results:
 - 2026-03-09: The public production host now resolves through the custom domain `https://www.scrutinix.net`, with the apex `https://scrutinix.net` redirecting there.
 - 2026-03-09: TLS signal collection was already correctly identifying expired certificates, but the verdict engine initially underweighted that evidence; invalid or untrusted certificates now land in the suspicious band unless stronger evidence moves the result further.
 - 2026-03-09: A safe verdict can still be overconfident if a primary reputation source fails; the shipped confidence model now caps clean-result confidence when VirusTotal, Google Safe Browsing, or threat-feed coverage is missing.
+- 2026-03-09: The saved Scrutinix UI audit included several findings that were already obsolete on the current branch; treat old audit artifacts as input to reconcile, not as a literal current-state description.

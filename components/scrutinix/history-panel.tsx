@@ -26,6 +26,8 @@ interface HistoryPanelProps {
   onFilterVerdictChange: (value: Verdict | "all") => void;
   onSelect: (entry: HistoryEntry) => void;
   onClear: () => void;
+  canUndoClear: boolean;
+  onUndoClear: () => void;
 }
 
 const verdictFilters = [
@@ -74,6 +76,8 @@ export function HistoryPanel({
   onFilterVerdictChange,
   onSelect,
   onClear,
+  canUndoClear,
+  onUndoClear,
 }: HistoryPanelProps) {
   const [confirmClear, setConfirmClear] = useState(false);
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,61 +118,71 @@ export function HistoryPanel({
       aria-label="Scan history"
       role="region"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--sx-border)] px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
-            Scan Log
-          </span>
-          <Badge variant="neutral">{entries.length}</Badge>
+      <div className="border-b border-[var(--sx-border)] px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
+              Scan log
+            </h2>
+            <Badge variant="neutral">{entries.length}</Badge>
+          </div>
+          {canUndoClear ? (
+            <Button
+              type="button"
+              onClick={onUndoClear}
+              variant="ghost"
+              size="sm"
+              aria-label="Undo clearing scan history"
+            >
+              Undo clear
+            </Button>
+          ) : null}
         </div>
-        <div className="flex items-center gap-2">
-          {entries.length > 0 && (
-            <>
-              <Button
-                type="button"
-                onClick={() =>
-                  downloadTextFile("scan-history.csv", resultsToCsv(entries))
-                }
-                variant="ghost"
-                size="sm"
-                aria-label="Export history as CSV"
-              >
-                <Download className="h-3 w-3" />
-                CSV
-              </Button>
-              <Button
-                type="button"
-                onClick={() =>
-                  downloadTextFile(
-                    "scan-history.json",
-                    resultsToJson(entries),
-                    "application/json",
-                  )
-                }
-                variant="ghost"
-                size="sm"
-                aria-label="Export history as JSON"
-              >
-                <Download className="h-3 w-3" />
-                JSON
-              </Button>
-              <Button
-                type="button"
-                onClick={handleClear}
-                variant={confirmClear ? "dangerSolid" : "danger"}
-                size="sm"
-                aria-label={
-                  confirmClear
-                    ? "Confirm clear all history"
-                    : "Clear all history"
-                }
-              >
-                <Trash2 className="h-3 w-3" />
-                {confirmClear ? "Confirm?" : "Clear"}
-              </Button>
-            </>
-          )}
-        </div>
+
+        {entries.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              onClick={() =>
+                downloadTextFile("scan-history.csv", resultsToCsv(entries))
+              }
+              variant="ghost"
+              size="sm"
+              aria-label="Export history as CSV"
+            >
+              <Download className="h-3 w-3" />
+              CSV
+            </Button>
+            <Button
+              type="button"
+              onClick={() =>
+                downloadTextFile(
+                  "scan-history.json",
+                  resultsToJson(entries),
+                  "application/json",
+                )
+              }
+              variant="ghost"
+              size="sm"
+              aria-label="Export history as JSON"
+            >
+              <Download className="h-3 w-3" />
+              JSON
+            </Button>
+            <Button
+              type="button"
+              onClick={handleClear}
+              variant={confirmClear ? "dangerSolid" : "danger"}
+              size="sm"
+              aria-label={
+                confirmClear ? "Confirm clear all history" : "Clear all history"
+              }
+            >
+              <Trash2 className="h-3 w-3" />
+              {confirmClear ? "Confirm clear" : "Clear all"}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="border-b border-[var(--sx-border)] px-3 py-2">
@@ -188,12 +202,18 @@ export function HistoryPanel({
           />
         </div>
         <p className="mt-1 text-xs text-[var(--sx-text-muted)]">{statusText}</p>
+        {canUndoClear ? (
+          <p className="mt-1 text-xs text-[var(--sx-text-muted)]">
+            History was cleared locally. Use Undo clear to restore the previous
+            archive.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--sx-border)] px-3 py-2">
-        <span className="sx-font-sans text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+        <h3 className="sx-font-sans text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
           Verdict
-        </span>
+        </h3>
         <Separator
           orientation="vertical"
           className="mx-1 hidden h-4 sm:block"
@@ -218,7 +238,9 @@ export function HistoryPanel({
           <div className="rounded-lg border border-dashed border-[var(--sx-border-muted)] px-3 py-6 text-center text-xs text-[var(--sx-text-muted)]">
             {historyQuery || filterVerdict !== "all"
               ? "No scans match the current filter."
-              : "Completed scans persist here via IndexedDB."}
+              : canUndoClear
+                ? "History cleared locally. Undo is still available."
+                : "Completed scans persist here via IndexedDB."}
           </div>
         ) : (
           <ScrollArea className="h-full pr-2">
@@ -228,7 +250,7 @@ export function HistoryPanel({
                   key={entry.id}
                   type="button"
                   onClick={() => onSelect(entry)}
-                  className="group flex w-full items-center gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition hover:border-[var(--sx-border)] hover:bg-[var(--sx-surface-elevated)]"
+                  className="group flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition hover:border-[var(--sx-border)] hover:bg-[var(--sx-surface-elevated)]"
                 >
                   <span className="shrink-0 text-[11px] text-[var(--sx-info)]">
                     [{formatTimestamp(entry.savedAt)}]
