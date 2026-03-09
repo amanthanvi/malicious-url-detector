@@ -4,10 +4,9 @@ export async function fetchWithTimeout(
   timeoutMs = 8_000,
 ) {
   const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(`Timed out after ${timeoutMs}ms`),
-    timeoutMs,
-  );
+  const timeout = setTimeout(() => {
+    controller.abort(new Error(`Timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
 
   try {
     return await fetch(input, {

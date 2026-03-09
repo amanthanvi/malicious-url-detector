@@ -12,6 +12,7 @@ interface SingleInputProps {
   onUrlChange: (v: string) => void;
   streaming: boolean;
   onSubmit: () => void;
+  onCancel: () => void;
   result: AnalysisResult | null;
   onExport: () => void;
   onShare: () => void;
@@ -23,11 +24,14 @@ export function SingleInput({
   onUrlChange,
   streaming,
   onSubmit,
+  onCancel,
   result,
   onExport,
   onShare,
   onRescan,
 }: SingleInputProps) {
+  const hasUrl = url.trim().length > 0;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
@@ -55,6 +59,10 @@ export function SingleInput({
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === "Escape" && streaming) {
+              onCancel();
+              return;
+            }
             if (e.key === "Enter" && !streaming) onSubmit();
           }}
           placeholder="example.com, https://login.example.org"
@@ -66,7 +74,7 @@ export function SingleInput({
         <Button
           type="button"
           onClick={onSubmit}
-          disabled={streaming}
+          disabled={streaming || !hasUrl}
           variant="terminal"
         >
           {streaming ? (
@@ -76,6 +84,14 @@ export function SingleInput({
           )}
           Analyze
         </Button>
+        {streaming && (
+          <Button type="button" onClick={onCancel} variant="ghost" size="sm">
+            Cancel
+          </Button>
+        )}
+        <span className="text-[11px] text-[var(--sx-text-muted)]">
+          Press Enter to scan
+        </span>
         {result && (
           <>
             <Button type="button" onClick={onExport} variant="ghost" size="sm">
@@ -99,6 +115,7 @@ interface BatchInputProps {
   onChange: (v: string) => void;
   streaming: boolean;
   onSubmit: () => void;
+  onCancel: () => void;
   hasResults: boolean;
   onCsv: () => void;
   onJson: () => void;
@@ -109,6 +126,7 @@ export function BatchInput({
   onChange,
   streaming,
   onSubmit,
+  onCancel,
   hasResults,
   onCsv,
   onJson,
@@ -121,11 +139,12 @@ export function BatchInput({
         .filter(Boolean).length,
     [value],
   );
+  const hasUrls = value.trim().length > 0;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-        <span>Batch -- One URL per line (max 10, concurrency 3)</span>
+        <span>Batch -- One URL per line (max 10, scans 3 at a time)</span>
         {urlCount > 0 && (
           <span className="text-[var(--sx-info)]">
             {urlCount} URL{urlCount !== 1 ? "s" : ""}
@@ -150,6 +169,10 @@ export function BatchInput({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={(e) => {
+              if (e.key === "Escape" && streaming) {
+                onCancel();
+                return;
+              }
               if (e.key === "Enter" && e.metaKey && !streaming) onSubmit();
             }}
             rows={5}
@@ -163,7 +186,7 @@ export function BatchInput({
         <Button
           type="button"
           onClick={onSubmit}
-          disabled={streaming}
+          disabled={streaming || !hasUrls}
           variant="terminal"
         >
           {streaming ? (
@@ -173,6 +196,14 @@ export function BatchInput({
           )}
           Start Batch
         </Button>
+        {streaming && (
+          <Button type="button" onClick={onCancel} variant="ghost" size="sm">
+            Cancel
+          </Button>
+        )}
+        <span className="text-[11px] text-[var(--sx-text-muted)]">
+          Press Cmd/Ctrl+Enter to scan
+        </span>
         {hasResults && (
           <>
             <Button type="button" onClick={onCsv} variant="ghost" size="sm">

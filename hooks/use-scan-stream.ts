@@ -51,70 +51,92 @@ export function useScanStream(onComplete?: (result: AnalysisResult) => void) {
         isStreaming: true,
       });
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ url }),
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        const payload = (await response.json()) as { error: ApiError };
-        setState((previous) => ({
-          ...previous,
-          error: payload.error,
-          isStreaming: false,
-        }));
-        return;
+        if (!response.ok) {
+          const payload = (await response.json()) as { error: ApiError };
+          setState((previous) => ({
+            ...previous,
+            error: payload.error,
+            isStreaming: false,
+          }));
+          return;
+        }
+
+        await readNdjsonStream<AnalyzeEvent>(response, (event) => {
+          if (event.type === "scan_started") {
+            setState((previous) => ({
+              ...previous,
+              url: event.url,
+              scanId: event.scanId,
+              startedAt: event.startedAt,
+            }));
+          }
+
+          if (event.type === "signal_result") {
+            setState((previous) => ({
+              ...previous,
+              signals: {
+                ...previous.signals,
+                [event.name]: event.result,
+              },
+            }));
+          }
+
+          if (event.type === "scan_complete") {
+            setState((previous) => ({
+              ...previous,
+              result: event.result,
+              signals: event.result.signals,
+              isStreaming: false,
+              error: null,
+            }));
+            onComplete?.(event.result);
+          }
+
+          if (event.type === "scan_error") {
+            setState((previous) => ({
+              ...previous,
+              error: event.error,
+              isStreaming: false,
+            }));
+          }
+        });
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          (error instanceof DOMException && error.name === "AbortError")
+        ) {
+          return;
+        }
+
+        throw error;
       }
-
-      await readNdjsonStream<AnalyzeEvent>(response, (event) => {
-        if (event.type === "scan_started") {
-          setState((previous) => ({
-            ...previous,
-            url: event.url,
-            scanId: event.scanId,
-            startedAt: event.startedAt,
-          }));
-        }
-
-        if (event.type === "signal_result") {
-          setState((previous) => ({
-            ...previous,
-            signals: {
-              ...previous.signals,
-              [event.name]: event.result,
-            },
-          }));
-        }
-
-        if (event.type === "scan_complete") {
-          setState((previous) => ({
-            ...previous,
-            result: event.result,
-            signals: event.result.signals,
-            isStreaming: false,
-            error: null,
-          }));
-          onComplete?.(event.result);
-        }
-
-        if (event.type === "scan_error") {
-          setState((previous) => ({
-            ...previous,
-            error: event.error,
-            isStreaming: false,
-          }));
-        }
-      });
     },
     [onComplete],
   );
 
+  const cancelScan = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setState((previous) => ({
+      ...previous,
+      isStreaming: false,
+      error: previous.error,
+    }));
+  }, []);
+
   return {
     state,
     startScan,
+    cancelScan,
   };
 }

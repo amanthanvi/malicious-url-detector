@@ -11,19 +11,19 @@
   --card-foreground: #10202d;
   --popover: #ffffff;
   --popover-foreground: #10202d;
-  --primary: #0b855d;
+  --primary: #0d6948;
   --primary-foreground: #f7fffd;
   --secondary: #dde8f0;
   --secondary-foreground: #10202d;
   --muted: #e8eef4;
   --muted-foreground: #506272;
-  --accent: #1b8f67;
+  --accent: #0d6948;
   --accent-foreground: #f7fffd;
   --destructive: #c0374f;
   --destructive-foreground: #fff7f7;
   --border: #c7d4dd;
   --input: #d7e1e8;
-  --ring: #1b8f67;
+  --ring: #0d6948;
 
   --sx-bg: #f3f7fb;
   --sx-surface: #ffffff;
@@ -32,18 +32,18 @@
   --sx-border-muted: #a7bac8;
   --sx-text: #10202d;
   --sx-text-muted: #506272;
-  --sx-accent: #1b8f67;
+  --sx-accent: #0d6948;
   --sx-accent-fg: #f7fffd;
-  --sx-safe: #0c8a58;
-  --sx-suspicious: #b97500;
-  --sx-malicious: #d13a5d;
-  --sx-critical: #ad276b;
-  --sx-error: #7c5365;
-  --sx-info: #0f8ca8;
-  --sx-ring-safe: rgba(12, 138, 88, 0.18);
-  --sx-ring-suspicious: rgba(185, 117, 0, 0.18);
-  --sx-ring-malicious: rgba(209, 58, 93, 0.18);
-  --sx-ring-critical: rgba(173, 39, 107, 0.18);
+  --sx-safe: #0d6948;
+  --sx-suspicious: #8f5c00;
+  --sx-malicious: #b8284b;
+  --sx-critical: #8f225a;
+  --sx-error: #6a4d5d;
+  --sx-info: #006f88;
+  --sx-ring-safe: rgba(13, 105, 72, 0.18);
+  --sx-ring-suspicious: rgba(143, 92, 0, 0.18);
+  --sx-ring-malicious: rgba(184, 40, 75, 0.18);
+  --sx-ring-critical: rgba(143, 34, 90, 0.18);
 }
 
 .dark {

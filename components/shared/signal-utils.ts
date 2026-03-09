@@ -12,28 +12,6 @@ import type {
   WhoisData,
 } from "@/lib/domain/types";
 
-export const signalLabels: Record<SignalName, string> = {
-  virusTotal: "VirusTotal",
-  mlEnsemble: "ML Ensemble",
-  googleSafeBrowsing: "Google Safe Browsing",
-  threatFeeds: "Threat Feeds",
-  ssl: "TLS Certificate",
-  whois: "Domain Registration",
-  dns: "DNS Profile",
-  redirectChain: "Redirect Chain",
-};
-
-export const signalIcons: Record<SignalName, string> = {
-  virusTotal: "Shield",
-  mlEnsemble: "Brain",
-  googleSafeBrowsing: "Search",
-  threatFeeds: "Rss",
-  ssl: "Lock",
-  whois: "Globe",
-  dns: "Server",
-  redirectChain: "ArrowRightLeft",
-};
-
 export function getSignalSummary(
   name: SignalName,
   data: SignalPayloadMap[SignalName],
@@ -45,7 +23,11 @@ export function getSignalSummary(
     }
     case "mlEnsemble": {
       const d = data as MLSignalData;
-      return `Consensus verdict: ${d.consensusLabel} at ${(d.consensusScore * 100).toFixed(0)}% confidence.`;
+      if (d.consensusLabel === "benign") {
+        return "The ensemble stayed below the risk threshold after comparing the hosted and lexical models.";
+      }
+
+      return `The ensemble raised a ${d.consensusLabel} result with a ${(d.consensusScore * 100).toFixed(0)} risk score.`;
     }
     case "googleSafeBrowsing": {
       const d = data as GoogleSafeBrowsingData;
@@ -55,28 +37,72 @@ export function getSignalSummary(
     }
     case "threatFeeds": {
       const d = data as ThreatFeedsData;
-      return d.matches.length
-        ? `${d.matches.length} community feed match${d.matches.length === 1 ? "" : "es"} found.`
-        : "No matches were found in the checked community feeds.";
+      if (d.matches.length) {
+        return `${d.matches.length} community feed match${d.matches.length === 1 ? "" : "es"} found.`;
+      }
+
+      if (d.warnings.length) {
+        return "No community-feed matches were found, but one or more feed checks completed with caveats.";
+      }
+
+      return "No matches were found in the checked community feeds.";
     }
     case "ssl": {
       const d = data as SSLData;
-      return d.authorized
-        ? `TLS is available via ${d.protocol}.`
-        : `TLS is reachable but not fully authorized: ${d.authorizationError ?? "unknown issue"}.`;
+      if (!d.available) {
+        return d.observations[0] ?? "No TLS service responded on port 443.";
+      }
+
+      if (d.validationState === "trusted") {
+        return `TLS is available via ${d.protocol ?? "unknown protocol"} and the certificate looks valid.`;
+      }
+
+      if (d.validationState === "warning") {
+        return "TLS responded, but certificate verification was only partially conclusive from this scan runtime.";
+      }
+
+      return (
+        d.observations[0] ??
+        "TLS responded, but the certificate was not trusted."
+      );
     }
     case "whois": {
       const d = data as WhoisData;
+      if (!d.available) {
+        return (
+          d.observations[0] ??
+          "Registration data was unavailable during this scan."
+        );
+      }
+
       return d.ageDays !== null
         ? `The domain was first registered ${d.ageDays} day${d.ageDays === 1 ? "" : "s"} ago.`
         : "Registration data was returned without a domain age.";
     }
     case "dns": {
       const d = data as DNSData;
+      if (d.subjectType === "ip") {
+        return d.observations[0] ?? "The target is a literal IP address.";
+      }
+
+      if (d.addresses.length === 0 && d.cnames.length === 0) {
+        return (
+          d.observations[0] ??
+          "The hostname did not resolve to web-facing address records."
+        );
+      }
+
       return `${d.addresses.length} address${d.addresses.length === 1 ? "" : "es"} and ${d.mx.length} mail exchange record${d.mx.length === 1 ? "" : "s"} were found.`;
     }
     case "redirectChain": {
       const d = data as RedirectData;
+      if (!d.reachable) {
+        return (
+          d.observations[0] ??
+          "The target did not accept a redirect probe, so chain analysis was limited."
+        );
+      }
+
       return d.totalHops === 0
         ? `The URL resolved without redirects to ${d.finalUrl}.`
         : `${d.totalHops} redirect hop${d.totalHops === 1 ? "" : "s"} led to ${d.finalUrl}.`;
@@ -107,15 +133,22 @@ export function getSignalDetailEntries(
       const d = data as MLSignalData;
       const entries: DetailEntry[] = [
         {
-          label: "Lexical model",
-          value: `${(d.lexicalModel.score * 100).toFixed(0)}%`,
+          label: "Ensemble verdict",
+          value: `${d.consensusLabel} (${(d.consensusScore * 100).toFixed(0)} risk)`,
+        },
+        {
+          label: "Lexical heuristic",
+          value: `${d.lexicalModel.label} (${(d.lexicalModel.score * 100).toFixed(0)}%)`,
         },
       ];
       if (d.hostedModel) {
         entries.push({
           label: "Hosted model",
-          value: `${((d.hostedModel.score ?? 0) * 100).toFixed(0)}%`,
+          value: `${d.hostedModel.label} (${((d.hostedModel.score ?? 0) * 100).toFixed(0)}%)`,
         });
+      }
+      if (d.reasons.length) {
+        entries.push({ label: "Why", value: d.reasons.slice(0, 2).join(" ") });
       }
       if (d.warnings.length) {
         entries.push({ label: "Warnings", value: d.warnings.join(" ") });
@@ -142,7 +175,11 @@ export function getSignalDetailEntries(
     }
     case "ssl": {
       const d = data as SSLData;
-      return [
+      const entries: DetailEntry[] = [
+        {
+          label: "Validation",
+          value: d.validationState,
+        },
         { label: "Issuer", value: d.issuer ?? "Unknown" },
         { label: "Subject", value: d.subject ?? "Unknown" },
         {
@@ -158,10 +195,18 @@ export function getSignalDetailEntries(
             : "Unknown",
         },
       ];
+      if (d.observations.length) {
+        entries.push({
+          label: "Notes",
+          value: d.observations.join(" "),
+        });
+      }
+      return entries;
     }
     case "whois": {
       const d = data as WhoisData;
-      return [
+      const entries: DetailEntry[] = [
+        { label: "Lookup", value: d.available ? "Available" : "Unavailable" },
         { label: "Registrar", value: d.registrar ?? "Unknown" },
         { label: "Country", value: d.country ?? "Unknown" },
         {
@@ -177,6 +222,10 @@ export function getSignalDetailEntries(
             : "Unknown",
         },
       ];
+      if (d.observations.length) {
+        entries.push({ label: "Notes", value: d.observations.join(" ") });
+      }
+      return entries;
     }
     case "dns": {
       const d = data as DNSData;
@@ -184,17 +233,39 @@ export function getSignalDetailEntries(
         { label: "A records", value: d.addresses.join(", ") || "None" },
         { label: "MX records", value: d.mx.join(", ") || "None" },
       ];
+      if (d.reverseHostnames.length) {
+        entries.push({
+          label: "Reverse DNS",
+          value: d.reverseHostnames.join(", "),
+        });
+      }
       if (d.anomalies.length) {
         entries.push({ label: "Anomalies", value: d.anomalies.join(" ") });
+      }
+      if (d.observations.length) {
+        entries.push({ label: "Notes", value: d.observations.join(" ") });
       }
       return entries;
     }
     case "redirectChain": {
       const d = data as RedirectData;
-      return d.hops.map((hop) => ({
+      const entries = d.hops.map((hop) => ({
         label: `${hop.status}`,
         value: hop.location ? `${hop.url} → ${hop.location}` : hop.url,
       }));
+      if (d.terminalError) {
+        entries.push({
+          label: "Probe",
+          value: d.terminalError,
+        });
+      }
+      if (d.observations.length) {
+        entries.push({
+          label: "Notes",
+          value: d.observations.join(" "),
+        });
+      }
+      return entries;
     }
     default:
       return [];

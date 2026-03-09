@@ -1,7 +1,20 @@
+import dynamic from "next/dynamic";
 import { Shield } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { ThemeToggle } from "@/components/theme-toggle";
+const ThemeToggle = dynamic(
+  () =>
+    import("@/components/theme-toggle").then((module) => module.ThemeToggle),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden="true"
+        className="h-9 w-9 rounded-full border border-[var(--sx-border)]"
+      />
+    ),
+  },
+);
 
 interface AppHeaderProps {
   children: ReactNode;

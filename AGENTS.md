@@ -85,3 +85,5 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-09: Next.js App Router no longer accepts `themeColor` in `metadata`; move it to the `viewport` export to avoid build warnings.
 - 2026-03-09: Keep IndexedDB history out of the root home-page runtime; the scan shell now renders server-first, and the history rail hydrates as its own client island.
 - 2026-03-09: Deferring the history rail behind idle or first-interaction hooks looked promising on paper but regressed the scripted Lighthouse score from `0.99` to `0.92`; keep the current eager history island unless a future chunk-analysis proves a net win.
+- 2026-03-09: The SSL signal can be technically correct while the verdict still understates it; keep invalid or untrusted certificates weighted high enough to move the overall verdict into at least the suspicious band.
+- 2026-03-09: Clean verdicts can still look overconfident when a primary reputation source times out; cap safe-result confidence whenever VirusTotal, Google Safe Browsing, or threat-feed coverage fails to complete.

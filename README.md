@@ -8,7 +8,8 @@ Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 A
 - Batch analysis for up to 10 URLs with a concurrency cap of 3 and per-URL completion streaming.
 - Eight normalized signals on every result: `virusTotal`, `mlEnsemble`, `googleSafeBrowsing`, `threatFeeds`, `ssl`, `whois`, `dns`, and `redirectChain`.
 - Client-only history in IndexedDB with search, verdict filters, export, and re-scan support.
-- Summary and Full Report modes, per-signal retry affordances, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
+- Summary and Full Report modes, per-signal unavailable/caveat states with full-scan rerun controls, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
+- A scan-header shell that stays idle before a run, then shows threat score plus signal coverage without implying a result before one exists.
 - Upstash-backed production rate limiting with a process-local fallback when Redis is not configured.
 
 ## Stack
@@ -39,10 +40,11 @@ UPSTASH_REDIS_REST_TOKEN=
 KV_REST_API_URL=
 KV_REST_API_TOKEN=
 OPENPHISH_FEED_URL=https://openphish.com/feed.txt
-NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_APP_URL=https://www.scrutinix.net
 ```
 
 The app still functions in a degraded mode without third-party keys; local enrichment signals continue to run and provider failures are surfaced explicitly instead of being mislabeled as malicious findings.
+When a primary reputation source such as VirusTotal does not complete, safe verdict confidence is intentionally capped so the UI does not overstate certainty.
 Rate limiting accepts either `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` or the Vercel KV aliases `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
 Threat-feed coverage uses the OpenPhish community TXT feed plus URLhaus. The OpenPhish integration is feed-backed and cached, not a paid database/API lookup.
 
@@ -119,7 +121,7 @@ The current UI audit is clean across the scripted mobile Lighthouse pass, and th
 Deployment verification completed on Vercel:
 
 - Preview: `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
-- Production: `https://malicious-url-detector-phi.vercel.app`
+- Production: `https://www.scrutinix.net`
 - Public production smoke: `POST /api/analyze` returned streamed NDJSON `200`
 - Current live provider state: Google Safe Browsing succeeds, URLhaus succeeds with the documented `Auth-Key` header, and OpenPhish is sourced from the free community feed.
 - Redirect tracing is resilient to invalid upstream certificate chains and no longer causes a false partial failure for `https://example.com/`.

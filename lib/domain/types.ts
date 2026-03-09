@@ -11,6 +11,17 @@ export const signalNames = [
 
 export type SignalName = (typeof signalNames)[number];
 
+export const signalLabels: Record<SignalName, string> = {
+  virusTotal: "VirusTotal",
+  mlEnsemble: "ML Ensemble",
+  googleSafeBrowsing: "Google Safe Browsing",
+  threatFeeds: "Threat Feeds",
+  ssl: "TLS Certificate",
+  whois: "Domain Registration",
+  dns: "DNS Profile",
+  redirectChain: "Redirect Chain",
+};
+
 export type Verdict =
   | "safe"
   | "suspicious"
@@ -77,7 +88,14 @@ export interface ThreatFeedsData {
 }
 
 export interface SSLData {
-  protocol: string;
+  protocol: string | null;
+  available: boolean;
+  validationState:
+    | "trusted"
+    | "warning"
+    | "untrusted"
+    | "invalid"
+    | "unavailable";
   authorized: boolean;
   authorizationError: string | null;
   issuer: string | null;
@@ -87,9 +105,12 @@ export interface SSLData {
   daysRemaining: number | null;
   selfSigned: boolean;
   fingerprint256: string | null;
+  observations: string[];
 }
 
 export interface WhoisData {
+  subjectType: "domain" | "network";
+  available: boolean;
   registrar: string | null;
   registeredAt: string | null;
   updatedAt: string | null;
@@ -98,26 +119,34 @@ export interface WhoisData {
   country: string | null;
   handle: string | null;
   rdapUrl: string;
+  observations: string[];
 }
 
 export interface DNSData {
+  subjectType: "hostname" | "ip";
   addresses: string[];
   cnames: string[];
   mx: string[];
   txt: string[];
   nameservers: string[];
+  reverseHostnames: string[];
   anomalies: string[];
+  observations: string[];
 }
 
 export interface RedirectData {
   finalUrl: string;
   totalHops: number;
   httpsUpgraded: boolean;
+  reachable: boolean;
+  terminalStatus: number | null;
+  terminalError: string | null;
   hops: Array<{
     url: string;
     status: number;
     location?: string;
   }>;
+  observations: string[];
 }
 
 export type SignalPayloadMap = {
@@ -145,11 +174,15 @@ export type SignalResults = {
 export interface ThreatInfo {
   verdict: Verdict;
   confidence: number;
+  confidenceLabel: "low" | "moderate" | "high";
+  confidenceReasons: string[];
+  hasPositiveEvidence: boolean;
   score: number;
   summary: string;
   categories: string[];
   reasons: string[];
   recommendations: string[];
+  limitations: string[];
 }
 
 export interface ScanMetadata {

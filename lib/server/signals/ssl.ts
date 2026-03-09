@@ -1,15 +1,16 @@
 import tls from "node:tls";
+import { isIP } from "node:net";
 
 import type { SSLData } from "@/lib/domain/types";
 
 export async function runSslSignal(url: string): Promise<SSLData> {
   const hostname = new URL(url).hostname;
 
-  return new Promise<SSLData>((resolve, reject) => {
+  return new Promise<SSLData>((resolve) => {
     const socket = tls.connect({
       host: hostname,
       port: 443,
-      servername: hostname,
+      servername: isIP(hostname) ? undefined : hostname,
       rejectUnauthorized: false,
     });
 
@@ -20,7 +21,11 @@ export async function runSslSignal(url: string): Promise<SSLData> {
       socket.end();
 
       if (!certificate || Object.keys(certificate).length === 0) {
-        reject(new Error("The endpoint did not present a certificate."));
+        resolve(
+          createUnavailableSslData(
+            "The endpoint did not present a TLS certificate.",
+          ),
+        );
         return;
       }
 
@@ -40,13 +45,22 @@ export async function runSslSignal(url: string): Promise<SSLData> {
         certificate.subject?.CN,
       );
       const authorizationError =
-        socket.authorizationError === undefined
-          ? null
-          : String(socket.authorizationError);
+        typeof socket.authorizationError === "string"
+          ? socket.authorizationError
+          : null;
+      const validationState = getValidationState(
+        authorizationError,
+        daysRemaining,
+        issuerCommonName,
+        subjectCommonName,
+      );
 
       resolve({
         protocol: socket.getProtocol() ?? "unknown",
-        authorized: socket.authorized,
+        available: true,
+        validationState,
+        authorized:
+          validationState === "trusted" || validationState === "warning",
         authorizationError,
         issuer: issuerCommonName,
         subject: subjectCommonName,
@@ -56,19 +70,133 @@ export async function runSslSignal(url: string): Promise<SSLData> {
         selfSigned:
           issuerCommonName !== null && issuerCommonName === subjectCommonName,
         fingerprint256: certificate.fingerprint256 ?? null,
+        observations: buildSslObservations(
+          validationState,
+          authorizationError,
+          daysRemaining,
+        ),
       });
     });
 
     socket.once("timeout", () => {
       socket.destroy();
-      reject(new Error("The TLS handshake timed out."));
+      resolve(
+        createUnavailableSslData(
+          "The host did not complete a TLS handshake before the timeout.",
+        ),
+      );
     });
 
     socket.once("error", (error) => {
       socket.destroy();
-      reject(error);
+      resolve(createUnavailableSslData(describeTlsFailure(error)));
     });
   });
+}
+
+function buildSslObservations(
+  validationState: SSLData["validationState"],
+  authorizationError: string | null,
+  daysRemaining: number | null,
+) {
+  const observations: string[] = [];
+
+  if (validationState === "warning" && authorizationError) {
+    observations.push(
+      "The certificate chain could not be fully verified from the scanning runtime.",
+    );
+  }
+
+  if (validationState === "invalid" && authorizationError) {
+    observations.push(`TLS validation failed: ${authorizationError}.`);
+  }
+
+  if (daysRemaining !== null && daysRemaining < 0) {
+    observations.push("The TLS certificate is expired.");
+  } else if (daysRemaining !== null && daysRemaining < 14) {
+    observations.push("The TLS certificate expires within the next 14 days.");
+  }
+
+  return observations;
+}
+
+function createUnavailableSslData(message: string): SSLData {
+  return {
+    protocol: null,
+    available: false,
+    validationState: "unavailable",
+    authorized: false,
+    authorizationError: null,
+    issuer: null,
+    subject: null,
+    validFrom: null,
+    validTo: null,
+    daysRemaining: null,
+    selfSigned: false,
+    fingerprint256: null,
+    observations: [message],
+  };
+}
+
+function getValidationState(
+  authorizationError: string | null,
+  daysRemaining: number | null,
+  issuerCommonName: string | null,
+  subjectCommonName: string | null,
+): SSLData["validationState"] {
+  if (daysRemaining !== null && daysRemaining < 0) {
+    return "invalid";
+  }
+
+  if (
+    issuerCommonName !== null &&
+    subjectCommonName !== null &&
+    issuerCommonName === subjectCommonName
+  ) {
+    return "untrusted";
+  }
+
+  if (!authorizationError) {
+    return "trusted";
+  }
+
+  if (
+    authorizationError === "UNABLE_TO_GET_ISSUER_CERT_LOCALLY" ||
+    authorizationError === "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
+  ) {
+    return "warning";
+  }
+
+  if (
+    authorizationError === "DEPTH_ZERO_SELF_SIGNED_CERT" ||
+    authorizationError === "SELF_SIGNED_CERT_IN_CHAIN"
+  ) {
+    return "untrusted";
+  }
+
+  return "invalid";
+}
+
+function describeTlsFailure(error: unknown) {
+  if (!(error instanceof Error)) {
+    return "The TLS probe failed unexpectedly.";
+  }
+
+  const code =
+    "code" in error && typeof error.code === "string" ? error.code : null;
+
+  switch (code) {
+    case "ECONNREFUSED":
+      return "The host refused a TLS connection on port 443.";
+    case "ENOTFOUND":
+      return "The hostname could not be resolved for the TLS probe.";
+    case "ECONNRESET":
+      return "The TLS connection was reset before the handshake completed.";
+    case "ETIMEDOUT":
+      return "The TLS probe timed out before the host responded.";
+    default:
+      return error.message || "The TLS probe failed unexpectedly.";
+  }
 }
 
 function normalizeCertificateName(

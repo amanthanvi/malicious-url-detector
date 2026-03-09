@@ -1,12 +1,13 @@
 "use client";
 
 import { clsx } from "clsx";
-import { ChevronDown, ShieldAlert, Sparkles } from "lucide-react";
-import { useId, useState } from "react";
+import { ChevronDown, Scale, ShieldAlert, Sparkles } from "lucide-react";
+import { useState } from "react";
+
+const contentId = "reading-results-content";
 
 export function EducationSection() {
   const [open, setOpen] = useState(false);
-  const contentId = useId();
 
   return (
     <section
@@ -66,6 +67,36 @@ export function EducationSection() {
               <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
                 DNS, TLS, redirect chain, and registration data still provide
                 value even when third-party APIs are unavailable.
+              </p>
+            </div>
+            <div className="rounded border-l-2 border-[var(--sx-suspicious)] bg-[var(--sx-bg)] px-4 py-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
+                <Scale className="h-3.5 w-3.5 text-[var(--sx-suspicious)]" />
+                How signals are weighted
+              </div>
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
+                Reputation feeds and browser-protection lists outweigh passive
+                context like DNS or registration age, while partial failures
+                lower verdict confidence even when the headline verdict stays
+                safe.
+              </p>
+            </div>
+            <div className="rounded border-l-2 border-[var(--sx-safe)] bg-[var(--sx-bg)] px-4 py-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
+                <ShieldAlert className="h-3.5 w-3.5 text-[var(--sx-safe)]" />
+                Reading the interface
+              </div>
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
+                Summary mode shows the highest-priority completed signals for
+                fast triage, while Full shows every signal. Left-edge accents
+                and LED colors mark state: green means clear, amber means review
+                or caveat, magenta/red means stronger evidence, and muted gray
+                means not applicable.
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--sx-text-muted)]">
+                Threat score bands are 0-24 safe, 25-54 suspicious, 55-79
+                malicious, and 80-100 critical. Confidence explains how much
+                coverage and agreement supported that verdict.
               </p>
             </div>
           </div>

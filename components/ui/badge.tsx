@@ -15,6 +15,12 @@ const badgeVariants = cva(
           "border-[color-mix(in_srgb,var(--sx-malicious)_45%,transparent)] bg-[color-mix(in_srgb,var(--sx-malicious)_12%,transparent)] text-[var(--sx-malicious)]",
         critical:
           "border-[color-mix(in_srgb,var(--sx-critical)_45%,transparent)] bg-[color-mix(in_srgb,var(--sx-critical)_12%,transparent)] text-[var(--sx-critical)]",
+        active:
+          "border-[color-mix(in_srgb,var(--sx-info)_45%,transparent)] bg-[color-mix(in_srgb,var(--sx-info)_12%,transparent)] text-[var(--sx-info)]",
+        error:
+          "border-[color-mix(in_srgb,var(--sx-error)_45%,transparent)] bg-[color-mix(in_srgb,var(--sx-error)_10%,transparent)] text-[var(--sx-error)]",
+        skipped:
+          "border-[var(--sx-border-muted)] bg-transparent text-[var(--sx-text-muted)] opacity-80",
         neutral:
           "border-[var(--sx-border)] bg-[var(--sx-surface-elevated)] text-[var(--sx-text-muted)]",
       },

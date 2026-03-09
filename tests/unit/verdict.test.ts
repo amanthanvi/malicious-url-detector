@@ -25,6 +25,8 @@ describe("buildThreatAssessment", () => {
       durationMs: 12,
       data: {
         protocol: "TLSv1.3",
+        available: true,
+        validationState: "trusted",
         authorized: true,
         authorizationError: null,
         issuer: "Example CA",
@@ -34,6 +36,7 @@ describe("buildThreatAssessment", () => {
         daysRemaining: 180,
         selfSigned: false,
         fingerprint256: "abc",
+        observations: [],
       },
     };
     signals.dns = {
@@ -41,12 +44,15 @@ describe("buildThreatAssessment", () => {
       error: null,
       durationMs: 12,
       data: {
+        subjectType: "hostname",
         addresses: ["93.184.216.34"],
         cnames: [],
         mx: ["mx.example.com"],
         txt: [],
         nameservers: ["ns1.example.com"],
+        reverseHostnames: [],
         anomalies: [],
+        observations: [],
       },
     };
 
@@ -95,6 +101,436 @@ describe("buildThreatAssessment", () => {
     expect(["malicious", "critical"]).toContain(result.verdict);
     expect(result.threatInfo?.reasons.join(" ")).toMatch(
       /VirusTotal|Safe Browsing/,
+    );
+  });
+
+  it("reduces confidence when high-confidence sources disagree with a risk verdict", () => {
+    const signals = createPendingSignalResults();
+    signals.virusTotal = {
+      status: "success",
+      error: null,
+      durationMs: 20,
+      data: {
+        malicious: 12,
+        suspicious: 1,
+        harmless: 10,
+        undetected: 20,
+        timeout: 0,
+        results: [],
+        permalink: "https://www.virustotal.com/gui/url/example",
+      },
+    };
+    signals.googleSafeBrowsing = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+      },
+    };
+    signals.threatFeeds = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+        warnings: [],
+      },
+    };
+    signals.mlEnsemble = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        hostedModel: {
+          label: "malicious",
+          score: 0.81,
+          reasons: ["Hosted model predicted malware with 81% confidence."],
+          model: "huggingface",
+        },
+        lexicalModel: {
+          label: "benign",
+          score: 0.08,
+          reasons: ["No suspicious lexical patterns were found."],
+          model: "lexical-heuristic",
+        },
+        consensusLabel: "risky",
+        consensusScore: 0.57,
+        reasons: [
+          "Hosted model predicted malware with 81% confidence.",
+          "No suspicious lexical patterns were found.",
+          "Model disagreement reduced the ensemble certainty.",
+        ],
+        warnings: [],
+      },
+    };
+    signals.ssl = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        protocol: null,
+        available: false,
+        validationState: "unavailable",
+        authorized: false,
+        authorizationError: null,
+        issuer: null,
+        subject: null,
+        validFrom: null,
+        validTo: null,
+        daysRemaining: null,
+        selfSigned: false,
+        fingerprint256: null,
+        observations: ["The host did not complete a TLS handshake."],
+      },
+    };
+    signals.whois = {
+      status: "skipped",
+      error: "Registration lookups are not applicable to literal IP targets.",
+      durationMs: 2,
+      data: null,
+    };
+    signals.redirectChain = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        finalUrl: "https://45.151.155.223/x86_64",
+        totalHops: 0,
+        httpsUpgraded: false,
+        reachable: false,
+        terminalStatus: null,
+        terminalError: "The host did not respond to the redirect probe.",
+        hops: [],
+        observations: ["The host did not respond to the redirect probe."],
+      },
+    };
+    signals.dns = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        subjectType: "ip",
+        addresses: ["45.151.155.223"],
+        cnames: [],
+        mx: [],
+        txt: [],
+        nameservers: [],
+        reverseHostnames: [],
+        anomalies: [],
+        observations: ["DNS zone records do not apply to literal IP targets."],
+      },
+    };
+
+    const result = buildThreatAssessment(signals);
+
+    expect(result.verdict).toBe("malicious");
+    expect(result.threatInfo?.confidence).toBeLessThan(0.85);
+    expect(result.threatInfo?.confidenceReasons.join(" ")).toMatch(
+      /stayed clean|partial coverage/,
+    );
+  });
+
+  it("raises invalid TLS endpoints into the suspicious band", () => {
+    const signals = createPendingSignalResults();
+    signals.virusTotal = {
+      status: "success",
+      error: null,
+      durationMs: 20,
+      data: {
+        malicious: 0,
+        suspicious: 0,
+        harmless: 8,
+        undetected: 24,
+        timeout: 0,
+        results: [],
+        permalink: "https://www.virustotal.com/gui/url/example",
+      },
+    };
+    signals.googleSafeBrowsing = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+      },
+    };
+    signals.threatFeeds = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+        warnings: [],
+      },
+    };
+    signals.mlEnsemble = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        hostedModel: {
+          label: "benign",
+          score: 0.12,
+          reasons: ["Hosted model did not detect malware patterns."],
+          model: "huggingface",
+        },
+        lexicalModel: {
+          label: "benign",
+          score: 0.09,
+          reasons: ["No suspicious lexical patterns were found."],
+          model: "lexical-heuristic",
+        },
+        consensusLabel: "benign",
+        consensusScore: 0.1,
+        reasons: ["The ensemble found no direct malicious indicators."],
+        warnings: [],
+      },
+    };
+    signals.ssl = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        protocol: "TLSv1.2",
+        available: true,
+        validationState: "invalid",
+        authorized: false,
+        authorizationError: "CERT_HAS_EXPIRED",
+        issuer: "Example CA",
+        subject: "expired.example",
+        validFrom: "2025-01-01T00:00:00.000Z",
+        validTo: "2025-01-31T00:00:00.000Z",
+        daysRemaining: -30,
+        selfSigned: false,
+        fingerprint256: "abc",
+        observations: [
+          "TLS validation failed: CERT_HAS_EXPIRED.",
+          "The TLS certificate is expired.",
+        ],
+      },
+    };
+    signals.redirectChain = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        finalUrl: "https://expired.example/",
+        totalHops: 0,
+        httpsUpgraded: false,
+        reachable: true,
+        terminalStatus: 200,
+        terminalError: null,
+        hops: [{ url: "https://expired.example/", status: 200 }],
+        observations: [],
+      },
+    };
+    signals.whois = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        subjectType: "domain",
+        available: true,
+        registrar: "Example Registrar",
+        registeredAt: "2020-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-01T00:00:00.000Z",
+        expiresAt: "2027-01-01T00:00:00.000Z",
+        ageDays: 365,
+        country: "US",
+        handle: "12345",
+        rdapUrl: "https://rdap.example.com/domain/expired.example",
+        observations: [],
+      },
+    };
+    signals.dns = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        subjectType: "hostname",
+        addresses: ["203.0.113.10"],
+        cnames: [],
+        mx: ["mx.example.com"],
+        txt: [],
+        nameservers: ["ns1.example.com"],
+        reverseHostnames: [],
+        anomalies: [],
+        observations: [],
+      },
+    };
+
+    const result = buildThreatAssessment(signals);
+
+    expect(result.verdict).toBe("suspicious");
+    expect(result.threatInfo?.score).toBeGreaterThanOrEqual(25);
+    expect(result.threatInfo?.reasons.join(" ")).toMatch(/CERT_HAS_EXPIRED/);
+  });
+
+  it("treats a strong malicious ML verdict as suspicious even without reputation hits", () => {
+    const signals = createPendingSignalResults();
+    signals.mlEnsemble = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        hostedModel: null,
+        lexicalModel: {
+          label: "malicious",
+          score: 0.82,
+          reasons: [
+            "The URL targets a literal IP address instead of a domain.",
+            "The path or query references executable-style content such as x86_64, setup.",
+          ],
+          model: "lexical-heuristic",
+        },
+        consensusLabel: "malicious",
+        consensusScore: 0.82,
+        reasons: [
+          "The URL targets a literal IP address instead of a domain.",
+          "The path or query references executable-style content such as x86_64, setup.",
+        ],
+        warnings: ["Hosted classifier failed with status 502."],
+      },
+    };
+
+    const result = buildThreatAssessment(signals);
+
+    expect(result.verdict).toBe("suspicious");
+    expect(result.threatInfo?.score).toBeGreaterThanOrEqual(25);
+  });
+
+  it("caps clean-result confidence when a primary reputation source fails", () => {
+    const signals = createPendingSignalResults();
+    signals.virusTotal = {
+      status: "error",
+      error: "VirusTotal timed out.",
+      durationMs: 20,
+      data: null,
+    };
+    signals.googleSafeBrowsing = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+      },
+    };
+    signals.threatFeeds = {
+      status: "success",
+      error: null,
+      durationMs: 8,
+      data: {
+        checkedAt: "2026-03-06T00:00:00.000Z",
+        matches: [],
+        warnings: [],
+      },
+    };
+    signals.mlEnsemble = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        hostedModel: {
+          label: "benign",
+          score: 0.12,
+          reasons: ["Hosted model did not detect malware patterns."],
+          model: "huggingface",
+        },
+        lexicalModel: {
+          label: "benign",
+          score: 0.07,
+          reasons: ["No suspicious lexical patterns were found."],
+          model: "lexical-heuristic",
+        },
+        consensusLabel: "benign",
+        consensusScore: 0.09,
+        reasons: ["The ensemble found no direct malicious indicators."],
+        warnings: [],
+      },
+    };
+    signals.ssl = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        protocol: "TLSv1.3",
+        available: true,
+        validationState: "trusted",
+        authorized: true,
+        authorizationError: null,
+        issuer: "Example CA",
+        subject: "example.com",
+        validFrom: "2025-01-01T00:00:00.000Z",
+        validTo: "2027-01-01T00:00:00.000Z",
+        daysRemaining: 365,
+        selfSigned: false,
+        fingerprint256: "abc",
+        observations: [],
+      },
+    };
+    signals.whois = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        subjectType: "domain",
+        available: true,
+        registrar: "Example Registrar",
+        registeredAt: "2020-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-01T00:00:00.000Z",
+        expiresAt: "2027-01-01T00:00:00.000Z",
+        ageDays: 365,
+        country: "US",
+        handle: "12345",
+        rdapUrl: "https://rdap.example.com/domain/example.com",
+        observations: [],
+      },
+    };
+    signals.dns = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        subjectType: "hostname",
+        addresses: ["93.184.216.34"],
+        cnames: [],
+        mx: ["mx.example.com"],
+        txt: [],
+        nameservers: ["ns1.example.com"],
+        reverseHostnames: [],
+        anomalies: [],
+        observations: [],
+      },
+    };
+    signals.redirectChain = {
+      status: "success",
+      error: null,
+      durationMs: 12,
+      data: {
+        finalUrl: "https://example.com/",
+        totalHops: 0,
+        httpsUpgraded: false,
+        reachable: true,
+        terminalStatus: 200,
+        terminalError: null,
+        hops: [{ url: "https://example.com/", status: 200 }],
+        observations: [],
+      },
+    };
+
+    const result = buildThreatAssessment(signals);
+
+    expect(result.verdict).toBe("safe");
+    expect(result.threatInfo?.confidenceLabel).toBe("moderate");
+    expect(result.threatInfo?.confidence).toBeLessThanOrEqual(0.79);
+    expect(result.threatInfo?.confidenceReasons.join(" ")).toMatch(
+      /VirusTotal did not complete/i,
     );
   });
 });

@@ -24,6 +24,9 @@
 - UI decision:
   - Preserve the custom Scrutinix visual identity, but standardize reusable controls on selective shadcn/ui primitives with Tailwind v4 CSS variables, `next-themes`, and `sonner`.
   - Restore dark/light theme support through the shared semantic token layer in `app/globals.css` while keeping `app/scrutinix.css` for the branded motion/effects layer.
+  - Keep the top header metrics truthful in idle state: the threat meter stays visually inert and the coverage badge reads as idle until a scan actually runs.
+- Verdict decision:
+  - Clean verdict confidence must be capped when a primary reputation source such as VirusTotal, Google Safe Browsing, or threat feeds does not complete, even if the remaining signals stay clean.
 - Security decision: ship CSP and related browser hardening headers from `next.config.ts` in production responses.
 - Verification note: local verification passed for lint, format, typecheck, unit, integration, E2E smoke, production build, audit, and Lighthouse, and Vercel preview/production deployments were verified with `vercel inspect` plus a public production API smoke.
 - Documentation decision: `PLAN.md` is the live execution tracker and must stay in sync with this spec.
@@ -110,7 +113,7 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 
 - **Loading/streaming:** Skeleton cards per enrichment source. Each card populates independently as its API resolves. Progress indicator shows which sources are still pending
 - **Empty:** Clean landing state with URL input, brief description of what the tool does, example URLs to try
-- **Error (partial):** Failed sources show "unavailable" state with reason + per-source retry button. Verdict computed from available data. Clear indication of which signals are missing
+- **Error (partial):** Failed or non-applicable sources show "failed", "caveat", or "n/a" state with the reason surfaced inline. Verdict is computed from available data, safe-result confidence is capped when primary reputation coverage is missing, and the user can rerun the full scan from the primary controls
 - **Error (total):** All sources failed — show error message with "Retry All" button and suggestion to check network
 - **Offline/degraded:** N/A (server-side tool, requires network). Client-side history remains accessible offline via IndexedDB
 - **Accessibility:** WCAG 2.1 AA compliance. Semantic HTML, ARIA labels on interactive elements, keyboard navigable, sufficient color contrast, screen reader friendly status announcements
@@ -141,7 +144,7 @@ Both personas use the same tool. A **view mode toggle** (Summary / Full Report) 
 
 - **FR-11** MUST display results in a streaming fashion — each signal populates as it resolves
 - **FR-12** MUST provide Summary / Full Report view toggle
-- **FR-13** MUST show partial results when some sources fail, with per-source retry
+- **FR-13** MUST show partial results when some sources fail, with clear signal-level status messaging and a full-scan rerun path
 - **FR-14** MUST support batch URL analysis (up to 10 URLs, concurrent processing)
 - **FR-15** MUST show batch results as a grid with per-URL drill-down
 
@@ -293,17 +296,17 @@ Implementation note: batch streams also emit `batch_started`, `url_started`, and
 
 ### 4.6 Dependencies / integrations
 
-| Dependency                  | Type              | Free Tier                 | Failure Behavior                                 |
-| --------------------------- | ----------------- | ------------------------- | ------------------------------------------------ |
-| VirusTotal API v3           | External          | 4 req/min, 500 req/day    | Signal marked error, verdict computed without it |
-| HuggingFace Inference API   | External          | Rate limited, cold starts | Signal marked error, retry once                  |
-| Google Safe Browsing API v4 | External          | 10k req/day               | Signal marked error, non-critical                |
-| URLhaus API                 | External          | Unlimited                 | Signal marked error, non-critical                |
-| OpenPhish feed              | External          | Public feed               | Signal marked error, non-critical                |
-| DNS resolution              | Self-computed     | N/A                       | Signal marked error                              |
-| SSL cert inspection         | Self-computed     | N/A                       | Signal marked error (may fail for non-HTTPS)     |
-| WHOIS lookup                | Self-computed/API | Varies                    | Signal marked error                              |
-| Redirect chain              | Self-computed     | N/A                       | Signal marked error                              |
+| Dependency                  | Type              | Free Tier                 | Failure Behavior                                                 |
+| --------------------------- | ----------------- | ------------------------- | ---------------------------------------------------------------- |
+| VirusTotal API v3           | External          | 4 req/min, 500 req/day    | Signal marked unavailable; verdict computed without it           |
+| HuggingFace Inference API   | External          | Rate limited, cold starts | Signal marked unavailable; lexical model still contributes       |
+| Google Safe Browsing API v4 | External          | 10k req/day               | Signal marked unavailable; verdict remains partial               |
+| URLhaus API                 | External          | Unlimited                 | Signal marked unavailable; verdict remains partial               |
+| OpenPhish feed              | External          | Public feed               | Signal marked unavailable; verdict remains partial               |
+| DNS resolution              | Self-computed     | N/A                       | Prefer success-with-observation over hard failure where possible |
+| SSL cert inspection         | Self-computed     | N/A                       | Prefer success-with-validation-state over hard failure           |
+| WHOIS lookup                | Self-computed/API | Varies                    | Prefer success-with-observation or skipped where applicable      |
+| Redirect chain              | Self-computed     | N/A                       | Prefer success-with-observation over hard failure where possible |
 
 ## 5) Security, Privacy, Compliance
 
@@ -324,24 +327,24 @@ Implementation note: batch streams also emit `batch_started`, `url_started`, and
 
 ### 6.1 Failure modes table
 
-| Failure                   | Detection                 | User Impact               | System Behavior                                  | Recovery                     | Blast Radius      |
-| ------------------------- | ------------------------- | ------------------------- | ------------------------------------------------ | ---------------------------- | ----------------- |
-| VT API down/timeout       | HTTP error / 30s timeout  | Missing VT signal         | Signal card shows "unavailable" + retry button   | Retry once auto, then manual | Single signal     |
-| VT rate limit exceeded    | 429 response              | Delayed/missing VT signal | Queue with exponential backoff                   | Auto-retry after cooldown    | VT signal only    |
-| HF model cold start       | > 30s response            | Delayed ML signal         | 30s timeout, retry once                          | Auto-retry                   | ML signal only    |
-| HF model unavailable      | HTTP error                | Missing ML signal         | Fallback to threat feeds for classification      | Manual retry                 | ML signal         |
-| Google Safe Browsing down | HTTP error                | Missing GSB signal        | Signal card shows "unavailable"                  | Manual retry                 | Single signal     |
-| DNS resolution failure    | Lookup error              | Missing DNS signal        | Show error, may indicate suspicious domain       | None needed                  | DNS signal        |
-| SSL handshake failure     | Connection error          | Missing SSL signal        | Could indicate self-signed cert (useful signal!) | Report as finding            | SSL signal        |
-| WHOIS lookup failure      | API error / timeout       | Missing WHOIS signal      | Signal shows "unavailable"                       | Manual retry                 | WHOIS signal      |
-| All sources fail          | All signals error         | No useful analysis        | Show error state with "Retry All" button         | Full retry                   | Complete          |
-| Vercel function timeout   | 10s edge / 60s serverless | Partial results           | Stream whatever completed before timeout         | Retry                        | Depends on timing |
+| Failure                   | Detection                 | User Impact                   | System Behavior                                                        | Recovery                    | Blast Radius      |
+| ------------------------- | ------------------------- | ----------------------------- | ---------------------------------------------------------------------- | --------------------------- | ----------------- |
+| VT API down/timeout       | HTTP error / 30s timeout  | Missing VT signal             | Signal card shows "unavailable"                                        | Full scan rerun             | Single signal     |
+| VT rate limit exceeded    | 429 response              | Delayed/missing VT signal     | Surface partial coverage and keep verdict provisional                  | Retry after cooldown window | VT signal only    |
+| HF model cold start       | > 30s response            | Delayed ML signal             | Lexical scorer still returns a partial ML result                       | Full scan rerun             | ML signal only    |
+| HF model unavailable      | HTTP error                | Missing ML signal             | Hosted model warning; lexical scorer still contributes                 | Full scan rerun             | ML signal         |
+| Google Safe Browsing down | HTTP error                | Missing GSB signal            | Signal card shows "unavailable"                                        | Full scan rerun             | Single signal     |
+| DNS resolution failure    | Lookup error              | Reduced DNS coverage          | Prefer a caveat or unavailable state over a threat-colored failure     | None needed                 | DNS signal        |
+| SSL handshake failure     | Connection error          | Reduced TLS coverage          | Prefer validation-state or unavailable state without inventing malware | None needed                 | SSL signal        |
+| WHOIS lookup failure      | API error / timeout       | Reduced registration coverage | Show caveat / unavailable / skipped as appropriate                     | Full scan rerun             | WHOIS signal      |
+| All sources fail          | All signals error         | No useful analysis            | Show error state with a full rerun path                                | Full retry                  | Complete          |
+| Vercel function timeout   | 10s edge / 60s serverless | Partial results               | Stream whatever completed before timeout                               | Retry                       | Depends on timing |
 
 ### 6.2 Retries/timeouts/circuit breakers
 
 - **Per-source timeout:** 30s for external APIs, 10s for self-computed signals
-- **Auto-retry:** One automatic retry with 2s backoff for external API failures
-- **Manual retry:** Per-source retry button in UI for any failed signal
+- **Auto-retry:** None in the shipped UI contract; failures surface directly so users understand coverage gaps immediately
+- **Manual retry:** Re-run the full scan from the primary controls when coverage gaps matter
 - **No circuit breaker needed** — external APIs are independent, no cascading failure risk
 
 ### 6.3 Data integrity + rollback
@@ -382,7 +385,7 @@ Then Summary shows verdict + top 3 signals, Full Report shows all 8 signal secti
 **AC-3: Partial failure handling**
 Given a scan where VirusTotal times out but other sources succeed
 When results are displayed
-Then VT card shows "unavailable" with retry button, and verdict is computed from remaining signals
+Then the VT card shows "unavailable", the verdict is computed from remaining signals, and the full-scan rerun control remains available
 
 **AC-4: Batch scan**
 Given the user switches to Batch tab and enters 5 URLs

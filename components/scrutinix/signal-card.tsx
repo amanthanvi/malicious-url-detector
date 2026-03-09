@@ -1,10 +1,20 @@
 "use client";
 
 import { clsx } from "clsx";
-import { memo } from "react";
+import {
+  ArrowRightLeft,
+  Brain,
+  Globe,
+  Lock,
+  Radar,
+  Rss,
+  Search,
+  Shield,
+  TriangleAlert,
+} from "lucide-react";
+import { memo, type ComponentType } from "react";
 
 import {
-  signalLabels,
   getSignalSummary,
   getSignalDetailEntries,
 } from "@/components/shared/signal-utils";
@@ -13,6 +23,8 @@ import {
   getLedColorFromSeverity,
   getEdgeClassFromSeverity,
 } from "@/components/shared/scrutinix-types";
+import { Badge } from "@/components/ui/badge";
+import { signalLabels } from "@/lib/domain/types";
 import type {
   SignalName,
   SignalResults,
@@ -22,12 +34,22 @@ import type {
   ThreatFeedsData,
 } from "@/lib/domain/types";
 
+const signalIconMap = {
+  virusTotal: Shield,
+  mlEnsemble: Brain,
+  googleSafeBrowsing: Search,
+  threatFeeds: Rss,
+  ssl: Lock,
+  whois: Globe,
+  dns: Radar,
+  redirectChain: ArrowRightLeft,
+} satisfies Record<SignalName, ComponentType<{ className?: string }>>;
+
 interface SignalCardProps {
   name: SignalName;
   result: SignalResults[SignalName];
   viewMode: "summary" | "full";
   isStreaming?: boolean;
-  onRetry?: () => void;
   index?: number;
 }
 
@@ -158,7 +180,6 @@ function SignalCardInner({
   result,
   viewMode,
   isStreaming = false,
-  onRetry,
   index = 0,
 }: SignalCardProps) {
   const severity = getSignalSeverity(result.status, result.data, name);
@@ -166,8 +187,22 @@ function SignalCardInner({
   const ledColor = getLedColorFromSeverity(severity);
   const isPending = result.status === "pending";
   const isError = result.status === "error";
+  const isSkipped = result.status === "skipped";
   const isSuccess = result.status === "success";
   const isActivelyScanning = isPending && isStreaming;
+  const SignalIcon = signalIconMap[name];
+  const statusBadge =
+    severity === "malicious"
+      ? { label: "high risk", variant: "malicious" as const }
+      : severity === "suspicious"
+        ? { label: "review", variant: "suspicious" as const }
+        : severity === "neutral"
+          ? { label: "caveat", variant: "neutral" as const }
+          : severity === "error"
+            ? { label: "failed", variant: "error" as const }
+            : severity === "skipped"
+              ? { label: "n/a", variant: "skipped" as const }
+              : { label: "clear", variant: "safe" as const };
 
   return (
     <article
@@ -178,7 +213,7 @@ function SignalCardInner({
         "rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
-        "hover:border-[var(--sx-accent)]/40 hover:shadow-[0_0_8px_var(--sx-ring-safe)]",
+        "hover:border-[var(--sx-active-accent)]/40 hover:shadow-[0_0_8px_color-mix(in_srgb,var(--sx-active-accent)_22%,transparent)]",
       )}
       aria-label={`${signalLabels[name]} signal: ${result.status}`}
     >
@@ -193,9 +228,18 @@ function SignalCardInner({
           style={{ backgroundColor: ledColor, color: ledColor }}
           aria-hidden="true"
         />
+        <SignalIcon
+          className="h-3.5 w-3.5 shrink-0 text-[var(--sx-text-muted)]"
+          aria-hidden="true"
+        />
         <span className="flex-1 text-xs font-semibold tracking-[0.08em] text-[var(--sx-text)] uppercase">
           {signalLabels[name]}
         </span>
+        {!isPending && (
+          <Badge variant={statusBadge.variant} className="shrink-0">
+            {statusBadge.label}
+          </Badge>
+        )}
         {result.durationMs > 0 && (
           <span className="shrink-0 text-xs text-[var(--sx-info)]">
             {result.durationMs}ms
@@ -217,19 +261,20 @@ function SignalCardInner({
         )}
         {isError && (
           <div className="flex items-center gap-2">
-            <span className="flex-1 truncate text-xs text-[var(--sx-malicious)]">
+            <TriangleAlert
+              className="h-3.5 w-3.5 shrink-0 text-[var(--sx-error)]"
+              aria-hidden="true"
+            />
+            <span className="flex-1 text-xs leading-relaxed text-[var(--sx-error)]">
               {result.error}
             </span>
-            {onRetry && (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="sx-btn-press shrink-0 text-xs font-semibold tracking-[0.1em] text-[var(--sx-accent)] uppercase hover:underline"
-              >
-                RETRY
-              </button>
-            )}
           </div>
+        )}
+        {isSkipped && (
+          <p className="text-xs leading-relaxed text-[var(--sx-text-muted)]">
+            {result.error ??
+              "This signal does not apply to the current target."}
+          </p>
         )}
         {isSuccess && result.data && (
           <p className="line-clamp-2 text-xs leading-relaxed text-[var(--sx-text-muted)]">

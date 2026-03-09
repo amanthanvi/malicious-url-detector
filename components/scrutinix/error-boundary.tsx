@@ -34,10 +34,12 @@ export class ScrutinixErrorBoundary extends Component<
             </p>
             <button
               type="button"
-              onClick={() => this.setState({ hasError: false, error: null })}
+              onClick={() => {
+                window.location.reload();
+              }}
               className="sx-btn-press mt-4 rounded border border-[var(--sx-accent)] bg-[var(--sx-accent)] px-4 py-2 text-xs font-bold tracking-[0.14em] text-[var(--sx-accent-fg)] uppercase"
             >
-              Recover
+              Reload Workspace
             </button>
           </div>
         </div>

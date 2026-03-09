@@ -47,8 +47,8 @@ Completed deployment verification:
 - `npx vercel env ls --scope aman-thanvis-projects`
 - `npx vercel inspect https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
 - `npx vercel inspect https://malicious-url-detector-gmt0z5cv5-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
-- `HEAD https://malicious-url-detector-phi.vercel.app`
-- `POST https://malicious-url-detector-phi.vercel.app/api/analyze`
+- `HEAD https://www.scrutinix.net`
+- `POST https://www.scrutinix.net/api/analyze`
 
 Observed results:
 
@@ -63,10 +63,11 @@ Observed results:
   - Best Practices `1.00`
   - SEO `1.00`
 - Vercel preview deployment: `Ready` at `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
-- Vercel production deployment: `Ready` at `https://malicious-url-detector-phi.vercel.app`
+- Vercel production deployment: `Ready` at `https://www.scrutinix.net`
 - Public production API smoke: `POST /api/analyze` returned NDJSON `200`, streamed all expected events, and produced a safe verdict for `https://example.com/`
 - Post-key-sync production smoke: Google Safe Browsing resolved successfully, URLhaus stopped warning once the `Auth-Key` header fix shipped, and the threat-feed source set was simplified to URLhaus plus the OpenPhish community feed.
 - Local production smoke: `redirectChain` now returns `success` for `https://example.com/`, and the scan no longer reports a false partial failure from TLS chain validation.
+- Fresh local matrix verification on 2026-03-09 confirmed the UI and verdict semantics across `example.com`, `neverssl.com`, `expired.badssl.com`, and a known-malicious IP sample; clean verdict confidence now drops to `moderate` when a primary reputation source times out instead of staying misleadingly high.
 
 ## Work Items
 
@@ -140,7 +141,7 @@ Observed results:
 
 - [x] Streamed single-scan UI.
 - [x] Summary / Full Report toggle.
-- [x] Per-signal loading and retry states.
+- [x] Per-signal loading states plus clear full-scan recovery controls.
 - [x] Clear differentiation between provider failure and malicious verdicts.
 
 ### P11 Ship batch, history, export, and share
@@ -182,3 +183,6 @@ Observed results:
 - 2026-03-09: Tailwind v4 theme tokens now live in `app/globals.css`, while `app/scrutinix.css` is reserved for the branded atmosphere, radar, marquee, and animation layer.
 - 2026-03-09: Next.js `themeColor` metadata must move to the `viewport` export on App Router pages, or builds emit warnings.
 - 2026-03-09: Moving the home route to a server-rendered shell plus smaller client islands pushed the scripted local Lighthouse score back to `0.99` after the Scrutinix redesign had regressed it.
+- 2026-03-09: The public production host now resolves through the custom domain `https://www.scrutinix.net`, with the apex `https://scrutinix.net` redirecting there.
+- 2026-03-09: TLS signal collection was already correctly identifying expired certificates, but the verdict engine initially underweighted that evidence; invalid or untrusted certificates now land in the suspicious band unless stronger evidence moves the result further.
+- 2026-03-09: A safe verdict can still be overconfident if a primary reputation source fails; the shipped confidence model now caps clean-result confidence when VirusTotal, Google Safe Browsing, or threat-feed coverage is missing.

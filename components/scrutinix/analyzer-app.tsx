@@ -19,12 +19,10 @@ import { AppFooter } from "@/components/scrutinix/app-footer";
 import { AppHeader } from "@/components/scrutinix/app-header";
 import { BatchInput, SingleInput } from "@/components/scrutinix/input-panels";
 import { VerdictHero } from "@/components/scrutinix/verdict-hero";
-import {
-  getSignalSummary,
-  signalLabels,
-} from "@/components/shared/signal-utils";
+import { getSignalSummary } from "@/components/shared/signal-utils";
 import {
   getActiveAccent,
+  getSignalSeverity,
   type SharedSnapshot,
 } from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +35,16 @@ import {
   resultsToJson,
 } from "@/lib/client/export";
 import type { HistoryEntry } from "@/lib/domain/types";
-import { signalNames, type AnalysisResult } from "@/lib/domain/types";
+import {
+  signalLabels,
+  signalNames,
+  type AnalysisResult,
+  type Verdict,
+} from "@/lib/domain/types";
+import {
+  THREAT_SCORE_MARKERS,
+  threatScoreToVerdict,
+} from "@/lib/domain/score-bands";
 import { normalizeUrlInput } from "@/lib/domain/url";
 import { useBatchStream } from "@/hooks/use-batch-stream";
 import { useScanHistory } from "@/hooks/use-scan-history";
@@ -137,11 +144,57 @@ function readSnapshot(): SharedSnapshot | null {
   const payload = new URLSearchParams(window.location.search).get("shared");
   if (!payload) return null;
 
+  const validVerdicts: Verdict[] = [
+    "safe",
+    "suspicious",
+    "malicious",
+    "critical",
+    "error",
+  ];
+  const maxUrlLength = 2048;
+  const maxSummaryLength = 600;
+  const maxCapturedAtLength = 128;
+  const toSnapshot = (value: unknown): SharedSnapshot | null => {
+    if (
+      !value ||
+      typeof value !== "object" ||
+      typeof (value as { url?: unknown }).url !== "string" ||
+      typeof (value as { summary?: unknown }).summary !== "string" ||
+      typeof (value as { capturedAt?: unknown }).capturedAt !== "string" ||
+      typeof (value as { verdict?: unknown }).verdict !== "string"
+    ) {
+      return null;
+    }
+
+    const verdict = (value as { verdict: string }).verdict;
+    if (!validVerdicts.includes(verdict as Verdict)) {
+      return null;
+    }
+
+    const url = (value as { url: string }).url;
+    const summary = (value as { summary: string }).summary;
+    const capturedAt = (value as { capturedAt: string }).capturedAt;
+    if (
+      url.length > maxUrlLength ||
+      summary.length > maxSummaryLength ||
+      capturedAt.length > maxCapturedAtLength
+    ) {
+      return null;
+    }
+
+    return {
+      verdict: verdict as Verdict,
+      url,
+      summary,
+      capturedAt,
+    };
+  };
+
   try {
-    return JSON.parse(decodeURIComponent(atob(payload))) as SharedSnapshot;
+    return toSnapshot(JSON.parse(decodeURIComponent(atob(payload))));
   } catch {
     try {
-      return JSON.parse(atob(payload)) as SharedSnapshot;
+      return toSnapshot(JSON.parse(atob(payload)));
     } catch {
       return null;
     }
@@ -151,6 +204,38 @@ function readSnapshot(): SharedSnapshot | null {
 function fmtTime(date: Date) {
   return date.toLocaleTimeString("en-US", { hour12: false });
 }
+
+function deriveTickerTime(
+  durationMs: number,
+  startedAt: string | null,
+  completedAt: string | null,
+) {
+  if (startedAt) {
+    const started = new Date(startedAt).getTime();
+    if (!Number.isNaN(started)) {
+      return fmtTime(new Date(started + durationMs));
+    }
+  }
+
+  if (completedAt) {
+    const completed = new Date(completedAt);
+    if (!Number.isNaN(completed.getTime())) {
+      return fmtTime(completed);
+    }
+  }
+
+  return fmtTime(new Date());
+}
+
+const severityRank = {
+  malicious: 5,
+  suspicious: 4,
+  error: 3,
+  neutral: 2,
+  skipped: 1,
+  safe: 0,
+  pending: -1,
+} as const;
 
 function useCreateAnalyzerRuntime() {
   const [activeTab, setActiveTab] = useState<Tab>("single");
@@ -189,13 +274,10 @@ function useCreateAnalyzerRuntime() {
   const isMalicious =
     active?.verdict === "malicious" || active?.verdict === "critical";
   const score = active?.threatInfo?.score ?? 0;
-  const scoreColor =
-    score > 70
-      ? "var(--sx-malicious)"
-      : score > 40
-        ? "var(--sx-suspicious)"
-        : "var(--sx-safe)";
+  const scoreColor = getActiveAccent(threatScoreToVerdict(score));
   const accentColor = getActiveAccent(active?.verdict);
+  const scanStartedAt = active?.metadata.startedAt ?? scan.state.startedAt;
+  const scanCompletedAt = active?.metadata.completedAt ?? null;
 
   const ticker = useMemo(() => {
     const events: TickerEvent[] = [];
@@ -204,40 +286,85 @@ function useCreateAnalyzerRuntime() {
       if (signal.status === "success" && signal.data) {
         events.push({
           id: `${signalName}-${signal.durationMs}`,
-          time: fmtTime(new Date()),
+          time: deriveTickerTime(
+            signal.durationMs,
+            scanStartedAt,
+            scanCompletedAt,
+          ),
           text: `${signalLabels[signalName]}: ${getSignalSummary(signalName, signal.data)}`,
         });
       }
       if (signal.status === "error" && signal.error) {
         events.push({
           id: `${signalName}-err`,
-          time: fmtTime(new Date()),
+          time: deriveTickerTime(
+            signal.durationMs,
+            scanStartedAt,
+            scanCompletedAt,
+          ),
           text: `${signalLabels[signalName]}: ERROR - ${signal.error}`,
         });
       }
     }
     return events.slice(-8);
-  }, [signals]);
+  }, [scanCompletedAt, scanStartedAt, signals]);
 
   const done = useMemo(
     () =>
       signalNames.filter(
         (signalName) =>
           signals[signalName].status === "success" ||
-          signals[signalName].status === "error",
+          signals[signalName].status === "error" ||
+          signals[signalName].status === "skipped",
       ).length,
     [signals],
   );
 
   const summarySignals = useMemo(
     () =>
-      summarySignalOrder
-        .filter(
-          (signalName) =>
-            signals[signalName].status === "success" ||
-            signals[signalName].status === "error",
-        )
+      [...summarySignalOrder]
+        .filter((signalName) => signals[signalName].status !== "pending")
+        .sort((left, right) => {
+          const leftSeverity = getSignalSeverity(
+            signals[left].status,
+            signals[left].data,
+            left,
+          );
+          const rightSeverity = getSignalSeverity(
+            signals[right].status,
+            signals[right].data,
+            right,
+          );
+          return severityRank[rightSeverity] - severityRank[leftSeverity];
+        })
         .slice(0, 3),
+    [signals],
+  );
+  const successfulSignalCount = useMemo(
+    () =>
+      signalNames.filter(
+        (signalName) => signals[signalName].status === "success",
+      ).length,
+    [signals],
+  );
+  const caveatSignalCount = useMemo(
+    () =>
+      signalNames.filter((signalName) => {
+        const severity = getSignalSeverity(
+          signals[signalName].status,
+          signals[signalName].data,
+          signalName,
+        );
+        return severity === "neutral";
+      }).length,
+    [signals],
+  );
+  const unavailableSignalCount = useMemo(
+    () =>
+      signalNames.filter((signalName) => {
+        const status = signals[signalName].status;
+        return status === "error" || status === "skipped";
+      }).length,
     [signals],
   );
 
@@ -251,6 +378,7 @@ function useCreateAnalyzerRuntime() {
 
   const startSingleScan = useCallback(async () => {
     setFormError(null);
+    setSelectedResult(null);
     const value = normalizeUrlInput(singleUrl);
     if (!value.ok) {
       setFormError(value.error);
@@ -357,6 +485,9 @@ function useCreateAnalyzerRuntime() {
     visibleSignals,
     rescanUrl,
     selectHistoryEntry,
+    successfulSignalCount,
+    caveatSignalCount,
+    unavailableSignalCount,
   };
 }
 
@@ -398,65 +529,81 @@ export function AnalyzerChrome({ children }: { children: ReactNode }) {
   );
 }
 
-const THRESHOLDS = [
-  { value: 25, label: "SAFE" },
-  { value: 40, label: "SUSP" },
-  { value: 55, label: "MAL" },
-  { value: 80, label: "CRIT" },
-] as const;
-
 export function HeaderMetrics() {
   const { done, live, score, scoreColor } = useAnalyzerRuntime();
+  const hasActivity = live || done > 0;
+  const clampedScore = Math.min(Math.max(score, 0), 100);
+  const readinessLabel = live ? "Live" : hasActivity ? "Complete" : "Idle";
+  const readinessVariant = live
+    ? ("active" as const)
+    : hasActivity
+      ? ("safe" as const)
+      : ("neutral" as const);
+  const coverageText = hasActivity ? `${done}/8 signals` : "Awaiting scan";
+  const meterLabel = hasActivity ? `${clampedScore}/100` : "Awaiting scan";
+  const meterValueText = hasActivity
+    ? `${clampedScore} out of 100`
+    : "Awaiting scan";
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-4">
-      <div className="w-full max-w-44 sm:w-40">
-        <div className="flex items-center gap-3">
-          <span className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-            Threat
+    <div className="grid w-full gap-3 md:w-auto md:grid-cols-[minmax(17rem,20rem)_auto] md:items-end">
+      <div
+        className={clsx(
+          "rounded-lg border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-elevated)_60%,transparent)] px-3 py-2.5",
+          !hasActivity && "border-dashed",
+        )}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[10px] tracking-[0.18em] text-[var(--sx-text)] uppercase">
+            Threat score
           </span>
-          <div className="w-full">
-            <div className="relative h-2 w-full overflow-hidden rounded-sm bg-[var(--sx-border)]">
-              <div
-                className="sx-threat-fill h-full rounded-sm transition-colors duration-300"
-                style={{
-                  width: `${Math.min(score, 100)}%`,
-                  backgroundColor: scoreColor,
-                }}
-              />
+          <span className="sx-font-hack text-xs text-[var(--sx-text)]">
+            {meterLabel}
+          </span>
+        </div>
+        <div
+          role="meter"
+          aria-label="Threat score"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={hasActivity ? clampedScore : 0}
+          aria-valuetext={meterValueText}
+          className="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[var(--sx-border)]"
+        >
+          <div
+            className="sx-threat-fill absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-500 ease-out"
+            style={{
+              width: `${hasActivity ? clampedScore : 0}%`,
+              backgroundColor: hasActivity
+                ? scoreColor
+                : "var(--sx-border-muted)",
+            }}
+          />
+        </div>
+        <div className="relative mt-2 hidden h-4 md:block">
+          {THREAT_SCORE_MARKERS.map((threshold) => (
+            <div
+              key={threshold.value}
+              className="absolute flex -translate-x-1/2 flex-col items-center"
+              style={{ left: `${threshold.value}%` }}
+            >
+              <div className="h-1.5 w-px bg-[var(--sx-border-muted)]" />
+              <span className="mt-0.5 text-[9px] leading-none tracking-[0.08em] text-[var(--sx-text)] uppercase">
+                {threshold.label}
+              </span>
             </div>
-            <div className="relative mt-0.5 h-3">
-              {THRESHOLDS.map((threshold) => (
-                <div
-                  key={threshold.value}
-                  className="absolute flex flex-col items-center"
-                  style={{
-                    left: `${threshold.value}%`,
-                    transform: "translateX(-50%)",
-                  }}
-                >
-                  <div className="h-1.5 w-px bg-[var(--sx-border-muted)]" />
-                  <span className="text-[8px] tracking-[0.08em] text-[var(--sx-text-muted)] uppercase">
-                    {threshold.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <span className="text-xs text-[var(--sx-text)]">{score}/100</span>
+          ))}
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-1">
+      <div className="flex flex-col items-start gap-1 md:items-end">
         <span className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
-          Scan readiness
+          Signal coverage
         </span>
         <div className="flex items-center gap-2">
-          <Badge variant={live ? "malicious" : "safe"}>
-            {live ? "Live" : "Ready"}
-          </Badge>
-          <span className="text-xs tracking-[0.12em] text-[var(--sx-text-muted)]">
-            {done}/8 signals
+          <Badge variant={readinessVariant}>{readinessLabel}</Badge>
+          <span className="sx-font-hack text-xs tracking-[0.08em] text-[var(--sx-text-muted)]">
+            {coverageText}
           </span>
         </div>
       </div>
@@ -489,6 +636,9 @@ export function AnalyzerWorkspace() {
     viewMode,
     visibleSignals,
     done,
+    successfulSignalCount,
+    caveatSignalCount,
+    unavailableSignalCount,
   } = useAnalyzerRuntime();
 
   return (
@@ -515,6 +665,7 @@ export function AnalyzerWorkspace() {
                   onUrlChange={setSingleUrl}
                   streaming={scan.state.isStreaming}
                   onSubmit={() => void startSingleScan()}
+                  onCancel={scan.cancelScan}
                   result={active}
                   onExport={() => {
                     if (!active) return;
@@ -536,6 +687,7 @@ export function AnalyzerWorkspace() {
                   onChange={setBatchInput}
                   streaming={batch.state.isStreaming}
                   onSubmit={() => void startBatchScan()}
+                  onCancel={batch.cancelBatch}
                   hasResults={batch.state.results.length > 0}
                   onCsv={() => {
                     downloadTextFile(
@@ -581,13 +733,25 @@ export function AnalyzerWorkspace() {
             streamUrl={scan.state.url}
             sharedSnapshot={sharedSnapshot}
             completedSignals={done}
+            onRunSharedScan={
+              sharedSnapshot
+                ? () => {
+                    setSingleUrl(sharedSnapshot.url);
+                    void rescanUrl(sharedSnapshot.url);
+                  }
+                : undefined
+            }
           />
         ) : (
           <BatchPanel
             items={batch.state.items}
             isStreaming={batch.state.isStreaming}
             results={batch.state.results}
-            onSelectResult={setSelectedResult}
+            onSelectResult={(result) => {
+              setSelectedResult(result);
+              setSingleUrl(result.url);
+              setActiveTab("single");
+            }}
           />
         )}
         <EducationSection />
@@ -595,9 +759,20 @@ export function AnalyzerWorkspace() {
 
       <div className="order-2 xl:order-1">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
-            Signal Grid
-          </p>
+          <div className="space-y-1">
+            <p className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
+              Signal Grid
+            </p>
+            {activeTab === "single" && done > 0 && viewMode === "summary" ? (
+              <p className="text-[11px] text-[var(--sx-text-muted)]">
+                Showing the highest-priority {visibleSignals.length} of{" "}
+                {successfulSignalCount} successful signals.{" "}
+                {caveatSignalCount + unavailableSignalCount > 0
+                  ? `${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable or n/a signals remain in Full view.`
+                  : "No hidden caveats remain outside this summary."}
+              </p>
+            ) : null}
+          </div>
           <div
             className="inline-flex rounded-lg border border-[var(--sx-border)] bg-[var(--sx-bg)] p-1"
             role="group"
@@ -608,6 +783,7 @@ export function AnalyzerWorkspace() {
               variant="view"
               size="sm"
               aria-pressed={viewMode === "summary"}
+              data-state={viewMode === "summary" ? "active" : undefined}
               onClick={() => setViewMode("summary")}
               className="min-w-24"
             >
@@ -618,6 +794,7 @@ export function AnalyzerWorkspace() {
               variant="view"
               size="sm"
               aria-pressed={viewMode === "full"}
+              data-state={viewMode === "full" ? "active" : undefined}
               onClick={() => setViewMode("full")}
               className="min-w-20"
             >
@@ -628,6 +805,13 @@ export function AnalyzerWorkspace() {
 
         {activeTab === "single" ? (
           <div className="transition-opacity duration-150">
+            <p className="sr-only" aria-live="polite">
+              {live
+                ? `${done} of 8 signals acquired so far.`
+                : active
+                  ? `${done} of 8 signals completed for the current result.`
+                  : "Awaiting scan."}
+            </p>
             {visibleSignals.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {visibleSignals.map((signalName, index) => (
@@ -637,7 +821,6 @@ export function AnalyzerWorkspace() {
                     result={signals[signalName]}
                     viewMode={viewMode}
                     isStreaming={live}
-                    onRetry={() => void startSingleScan()}
                     index={index}
                   />
                 ))}
@@ -652,7 +835,20 @@ export function AnalyzerWorkspace() {
               </Card>
             )}
           </div>
-        ) : null}
+        ) : (
+          <Card className="hidden border-dashed bg-[var(--sx-surface)] xl:block">
+            <CardContent className="px-6 py-12 text-center">
+              <p className="text-xs tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
+                Batch results stay in the right-hand console.
+              </p>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--sx-text-muted)]">
+                Select any completed batch item to inspect its full signal grid,
+                verdict rationale, and confidence breakdown in the single-scan
+                workspace.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
@@ -694,17 +890,29 @@ export function FooterTicker() {
   return (
     <AppFooter>
       {ticker.length > 0 ? (
-        <div className="flex w-full overflow-hidden whitespace-nowrap">
-          <div className="sx-marquee flex items-center gap-6 text-xs text-[var(--sx-text-muted)]">
-            {[...ticker, ...ticker].map((event, index) => (
-              <span key={`${event.id}-${index}`} className="shrink-0">
+        live ? (
+          <div className="flex w-full overflow-hidden whitespace-nowrap">
+            <div className="sx-marquee flex items-center gap-6 text-xs text-[var(--sx-text-muted)]">
+              {[...ticker, ...ticker].map((event, index) => (
+                <span key={`${event.id}-${index}`} className="shrink-0">
+                  <span className="text-[var(--sx-info)]">{event.time}</span>
+                  <span className="mx-1 text-[var(--sx-border-muted)]">--</span>
+                  <span>{event.text}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-1 py-1 text-xs text-[var(--sx-text-muted)]">
+            {ticker.slice(-4).map((event) => (
+              <span key={event.id}>
                 <span className="text-[var(--sx-info)]">{event.time}</span>
                 <span className="mx-1 text-[var(--sx-border-muted)]">--</span>
                 <span>{event.text}</span>
               </span>
             ))}
           </div>
-        </div>
+        )
       ) : (
         <div className="sx-font-sans flex items-center gap-4 text-xs text-[var(--sx-text-muted)]">
           <span>SCRUTINIX</span>

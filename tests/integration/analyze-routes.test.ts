@@ -5,18 +5,23 @@ import { server } from "@/tests/setup/msw.server";
 
 vi.mock("@/lib/server/signals/dns", () => ({
   runDnsSignal: vi.fn(async () => ({
+    subjectType: "hostname",
     addresses: ["93.184.216.34"],
     cnames: [],
     mx: ["mx.example.com"],
     txt: ["v=spf1 include:_spf.example.com ~all"],
     nameservers: ["ns1.example.com"],
+    reverseHostnames: [],
     anomalies: [],
+    observations: [],
   })),
 }));
 
 vi.mock("@/lib/server/signals/ssl", () => ({
   runSslSignal: vi.fn(async () => ({
     protocol: "TLSv1.3",
+    available: true,
+    validationState: "trusted",
     authorized: true,
     authorizationError: null,
     issuer: "Example CA",
@@ -26,6 +31,7 @@ vi.mock("@/lib/server/signals/ssl", () => ({
     daysRemaining: 240,
     selfSigned: false,
     fingerprint256: "abc123",
+    observations: [],
   })),
 }));
 
@@ -34,6 +40,9 @@ vi.mock("@/lib/server/signals/redirect-chain", () => ({
     finalUrl: "https://example.com/",
     totalHops: 1,
     httpsUpgraded: true,
+    reachable: true,
+    terminalStatus: 200,
+    terminalError: null,
     hops: [
       {
         url: "http://example.com/",
@@ -42,6 +51,7 @@ vi.mock("@/lib/server/signals/redirect-chain", () => ({
       },
       { url: "https://example.com/", status: 200 },
     ],
+    observations: [],
   })),
 }));
 
@@ -87,6 +97,43 @@ describe("analysis routes", () => {
     expect(events.at(-1)?.type).toBe("scan_complete");
   });
 
+  it("degrades RDAP outages into whois caveats instead of hard signal errors", async () => {
+    const { POST } = await import("@/app/api/analyze/route");
+    installHandlers({ rdapStatus: 504 });
+
+    const response = await POST(
+      new Request("http://localhost/api/analyze", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ url: "example.com" }),
+      }),
+    );
+
+    const text = await response.text();
+    const events = text
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as { type: string; result?: unknown });
+    const completion = events.at(-1);
+
+    expect(completion?.type).toBe("scan_complete");
+    expect(completion?.result).toMatchObject({
+      signals: {
+        whois: {
+          status: "success",
+          data: {
+            available: false,
+          },
+        },
+      },
+      metadata: {
+        partialFailure: false,
+      },
+    });
+  });
+
   it("streams batch analysis events", async () => {
     const { POST } = await import("@/app/api/analyze/batch/route");
     installHandlers();
@@ -118,7 +165,7 @@ describe("analysis routes", () => {
   });
 });
 
-function installHandlers() {
+function installHandlers(options: { rdapStatus?: number } = {}) {
   server.use(
     http.get("https://www.virustotal.com/api/v3/urls/:id", () =>
       HttpResponse.json({
@@ -151,23 +198,31 @@ function installHandlers() {
       () => HttpResponse.json([[{ label: "benign", score: 0.12 }]]),
     ),
     http.get("https://rdap.org/domain/:hostname", () =>
-      HttpResponse.json({
-        handle: "EXAMPLE-1",
-        country: "US",
-        entities: [
-          {
-            roles: ["registrar"],
-            vcardArray: ["vcard", [["fn", {}, "text", "Example Registrar"]]],
-          },
-        ],
-        events: [
-          {
-            eventAction: "registration",
-            eventDate: "2010-01-01T00:00:00.000Z",
-          },
-          { eventAction: "expiration", eventDate: "2030-01-01T00:00:00.000Z" },
-        ],
-      }),
+      options.rdapStatus
+        ? new HttpResponse(null, { status: options.rdapStatus })
+        : HttpResponse.json({
+            handle: "EXAMPLE-1",
+            country: "US",
+            entities: [
+              {
+                roles: ["registrar"],
+                vcardArray: [
+                  "vcard",
+                  [["fn", {}, "text", "Example Registrar"]],
+                ],
+              },
+            ],
+            events: [
+              {
+                eventAction: "registration",
+                eventDate: "2010-01-01T00:00:00.000Z",
+              },
+              {
+                eventAction: "expiration",
+                eventDate: "2030-01-01T00:00:00.000Z",
+              },
+            ],
+          }),
     ),
   );
 }

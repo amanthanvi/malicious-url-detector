@@ -4,6 +4,10 @@ test("single scan flow @smoke", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_000);
 
+  await expect(page.getByText(/signal coverage/i)).toBeVisible();
+  await expect(page.getByText(/^idle$/i)).toBeVisible();
+  await expect(page.getByText(/awaiting scan/i).first()).toBeVisible();
+
   const singleUrlInput = page.getByRole("textbox", {
     name: /url to analyze/i,
   });
@@ -15,6 +19,9 @@ test("single scan flow @smoke", async ({ page }) => {
 
   await expect(page.getByText(/example\.com/i).first()).toBeVisible();
   await expect(page.getByLabel(/VirusTotal signal:/i)).toBeVisible();
+  await expect(
+    page.getByRole("banner").getByText("8/8 signals", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("region", { name: /scan history/i }),
   ).toBeVisible();

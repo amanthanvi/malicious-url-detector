@@ -6,8 +6,9 @@ import "@/app/globals.css";
 import "@/app/scrutinix.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppToaster } from "@/components/ui/sonner";
+import { getSiteUrl } from "@/lib/site-url";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 const hack = localFont({
   src: [
@@ -60,8 +61,8 @@ export default function RootLayout({
       <body className={`${GeistSans.variable} ${hack.variable}`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
           <div className="scrutinix-theme">{children}</div>

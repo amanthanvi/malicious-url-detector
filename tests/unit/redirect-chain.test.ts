@@ -96,6 +96,10 @@ describe("runRedirectSignal", () => {
     expect(result.finalUrl).toBe(httpsUrl);
     expect(result.totalHops).toBe(1);
     expect(result.httpsUpgraded).toBe(true);
+    expect(result.reachable).toBe(true);
+    expect(result.terminalStatus).toBe(200);
+    expect(result.terminalError).toBeNull();
+    expect(result.observations).toEqual([]);
     expect(result.hops).toEqual([
       {
         url: httpUrl,
@@ -115,6 +119,10 @@ describe("runRedirectSignal", () => {
     expect(result.finalUrl).toBe(httpsUrl);
     expect(result.totalHops).toBe(0);
     expect(result.httpsUpgraded).toBe(false);
+    expect(result.reachable).toBe(true);
+    expect(result.terminalStatus).toBe(200);
+    expect(result.terminalError).toBeNull();
+    expect(result.observations).toEqual([]);
     expect(result.hops).toEqual([
       {
         url: httpsUrl,

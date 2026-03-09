@@ -1,0 +1,37 @@
+export class SignalSkipError extends Error {
+  readonly code = "signal_skipped";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "SignalSkipError";
+  }
+}
+
+export function isSignalSkipError(error: unknown): error is SignalSkipError {
+  return error instanceof SignalSkipError;
+}
+
+export function getErrorMessage(
+  error: unknown,
+  fallback = "Unknown signal error.",
+) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string" &&
+    error.message.trim().length > 0
+  ) {
+    return error.message;
+  }
+
+  return fallback;
+}

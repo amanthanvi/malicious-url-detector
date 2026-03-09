@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 import { getEnv } from "@/lib/config/env";
 import type { ClassificationFinding, MLSignalData } from "@/lib/domain/types";
 import { classifyConsensus } from "@/lib/domain/verdict";
@@ -20,6 +22,24 @@ const HIGH_RISK_KEYWORDS = [
   "gift-card",
   "airdrop",
   "auth",
+];
+
+const EXECUTABLE_INDICATORS = [
+  "x86_64",
+  "x64",
+  "arm64",
+  ".exe",
+  ".msi",
+  ".pkg",
+  ".dmg",
+  ".apk",
+  ".jar",
+  ".iso",
+  ".scr",
+  ".bat",
+  "payload",
+  "setup",
+  "download",
 ];
 
 const RISKY_TLDS = new Set(["zip", "click", "top", "gq", "work", "country"]);
@@ -68,6 +88,7 @@ function buildLexicalModel(url: string): ClassificationFinding {
   const hostname = parsedUrl.hostname.toLowerCase();
   const path = parsedUrl.pathname.toLowerCase();
   const query = parsedUrl.search.toLowerCase();
+  const combinedText = `${hostname}${path}${query}`;
   let score = 0.08;
 
   if (hostname.includes("xn--")) {
@@ -81,7 +102,7 @@ function buildLexicalModel(url: string): ClassificationFinding {
   }
 
   const keywordMatches = HIGH_RISK_KEYWORDS.filter((keyword) =>
-    `${hostname}${path}${query}`.includes(keyword),
+    combinedText.includes(keyword),
   );
   if (keywordMatches.length > 0) {
     score += Math.min(0.25, keywordMatches.length * 0.06);
@@ -98,6 +119,21 @@ function buildLexicalModel(url: string): ClassificationFinding {
   if (parsedUrl.search.includes("%")) {
     score += 0.08;
     reasons.push("The query string contains encoded characters.");
+  }
+
+  if (isIP(hostname)) {
+    score += 0.3;
+    reasons.push("The URL targets a literal IP address instead of a domain.");
+  }
+
+  const executableMatches = EXECUTABLE_INDICATORS.filter((indicator) =>
+    combinedText.includes(indicator),
+  );
+  if (executableMatches.length > 0) {
+    score += Math.min(0.36, executableMatches.length * 0.14);
+    reasons.push(
+      `The path or query references executable-style content such as ${executableMatches.slice(0, 3).join(", ")}.`,
+    );
   }
 
   const tld = hostname.split(".").at(-1);
@@ -184,14 +220,23 @@ async function runHostedModel(url: string): Promise<ClassificationFinding> {
     normalizedLabel.includes("malware") ||
     normalizedLabel.includes("deface")
       ? "malicious"
-      : topPrediction.score && topPrediction.score > 0.45
-        ? "risky"
-        : "benign";
+      : normalizedLabel.includes("benign") ||
+          normalizedLabel.includes("safe") ||
+          normalizedLabel.includes("clean")
+        ? "benign"
+        : normalizedLabel.includes("risk") ||
+            normalizedLabel.includes("suspicious")
+          ? "risky"
+          : topPrediction.score && topPrediction.score > 0.45
+            ? "risky"
+            : "benign";
 
   return {
     label,
     score: Number((topPrediction.score ?? 0).toFixed(2)),
-    reasons: [`Hosted model predicted ${topPrediction.label}.`],
+    reasons: [
+      `Hosted model predicted ${topPrediction.label} with ${((topPrediction.score ?? 0) * 100).toFixed(0)}% confidence.`,
+    ],
     model: "huggingface",
   };
 }

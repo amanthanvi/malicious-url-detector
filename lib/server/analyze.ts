@@ -17,6 +17,7 @@ import { runGoogleSafeBrowsingProvider } from "@/lib/server/providers/google-saf
 import { runMlEnsembleProvider } from "@/lib/server/providers/ml-ensemble";
 import { runThreatFeedsProvider } from "@/lib/server/providers/threat-feeds";
 import { runVirusTotalProvider } from "@/lib/server/providers/virustotal";
+import { getErrorMessage, isSignalSkipError } from "@/lib/server/signal-error";
 import { runDnsSignal } from "@/lib/server/signals/dns";
 import { runRedirectSignal } from "@/lib/server/signals/redirect-chain";
 import { runSslSignal } from "@/lib/server/signals/ssl";
@@ -185,16 +186,29 @@ function createSignalTask<Name extends SignalName>(
         result,
       };
     } catch (error) {
+      if (isSignalSkipError(error)) {
+        const result: SignalResult<SignalPayloadMap[Name]> = {
+          status: "skipped",
+          data: null,
+          error: error.message,
+          durationMs: Math.round(performance.now() - start),
+        };
+
+        return {
+          name,
+          result,
+        };
+      }
+
       logError("signal.failed", {
         signal: name,
-        message:
-          error instanceof Error ? error.message : "Unknown signal error.",
+        message: getErrorMessage(error),
       });
 
       const result: SignalResult<SignalPayloadMap[Name]> = {
         status: "error",
         data: null,
-        error: error instanceof Error ? error.message : "Unknown signal error.",
+        error: getErrorMessage(error),
         durationMs: Math.round(performance.now() - start),
       };
 
