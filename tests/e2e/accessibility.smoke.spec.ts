@@ -22,13 +22,15 @@ test("home page keyboard navigation @smoke", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_000);
 
-  await page.keyboard.press("Tab");
-  await expect(
-    page.getByRole("button", { name: /toggle theme/i }),
-  ).toBeFocused();
+  const themeToggle = page.getByRole("button", {
+    name: /switch to light theme|switch to dark theme/i,
+  });
+  await themeToggle.focus();
+  await expect(themeToggle).toBeFocused();
 
   await page.keyboard.press("Tab");
-  await expect(
-    page.getByRole("button", { name: /^single scan$/i }),
-  ).toBeFocused();
+  await expect(page.getByRole("tab", { name: /single scan/i })).toBeFocused();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tab", { name: /batch scan/i })).toBeFocused();
 });

@@ -12,9 +12,9 @@ export default function Icon() {
     <div
       style={{
         alignItems: "center",
-        background: "#194239",
-        borderRadius: 20,
-        color: "#f5efe4",
+        background: "#080c10",
+        borderRadius: 16,
+        color: "#00e639",
         display: "flex",
         fontSize: 28,
         fontWeight: 700,
@@ -24,21 +24,24 @@ export default function Icon() {
         width: "100%",
       }}
     >
+      {/* Shield outline */}
       <div
         style={{
-          border: "6px solid #f5efe4",
-          borderRadius: "999px",
-          height: 34,
+          border: "4px solid #00e639",
+          borderRadius: "6px 6px 16px 16px",
+          height: 36,
+          width: 28,
           position: "absolute",
-          width: 34,
         }}
       />
+      {/* Center dot */}
       <div
         style={{
-          background: "#ef9355",
+          background: "#00e639",
           borderRadius: "999px",
-          height: 10,
-          width: 10,
+          height: 8,
+          width: 8,
+          boxShadow: "0 0 8px #00e639",
         }}
       />
     </div>,

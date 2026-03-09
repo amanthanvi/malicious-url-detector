@@ -1,0 +1,407 @@
+/* ── Scrutinix Theme ── */
+.scrutinix-theme {
+  --sx-active-accent: var(--sx-accent);
+  background: var(--sx-bg);
+  color: var(--sx-text);
+  min-height: 100vh;
+  font-family: var(--font-geist-mono), "Geist Mono", monospace;
+  --sx-font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
+  --sx-font-hack: var(--font-hack), "Hack", "Fira Code", monospace;
+  position: relative;
+}
+
+/* ── Subtle Noise Grain Overlay ── */
+.scrutinix-theme::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* ── Ambient Accent Atmosphere ── */
+.sx-atmosphere {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  width: 120vw;
+  height: 80vh;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at center,
+    var(--sx-active-accent) 0%,
+    transparent 70%
+  );
+  opacity: 0.03;
+  transition: opacity 0.6s ease;
+}
+
+/* ── Radar Sweep Background ── */
+.sx-radar-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.sx-radar-bg::before {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 140vmax;
+  height: 140vmax;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(0, 230, 57, 0.1) 30deg,
+    transparent 60deg,
+    transparent 360deg
+  );
+  animation: sx-radar-sweep 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sx-radar-sweep {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ── Scrollbar ── */
+.scrutinix-theme ::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrutinix-theme ::-webkit-scrollbar-track {
+  background: var(--sx-bg);
+}
+.scrutinix-theme ::-webkit-scrollbar-thumb {
+  background: var(--sx-border-muted);
+  border-radius: 2px;
+}
+.scrutinix-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--sx-text-muted);
+}
+
+/* ── Selection ── */
+.scrutinix-theme ::selection {
+  background: rgba(0, 230, 57, 0.25);
+  color: var(--sx-text);
+}
+
+/* ── Score Arc ── */
+@keyframes sx-arc-fill {
+  from {
+    stroke-dashoffset: 283;
+  }
+}
+
+/* ── Pulse ── */
+@keyframes sx-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.16);
+  }
+}
+.sx-pulse {
+  animation: sx-pulse 2s ease-in-out infinite;
+}
+
+/* ── Cursor Blink ── */
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.sx-cursor {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* ── Status LED ── */
+@keyframes led-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 3px 1px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 8px 3px currentColor;
+  }
+}
+.sx-led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sx-led-pulse {
+  animation: led-glow 2s ease-in-out infinite;
+}
+
+/* ── Data Feed Scan Line ── */
+@keyframes scan-line {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+.sx-scan-line {
+  position: relative;
+  overflow: hidden;
+}
+.sx-scan-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 230, 57, 0.06) 40%,
+    rgba(0, 230, 57, 0.12) 50%,
+    rgba(0, 230, 57, 0.06) 60%,
+    transparent 100%
+  );
+  animation: scan-line 3s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Pending Scan Effect ── */
+@keyframes pending-scan {
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 140%;
+  }
+}
+.sx-pending-scan {
+  position: relative;
+  overflow: hidden;
+}
+.sx-pending-scan::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 176, 0, 0.15),
+    transparent
+  );
+  animation: pending-scan 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Red Alert Mode ── */
+@keyframes alert-pulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 30px rgba(255, 0, 128, 0.05);
+  }
+  50% {
+    box-shadow: inset 0 0 60px rgba(255, 0, 128, 0.12);
+  }
+}
+.sx-alert {
+  animation: alert-pulse 2s ease-in-out infinite;
+  border: 1px solid rgba(255, 0, 128, 0.2);
+}
+
+/* ── Radar SVG Animation ── */
+@keyframes radar-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sx-radar-sweep-line {
+  transform-origin: center;
+  animation: radar-rotate 4s linear infinite;
+}
+.sx-radar-sweep-fast {
+  transform-origin: center;
+  animation: radar-rotate 1.5s linear infinite;
+}
+
+/* ── Concentric Radar Rings Pulse ── */
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+.sx-radar-ring {
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+.sx-radar-ring:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.sx-radar-ring:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* ── Threat Bar Fill ── */
+@keyframes threat-fill {
+  from {
+    width: 0%;
+  }
+}
+.sx-threat-fill {
+  animation: threat-fill 1s ease-out forwards;
+}
+
+/* ── Edge accents ── */
+.sx-edge-safe {
+  border-left: 3px solid var(--sx-safe);
+}
+.sx-edge-suspicious {
+  border-left: 3px solid var(--sx-suspicious);
+}
+.sx-edge-malicious {
+  border-left: 3px solid var(--sx-malicious);
+}
+.sx-edge-critical {
+  border-left: 3px solid var(--sx-critical);
+}
+.sx-edge-error {
+  border-left: 3px solid var(--sx-error);
+}
+.sx-edge-pending {
+  border-left: 3px solid var(--sx-border-muted);
+}
+
+/* ── Input Glow ── */
+.sx-input-glow:focus {
+  box-shadow:
+    0 0 0 1px var(--sx-bg),
+    0 0 0 2px var(--sx-active-accent);
+}
+
+/* ── Button Active States ── */
+.sx-btn-press:active {
+  transform: scale(0.97);
+}
+
+/* ── Footer Marquee ── */
+@keyframes sx-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.sx-marquee {
+  animation: sx-marquee 30s linear infinite;
+}
+
+/* ── Toast Enter/Exit ── */
+@keyframes sx-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes sx-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+}
+
+/* ── Skeleton Shimmer ── */
+@keyframes sx-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.sx-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--sx-surface) 0%,
+    var(--sx-surface-elevated) 40%,
+    var(--sx-surface) 80%
+  );
+  background-size: 200% 100%;
+  animation: sx-shimmer 2s ease-in-out infinite;
+}
+
+/* ── Font Utilities ── */
+.sx-font-sans {
+  font-family: var(--sx-font-sans);
+}
+.sx-font-hack {
+  font-family: var(--sx-font-hack);
+}
+
+/* ── Focus Visible (Accessibility) ── */
+.scrutinix-theme button:focus-visible,
+.scrutinix-theme input:focus-visible,
+.scrutinix-theme textarea:focus-visible,
+.scrutinix-theme a:focus-visible,
+.scrutinix-theme [role="tab"]:focus-visible,
+.scrutinix-theme [tabindex]:focus-visible {
+  outline: 2px solid var(--sx-accent);
+  outline-offset: 2px;
+}
+
+/* ── Reduced Motion (Accessibility) ── */
+@media (prefers-reduced-motion: reduce) {
+  .sx-radar-bg::before,
+  .sx-radar-sweep-line,
+  .sx-radar-sweep-fast,
+  .sx-radar-ring,
+  .sx-scan-line::after,
+  .sx-pending-scan::after,
+  .sx-alert,
+  .sx-pulse,
+  .sx-cursor,
+  .sx-led-pulse,
+  .sx-threat-fill,
+  .sx-marquee,
+  .sx-shimmer,
+  .sx-atmosphere {
+    animation: none !important;
+  }
+}
