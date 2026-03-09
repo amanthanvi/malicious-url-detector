@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 
 import { formatDisplayUrl } from "@/lib/domain/url";
@@ -50,12 +49,7 @@ export function BatchPanel({
     items.length > 0 ? Math.min(100, (results.length / items.length) * 100) : 0;
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      aria-label="Batch scan results"
-    >
+    <section aria-label="Batch scan results">
       <Card>
         <CardHeader className="gap-3 border-b border-[var(--sx-border)] py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -67,11 +61,12 @@ export function BatchPanel({
             </Badge>
           </div>
           <div className="h-1 rounded-full bg-[var(--sx-border)]">
-            <motion.div
+            <div
               className="h-full rounded-full bg-[var(--sx-active-accent)]"
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPct}%` }}
-              transition={{ duration: 0.3 }}
+              style={{
+                width: `${progressPct}%`,
+                transition: "width 300ms ease",
+              }}
             />
           </div>
         </CardHeader>
@@ -167,6 +162,6 @@ export function BatchPanel({
           </ScrollArea>
         </CardContent>
       </Card>
-    </motion.section>
+    </section>
   );
 }

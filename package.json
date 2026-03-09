@@ -25,7 +25,6 @@
     "@upstash/redis": "^1.36.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.35.0",
     "geist": "^1.7.0",
     "hack-font": "^3.3.0",
     "idb": "^8.0.3",

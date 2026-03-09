@@ -4,7 +4,7 @@
   background: var(--sx-bg);
   color: var(--sx-text);
   min-height: 100vh;
-  font-family: var(--font-geist-mono), "Geist Mono", monospace;
+  font-family: var(--font-hack), "Hack", "Fira Code", monospace;
   --sx-font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
   --sx-font-hack: var(--font-hack), "Hack", "Fira Code", monospace;
   position: relative;

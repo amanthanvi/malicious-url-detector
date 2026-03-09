@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
 
 import "@/app/globals.css";
 import "@/app/scrutinix.css";
@@ -17,7 +16,6 @@ const hack = localFont({
       weight: "400",
       style: "normal",
     },
-    { path: "../public/fonts/hack-bold.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-hack",
   display: "swap",
@@ -59,9 +57,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${GeistSans.variable} ${GeistMono.variable} ${hack.variable}`}
-      >
+      <body className={`${GeistSans.variable} ${hack.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

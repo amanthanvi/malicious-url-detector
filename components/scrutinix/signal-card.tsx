@@ -1,7 +1,6 @@
 "use client";
 
 import { clsx } from "clsx";
-import { motion } from "framer-motion";
 import { memo } from "react";
 
 import {
@@ -154,8 +153,6 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
   );
 }
 
-const SPRING = { type: "spring" as const, stiffness: 300, damping: 30 };
-
 function SignalCardInner({
   name,
   result,
@@ -173,14 +170,12 @@ function SignalCardInner({
   const isActivelyScanning = isPending && isStreaming;
 
   return (
-    <motion.article
-      initial={{ scaleX: 0, opacity: 0 }}
-      animate={{ scaleX: 1, opacity: 1 }}
-      exit={{ scaleX: 0, opacity: 0 }}
-      transition={{ ...SPRING, delay: index * 0.06 }}
-      style={{ transformOrigin: "left" }}
+    <article
+      style={{
+        transitionDelay: index > 0 ? `${index * 60}ms` : undefined,
+      }}
       className={clsx(
-        "rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-all",
+        "rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
         "hover:border-[var(--sx-accent)]/40 hover:shadow-[0_0_8px_var(--sx-ring-safe)]",
@@ -247,7 +242,7 @@ function SignalCardInner({
         isSuccess &&
         result.data &&
         renderRichDetails(name, result.data)}
-    </motion.article>
+    </article>
   );
 }
 
