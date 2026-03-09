@@ -84,3 +84,4 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-09: The current UI is intentionally hybrid: branded `components/scrutinix/*` screens backed by selective shadcn/ui primitives, not a full rewrite onto generic shadcn layouts.
 - 2026-03-09: Next.js App Router no longer accepts `themeColor` in `metadata`; move it to the `viewport` export to avoid build warnings.
 - 2026-03-09: Keep IndexedDB history out of the root home-page runtime; the scan shell now renders server-first, and the history rail hydrates as its own client island.
+- 2026-03-09: Deferring the history rail behind idle or first-interaction hooks looked promising on paper but regressed the scripted Lighthouse score from `0.99` to `0.92`; keep the current eager history island unless a future chunk-analysis proves a net win.
