@@ -8,7 +8,7 @@ Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 A
 - Batch analysis for up to 10 URLs with a concurrency cap of 3 and per-URL completion streaming.
 - Eight normalized signals on every result: `virusTotal`, `mlEnsemble`, `googleSafeBrowsing`, `threatFeeds`, `ssl`, `whois`, `dns`, and `redirectChain`.
 - Client-only history in IndexedDB with search, verdict filters, export, and re-scan support.
-- Summary and Full Report modes, per-signal retry affordances, theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
+- Summary and Full Report modes, per-signal retry affordances, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
 - Upstash-backed production rate limiting with a process-local fallback when Redis is not configured.
 
 ## Stack
@@ -17,6 +17,7 @@ Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 A
 - React `19.2.0`
 - TypeScript `5.9`
 - Tailwind CSS `4`
+- shadcn/ui primitives + next-themes
 - Vitest + MSW
 - Playwright + axe-core
 - Lighthouse CI
@@ -85,7 +86,8 @@ npm run lighthouse
 - `app/api/analyze/batch/route.ts`: batch NDJSON API.
 - `proxy.ts`: request gating and rate limiting for `/api/analyze`.
 - `lib/server/`: orchestration, provider adapters, local signal collectors, cache, logging, rate limiting, and stream helpers.
-- `components/scan/`: main analyzer UI, signal cards, history, and batch presentation.
+- `components/scrutinix/`: branded analyzer UI, signal cards, history, batch presentation, and app shell.
+- `components/ui/`: selective shadcn/ui primitives used for buttons, inputs, tabs, cards, badges, scroll areas, and notifications.
 - `hooks/`: NDJSON client readers and IndexedDB-backed history hooks.
 - `tests/`: unit, integration, E2E smoke, accessibility, and keyboard checks.
 
@@ -107,10 +109,12 @@ npm run lighthouse
 
 Latest Lighthouse scores from `.lighthouseci/lhr-*.json`:
 
-- Performance: `0.99`
+- Performance: `0.85`
 - Accessibility: `1.00`
-- Best Practices: `0.96`
+- Best Practices: `1.00`
 - SEO: `1.00`
+
+The current UI audit is clean on accessibility, best practices, and SEO. Performance remains below the original `0.90` target in the scripted mobile Lighthouse pass, with the remaining drag concentrated in initial client-side JavaScript.
 
 Deployment verification completed on Vercel:
 

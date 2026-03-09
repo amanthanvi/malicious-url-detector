@@ -21,6 +21,9 @@
 - Testing decision: harness-first is required; Vitest, MSW, Playwright, and Lighthouse land before large feature clusters.
 - Tooling decision:
   - Replace `@lhci/cli` with a direct `lighthouse` + `chrome-launcher` script so the verification path does not carry stale vulnerable transitive dependencies.
+- UI decision:
+  - Preserve the custom Scrutinix visual identity, but standardize reusable controls on selective shadcn/ui primitives with Tailwind v4 CSS variables, `next-themes`, and `sonner`.
+  - Restore dark/light theme support through the shared semantic token layer in `app/globals.css` while keeping `app/scrutinix.css` for the branded motion/effects layer.
 - Security decision: ship CSP and related browser hardening headers from `next.config.ts` in production responses.
 - Verification note: local verification passed for lint, format, typecheck, unit, integration, E2E smoke, production build, audit, and Lighthouse, and Vercel preview/production deployments were verified with `vercel inspect` plus a public production API smoke.
 - Documentation decision: `PLAN.md` is the live execution tracker and must stay in sync with this spec.
@@ -31,7 +34,7 @@
 - **Owner (DRI):** Aman Thanvi (@amanthanvi)
 - **Stakeholders:** Aman Thanvi
 - **Status:** Deployed on Vercel preview and production
-- **Last updated:** 2026-03-06
+- **Last updated:** 2026-03-09
 - **Target ship date:** TBD (big bang — ship when complete)
 - **Links:** [GitHub](https://github.com/amanthanvi/malicious-url-detector)
 

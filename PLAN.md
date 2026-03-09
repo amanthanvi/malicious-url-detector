@@ -1,6 +1,6 @@
 # PLAN.md
 
-Living execution plan for the Malicious URL Detector v2 restart. This file now reflects the implemented and deployed ship state reached on 2026-03-06.
+Living execution plan for the Malicious URL Detector v2 restart. This file now reflects the implemented and deployed ship state reached on 2026-03-09.
 
 ## Status Legend
 
@@ -11,7 +11,7 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
 
 ## Current Snapshot
 
-- Date: 2026-03-06
+- Date: 2026-03-09
 - Execution status: `P13 completed and deployed`
 - Platform:
   - Next.js `16.1.6`
@@ -22,6 +22,7 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
   - `proxy.ts` enforces rate limits on `/api/analyze` request paths.
   - Node.js route handlers orchestrate eight signals and stream normalized results.
   - IndexedDB stores client-only history, export state, and re-scan sources.
+  - The UI now uses selective shadcn/ui primitives on top of the branded `components/scrutinix/*` surface, with dark/light theme tokens in `app/globals.css` and brand motion/effects in `app/scrutinix.css`.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
   - `package-lock.json` drift from the restart bootstrap was kept intentionally because the project was fully re-scaffolded onto the new dependency graph.
@@ -56,9 +57,9 @@ Observed results:
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
 - Security audit: `0` vulnerabilities reported across prod and dev dependencies.
 - Lighthouse:
-  - Performance `0.99`
+  - Performance `0.85`
   - Accessibility `1.00`
-  - Best Practices `0.96`
+  - Best Practices `1.00`
   - SEO `1.00`
 - Vercel preview deployment: `Ready` at `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
 - Vercel production deployment: `Ready` at `https://malicious-url-detector-phi.vercel.app`
@@ -176,3 +177,7 @@ Observed results:
 - 2026-03-06: OpenPhish's free community TXT feed is sufficient for the shipped threat-feed role here, so the PhishTank integration was removed instead of carrying a flaky Cloudflare-challenged path.
 - 2026-03-06: Redirect tracing should not depend on fetch-level certificate trust, because SSL trust errors are already captured separately by the SSL signal; the shipped tracer now inspects headers through Node HTTP(S) requests with relaxed certificate validation.
 - 2026-03-06: Vercel's Node version setting is major-line based; `package.json` now pins `engines.node` to `22.x` so deploys stay on Node 22 without silently floating to a future major.
+- 2026-03-09: The shipped UI moved from ad-hoc control styling to selective shadcn/ui primitives (`Button`, `Input`, `Textarea`, `Tabs`, `Card`, `Badge`, `ScrollArea`, `sonner`) without discarding the custom Scrutinix hero, motion, or signal rendering.
+- 2026-03-09: Tailwind v4 theme tokens now live in `app/globals.css`, while `app/scrutinix.css` is reserved for the branded atmosphere, radar, marquee, and animation layer.
+- 2026-03-09: Next.js `themeColor` metadata must move to the `viewport` export on App Router pages, or builds emit warnings.
+- 2026-03-09: The current scripted Lighthouse run is still limited by initial client-side JavaScript on the home page; the repo now records the true local score (`0.85`) instead of the earlier pre-refactor snapshot.

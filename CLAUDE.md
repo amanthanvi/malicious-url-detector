@@ -1,117 +1,91 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-This is a modern URL threat analyzer web application built with Next.js 14, TypeScript, and Tailwind CSS that analyzes URLs for potential security threats using VirusTotal and Hugging Face APIs.
+**Scrutinix** — a multi-signal URL threat analyzer. Streams 8 independent security signals (VirusTotal, Google Safe Browsing, threat feeds, ML ensemble, TLS, WHOIS, DNS, redirect chain) via NDJSON and renders a real-time threat dashboard. Dark-first terminal aesthetic with a supported light theme.
 
-## Common Development Commands
-
-### Setup and Running
+## Commands
 
 ```bash
-# Install dependencies
-npm install
-
-# Set up environment variables (create .env.local file)
-echo "VIRUSTOTAL_API_KEY=your_key_here" > .env.local
-echo "HUGGINGFACE_API_KEY=your_key_here" >> .env.local
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run production server
-npm run start
-
-# Run linting
-npm run lint
+npm run dev          # Dev server on :3000
+npm run build        # Production build
+npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit
+npm run test:unit -- --run
+npm run test:integration -- --run
+npm run test:e2e     # Builds then runs Playwright
+npm run lighthouse   # Lighthouse audit
 ```
 
-### Development Notes
-
-- The application runs on `http://localhost:3000` by default
-- Uses Next.js App Router with TypeScript
-- Vercel-optimized for deployment
-- Flask backup files are stored in `/flask-backup/` directory
-
-## Architecture and Code Structure
-
-### Application Pattern
-
-- **Next.js 14 App Router Architecture**:
-  - API Routes: `/app/api/analyze/route.ts` for backend logic
-  - Components: Modular React components in `/app/components/`
-  - Utilities: Helper functions in `/app/utils/` and `/app/lib/`
-  - Types: TypeScript interfaces in `/app/types/`
-  - Hooks: Custom React hooks in `/app/hooks/`
-
-### Key Implementation Details
-
-1. **URL Analysis Flow**:
-   - Client-side validation → API route call → Parallel API requests → Caching → Response
-   - LRU cache with 15-minute TTL for reducing API calls
-   - Comprehensive error handling with user-friendly messages
-
-2. **API Integration** (`/app/api/analyze/route.ts`):
-   - **VirusTotal**: Asynchronous analysis with polling (up to 10 retries, 15s intervals)
-   - **Hugging Face**: Synchronous inference call to `r3ddkahili/final-complete-malicious-url-model`
-   - Both APIs handle timeouts and errors gracefully
-
-3. **Result Classification Logic**:
-   - Threat analyzer in `/app/lib/threatAnalyzer.ts`
-   - Risk levels: low, medium, high, critical
-   - Detailed threat categories and recommendations
-
-4. **State Management**:
-   - Local storage for URL history
-   - React state for UI interactions
-   - Server-side caching for API results
-
-### Important Code Patterns
-
-- **URL Validation**: Utility functions in `/app/utils/url.ts`
-- **Caching**: LRU cache implementation in `/app/lib/cache.ts`
-- **Theme Support**: Dark/light mode with system preference detection
-- **Animations**: Framer Motion for smooth UI transitions
-- **Type Safety**: Full TypeScript coverage with strict mode
-
-## Features
-
-- **Single URL Analysis**: Real-time threat detection
-- **Batch Analysis**: Process up to 10 URLs simultaneously
-- **URL History**: Local storage of previous analyses
-- **Educational Content**: Interactive learning about online threats
-- **Export Functionality**: CSV export for batch results
-- **Dark Mode**: Full theme support with persistence
-
-## Environment Configuration
-
-Required environment variables in `.env.local`:
+## Architecture
 
 ```
-VIRUSTOTAL_API_KEY=your_virustotal_api_key
-HUGGINGFACE_API_KEY=your_huggingface_api_key
+app/
+  layout.tsx              # Root layout (ThemeProvider + Sonner + Geist Mono/Sans + Hack)
+  page.tsx                # Renders AnalyzerApp from components/scrutinix/
+  scrutinix.css           # Scrutinix motion/effects/utilities
+  globals.css             # Tailwind v4 + semantic theme tokens
+  api/analyze/            # POST NDJSON stream (single + batch routes)
+  icon.tsx                # Favicon (dark/green)
+  opengraph-image.tsx     # OG card
+
+components/
+  ui/                     # Selective shadcn/ui primitives
+  scrutinix/
+    analyzer-app.tsx      # Main orchestrator (~330 LOC)
+    app-header.tsx        # SCRUTINIX branding + threat elevation bar + theme toggle
+    app-footer.tsx        # Marquee ticker footer
+    verdict-hero.tsx      # Radar SVG, score ring, result display
+    signal-card.tsx       # Per-signal card with LED + edge severity
+    input-panels.tsx      # shadcn-backed input/textarea/button controls
+    history-panel.tsx     # search, verdict filters, export, history drill-down
+    batch-panel.tsx       # Batch results data table
+    education-section.tsx # Collapsible educational accordion
+    loading-skeleton.tsx  # Initial page load skeleton
+    error-boundary.tsx    # Class-based error boundary
+  shared/
+    scrutinix-types.ts    # Verdict colors, severity helpers, dynamic accent
+    signal-utils.ts       # Signal labels, summaries, detail entries
+
+hooks/
+  use-scan-stream.ts      # NDJSON consumer for single scan
+  use-batch-stream.ts     # NDJSON consumer for batch scan
+  use-scan-history.ts     # IndexedDB-backed history with search/filter
+
+lib/
+  domain/                 # Types, URL validation, verdict logic
+  server/                 # Analyze orchestrator, providers, signals
+  client/                 # NDJSON parser, export utils
+  config/                 # Environment validation (Zod)
+
+tests/
+  unit/                   # Vitest (cache, url, verdict, env, ml, redirect, rate-limit)
+  integration/            # Vitest (analyze routes, threat feeds)
+  e2e/                    # Playwright (smoke, accessibility)
 ```
 
-## Deployment
+## Key Patterns
 
-- **Platform**: Optimized for Vercel deployment
-- **Build Output**: Static and server-rendered pages
-- **API Routes**: Serverless functions on Vercel
-- **Environment**: Set API keys in Vercel dashboard
+- **NDJSON streaming**: API routes stream signal results as they resolve. Client hooks consume via `ReadableStream`.
+- **8 security signals**: virusTotal, mlEnsemble, googleSafeBrowsing, threatFeeds, ssl, whois, dns, redirectChain.
+- **Dynamic accent color**: `--sx-active-accent` CSS var shifts based on active verdict (green → amber → red → magenta).
+- **Hybrid UI**: keep branded Scrutinix components, but use selective shadcn/ui primitives for reusable controls and accessibility-heavy widgets.
+- **CSS prefix**: All theme vars use `--sx-*`, all utility classes use `sx-*`.
+- **Font hierarchy**: Geist Mono (primary mono), Geist Sans (UI chrome/buttons/prose), Hack (data-dense details).
 
-## Technology Stack
+## Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Headless UI, Hero Icons
-- **Animations**: Framer Motion
-- **API Client**: Native fetch
-- **Caching**: LRU Cache
-- **Theme**: next-themes
-- **Analytics**: Vercel Analytics
+- Next.js 16, React 19, TypeScript 5.9 (strict + noUncheckedIndexedAccess)
+- Tailwind CSS v4 (CSS-first config via @tailwindcss/postcss)
+- Geist (Sans + Mono), Hack (self-hosted), Framer Motion, Lucide React, clsx, Zod, idb
+- Vitest + Playwright + Lighthouse + axe-core
+
+## Env
+
+```
+VIRUSTOTAL_API_KEY=...
+HUGGINGFACE_API_KEY=...
+GOOGLE_SAFE_BROWSING_API_KEY=...  # optional
+UPSTASH_REDIS_REST_URL=...        # optional (rate limiting)
+UPSTASH_REDIS_REST_TOKEN=...      # optional
+```
