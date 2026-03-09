@@ -1,32 +1,55 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
-import { ThemeProvider } from "@/components/layout/theme-provider";
 import "@/app/globals.css";
+import "@/app/scrutinix.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AppToaster } from "@/components/ui/sonner";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+const hack = localFont({
+  src: [
+    {
+      path: "../public/fonts/hack-regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    { path: "../public/fonts/hack-bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-hack",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Malicious URL Detector v2",
+  title: "Scrutinix — Multi-Signal URL Threat Analyzer",
   description:
-    "Stream VirusTotal, Safe Browsing, TLS, DNS, redirect, registration, threat-feed, and ML signals into one modern malicious URL report.",
+    "Stream 8 independent security signals in real-time to classify URLs as safe, suspicious, malicious, or critical.",
   openGraph: {
-    title: "Malicious URL Detector v2",
+    title: "Scrutinix — Multi-Signal URL Threat Analyzer",
     description:
       "Streamed multi-signal malicious URL analysis for suspicious links.",
     url: siteUrl,
-    siteName: "Malicious URL Detector",
+    siteName: "Scrutinix",
     images: ["/opengraph-image"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Malicious URL Detector v2",
+    title: "Scrutinix — Multi-Signal URL Threat Analyzer",
     description:
       "Streamed multi-signal malicious URL analysis for suspicious links.",
     images: ["/opengraph-image"],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#080c10" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f7fb" },
+  ],
 };
 
 export default function RootLayout({
@@ -36,11 +59,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
+      <body
+        className={`${GeistSans.variable} ${GeistMono.variable} ${hack.variable}`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <div className="scrutinix-theme">{children}</div>
+          <AppToaster />
         </ThemeProvider>
       </body>
     </html>
