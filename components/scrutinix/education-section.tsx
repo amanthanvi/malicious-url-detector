@@ -7,26 +7,31 @@ import { useState } from "react";
 const contentId = "reading-results-content";
 
 export function EducationSection() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   return (
     <section
       aria-labelledby="reading-results-heading"
-      className="overflow-hidden rounded border border-[var(--sx-border)] bg-[var(--sx-surface)]"
+      className="sx-panel overflow-hidden rounded-[1.6rem] border border-[var(--sx-border)]"
     >
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-controls={contentId}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        className="flex w-full items-center justify-between px-5 py-5 text-left"
       >
-        <h2
-          id="reading-results-heading"
-          className="text-xs font-semibold tracking-[0.15em] text-[var(--sx-text-muted)] uppercase"
-        >
-          Reading the results
-        </h2>
+        <div className="space-y-2">
+          <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+            Method notes
+          </p>
+          <h2
+            id="reading-results-heading"
+            className="sx-font-sans text-lg font-semibold text-[var(--sx-text)]"
+          >
+            How to read this surface
+          </h2>
+        </div>
         <ChevronDown
           className={clsx(
             "h-4 w-4 text-[var(--sx-text-muted)] transition-transform",
@@ -34,6 +39,7 @@ export function EducationSection() {
           )}
         />
       </button>
+
       <div
         className={clsx(
           "grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out",
@@ -45,59 +51,58 @@ export function EducationSection() {
           aria-hidden={!open}
           className="min-h-0 overflow-hidden"
         >
-          <div className="sx-font-sans space-y-3 px-4 pb-4">
-            <p className="text-sm font-semibold text-[var(--sx-text)]">
-              Summary mode for triage. Full report for evidence.
-            </p>
-            <div className="rounded border-l-2 border-[var(--sx-accent)] bg-[var(--sx-bg)] px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
-                <ShieldAlert className="h-3.5 w-3.5 text-[var(--sx-accent)]" />
-                High-confidence indicators
+          <div className="border-t border-[var(--sx-border)] px-5 py-5">
+            <div className="grid gap-4">
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] px-4 py-4">
+                <ShieldAlert
+                  className="mt-1 h-4 w-4 shrink-0 text-[var(--sx-accent)]"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
+                    Weighted signals first
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                    Safe Browsing, community feeds, and multi-engine detections
+                    carry more weight than passive context like DNS posture or
+                    domain age.
+                  </p>
+                </div>
               </div>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Safe Browsing, threat feeds, and multi-engine detections
-                outweigh cosmetic signals.
-              </p>
-            </div>
-            <div className="rounded border-l-2 border-[var(--sx-info)] bg-[var(--sx-bg)] px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
-                <Sparkles className="h-3.5 w-3.5 text-[var(--sx-info)]" />
-                Local-only resilience
+
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-4 py-4">
+                <Sparkles
+                  className="mt-1 h-4 w-4 shrink-0 text-[var(--sx-info)]"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
+                    Summary for triage, full for evidence
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                    Summary mode surfaces the highest-priority completed
+                    signals. Full mode keeps every lane visible, including
+                    caveats and not-applicable outcomes.
+                  </p>
+                </div>
               </div>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                DNS, TLS, redirect chain, and registration data still provide
-                value even when third-party APIs are unavailable.
-              </p>
-            </div>
-            <div className="rounded border-l-2 border-[var(--sx-suspicious)] bg-[var(--sx-bg)] px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
-                <Scale className="h-3.5 w-3.5 text-[var(--sx-suspicious)]" />
-                How signals are weighted
+
+              <div className="flex items-start gap-3 rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-4 py-4">
+                <Scale
+                  className="mt-1 h-4 w-4 shrink-0 text-[var(--sx-suspicious)]"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
+                    Confidence matters
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                    Threat score bands run 0-24 safe, 25-54 suspicious, 55-79
+                    malicious, and 80-100 critical, but clean results still lose
+                    confidence when primary coverage fails.
+                  </p>
+                </div>
               </div>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Reputation feeds and browser-protection lists outweigh passive
-                context like DNS or registration age, while partial failures
-                lower verdict confidence even when the headline verdict stays
-                safe.
-              </p>
-            </div>
-            <div className="rounded border-l-2 border-[var(--sx-safe)] bg-[var(--sx-bg)] px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--sx-text)]">
-                <ShieldAlert className="h-3.5 w-3.5 text-[var(--sx-safe)]" />
-                Reading the interface
-              </div>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Summary mode shows the highest-priority completed signals for
-                fast triage, while Full shows every signal. Left-edge accents
-                and LED colors mark state: green means clear, amber means review
-                or caveat, magenta/red means stronger evidence, and muted gray
-                means not applicable.
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Threat score bands are 0-24 safe, 25-54 suspicious, 55-79
-                malicious, and 80-100 critical. Confidence explains how much
-                coverage and agreement supported that verdict.
-              </p>
             </div>
           </div>
         </div>

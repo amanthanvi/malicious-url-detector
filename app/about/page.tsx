@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft, Radar, ShieldCheck, Workflow } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { PublicPageShell } from "@/components/scrutinix/public-page-shell";
 
 export const metadata: Metadata = {
   title: "About Scrutinix",
@@ -10,93 +8,120 @@ export const metadata: Metadata = {
     "How Scrutinix evaluates URLs with streamed multi-signal evidence and confidence scoring.",
 };
 
-const sectionLabelClass =
-  "text-[11px] tracking-[0.18em] text-[var(--sx-accent)] uppercase";
-
 export default function AboutPage() {
   return (
-    <main
-      id="main-content"
-      className="scrutinix-theme min-h-screen bg-[var(--sx-bg)] px-4 py-6 sm:px-6 xl:px-8"
+    <PublicPageShell
+      eyebrow="Method"
+      title="Scrutinix turns link triage into one evidence surface instead of a pile of disconnected lookups."
+      lead="A scan combines high-confidence reputation checks with resilient local signals so the output stays useful even when one provider is degraded. Each signal resolves independently, and verdict confidence explains how much clean or risky coverage actually supported the final score."
+      proofRows={[
+        {
+          label: "Evidence model",
+          value: "Weighted first",
+          body: "Browser-protection lists, threat feeds, and multi-engine detections outweigh softer context like domain age or redirect complexity.",
+        },
+        {
+          label: "Delivery",
+          value: "Live stream",
+          body: "Single and batch scans emit NDJSON events so the UI can show partial results, coverage caveats, and progress in real time.",
+        },
+        {
+          label: "Confidence",
+          value: "Coverage-aware",
+          body: "Safe verdicts lose confidence when primary reputation sources time out, while risky verdicts gain confidence when categories agree.",
+        },
+      ]}
     >
-      <div className="mx-auto max-w-5xl space-y-5">
-        <Link
-          href="/"
-          className="sx-btn-press sx-font-sans inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--sx-border)] px-4 py-2.5 text-xs font-semibold tracking-[0.14em] text-[var(--sx-text)] uppercase transition-all hover:border-[var(--sx-active-accent)]"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to scanner
-        </Link>
-
-        <Card>
-          <CardContent className="p-6 sm:p-7">
-            <p className={sectionLabelClass}>About Scrutinix</p>
-            <h1 className="sx-font-sans mt-3 max-w-3xl text-3xl font-semibold tracking-[0.02em] text-[var(--sx-text)] sm:text-4xl">
-              Scrutinix turns link triage into a single streamed evidence view
-              instead of a pile of disconnected lookups.
-            </h1>
-            <p className="sx-font-sans mt-4 max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
-              A scan combines high-confidence reputation checks with resilient
-              local signals so the output stays useful even when one provider is
-              degraded. Each signal resolves independently, and the verdict
-              confidence explains how much clean or risky coverage actually
-              supported the final score.
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)]">
+        <section className="space-y-6">
+          <div className="border-b border-[var(--sx-border)] pb-6">
+            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+              Scoring approach
             </p>
-          </CardContent>
-        </Card>
+            <h2 className="sx-font-sans mt-3 text-2xl font-semibold text-[var(--sx-text)]">
+              High-confidence evidence moves the verdict most.
+            </h2>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--sx-text-soft)]">
+              Safe Browsing matches, community feed hits, and stronger
+              multi-engine detections outweigh softer context. DNS posture,
+              TLS quality, WHOIS age, and redirect behavior still matter, but
+              they are supporting evidence rather than the primary driver.
+            </p>
+          </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card>
-            <CardContent className="p-5">
-              <ShieldCheck
-                className="h-5 w-5 text-[var(--sx-safe)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Weighted evidence
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Browser-protection lists, community feeds, and multi-engine
-                detections outweigh softer context like domain age or redirect
-                complexity.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+              <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                Risk-moving signals
+              </h3>
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-[var(--sx-text)]">
+                <li>Google Safe Browsing</li>
+                <li>Threat feeds: URLhaus and OpenPhish</li>
+                <li>VirusTotal multi-engine detections</li>
+                <li>Local ensemble consensus</li>
+              </ul>
+            </div>
 
-          <Card>
-            <CardContent className="p-5">
-              <Workflow
-                className="h-5 w-5 text-[var(--sx-info)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Streamed by signal
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Single scans and batch scans stream NDJSON events so the UI can
-                surface partial results, caveats, and progress in real time.
-              </p>
-            </CardContent>
-          </Card>
+            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+              <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                Resilience signals
+              </h3>
+              <ul className="mt-4 space-y-2 text-sm leading-6 text-[var(--sx-text)]">
+                <li>TLS validation and certificate metadata</li>
+                <li>WHOIS age, registrar, and country</li>
+                <li>DNS anomalies and passive observations</li>
+                <li>Redirect-chain hops and terminal reachability</li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-          <Card>
-            <CardContent className="p-5">
-              <Radar
-                className="h-5 w-5 text-[var(--sx-suspicious)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Confidence, not just score
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Clean verdicts lose confidence when reputation sources time out,
-                and risky verdicts gain confidence when multiple independent
-                categories agree.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <section className="space-y-6">
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Confidence behavior
+            </p>
+            <p className="sx-font-sans mt-3 text-xl font-semibold text-[var(--sx-text)]">
+              Verdicts are coverage-aware, not just score bands.
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Partial provider failures reduce confidence even when the headline
+              verdict remains safe. Multiple agreeing risk signals raise
+              confidence because the evidence came from different categories.
+            </p>
+          </div>
+
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Score bands
+            </p>
+            <div className="mt-4 grid gap-3 text-sm leading-6 text-[var(--sx-text)]">
+              <div className="flex items-center justify-between gap-3">
+                <span>0-24</span>
+                <span className="text-[var(--sx-safe)] uppercase">Safe</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>25-54</span>
+                <span className="text-[var(--sx-suspicious)] uppercase">
+                  Suspicious
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>55-79</span>
+                <span className="text-[var(--sx-malicious)] uppercase">
+                  Malicious
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span>80-100</span>
+                <span className="text-[var(--sx-critical)] uppercase">
+                  Critical
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </main>
+    </PublicPageShell>
   );
 }

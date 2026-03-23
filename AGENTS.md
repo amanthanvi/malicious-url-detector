@@ -85,3 +85,4 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-22: `npx vercel` may be authenticated even when `~/.vercel/auth.json` is absent; on this machine the token lives at `~/Library/Application Support/com.vercel.cli/auth.json`.
 - 2026-03-23: For Codex thread workspace migrations, update structured state fields (`session_meta.cwd`, `turn_context.cwd`, `.codex-global-state.json`) and avoid blind path replacement across JSONL transcripts.
 - 2026-03-23: Do not run `git commit` and `git push` in parallel; the push can race the new commit and falsely report `Everything up-to-date`.
+- 2026-03-23: Next.js 16 rejects `next/dynamic(..., { ssr: false })` inside Server Components; if a shared shell owns the theme toggle, make that shell component explicitly client-side.

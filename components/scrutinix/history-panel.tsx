@@ -13,10 +13,8 @@ import type { HistoryEntry, Verdict } from "@/lib/domain/types";
 import { verdictColor } from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 
 interface HistoryPanelProps {
   entries: HistoryEntry[];
@@ -113,129 +111,124 @@ export function HistoryPanel({
     : `${entries.length} scan${entries.length === 1 ? "" : "s"} archived`;
 
   return (
-    <Card
-      className="flex h-full max-h-[calc(100vh-8rem)] min-h-[22rem] flex-col overflow-hidden"
+    <section
+      className="sx-panel flex h-full max-h-[calc(100vh-7.5rem)] min-h-[24rem] flex-col overflow-hidden rounded-[1.8rem] border border-[var(--sx-border)]"
       aria-label="Scan history"
       role="region"
     >
-      <div className="border-b border-[var(--sx-border)] px-3 py-2.5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
-              Scan log
+      <div className="border-b border-[var(--sx-border)] px-5 py-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+                History rail
+              </p>
+              <Badge variant="neutral">{entries.length}</Badge>
+            </div>
+            <h2 className="sx-font-sans text-xl font-semibold text-[var(--sx-text)]">
+              Recent verdicts stay local.
             </h2>
-            <Badge variant="neutral">{entries.length}</Badge>
+            <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
+              {statusText}
+            </p>
+            {canUndoClear ? (
+              <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
+                History was cleared locally. Undo restores the previous archive.
+              </p>
+            ) : null}
           </div>
-          {canUndoClear ? (
-            <Button
-              type="button"
-              onClick={onUndoClear}
-              variant="ghost"
-              size="sm"
-              aria-label="Undo clearing scan history"
-            >
-              Undo clear
-            </Button>
-          ) : null}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {canUndoClear ? (
+              <Button
+                type="button"
+                onClick={onUndoClear}
+                variant="ghost"
+                size="sm"
+                aria-label="Undo clearing scan history"
+              >
+                Undo clear
+              </Button>
+            ) : null}
+            {entries.length > 0 ? (
+              <>
+                <Button
+                  type="button"
+                  onClick={() =>
+                    downloadTextFile("scan-history.csv", resultsToCsv(entries))
+                  }
+                  variant="subtle"
+                  size="sm"
+                  aria-label="Export history as CSV"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  CSV
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() =>
+                    downloadTextFile(
+                      "scan-history.json",
+                      resultsToJson(entries),
+                      "application/json",
+                    )
+                  }
+                  variant="subtle"
+                  size="sm"
+                  aria-label="Export history as JSON"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  JSON
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleClear}
+                  variant={confirmClear ? "dangerSolid" : "danger"}
+                  size="sm"
+                  aria-label={
+                    confirmClear
+                      ? "Confirm clear all history"
+                      : "Clear all history"
+                  }
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {confirmClear ? "Confirm" : "Clear"}
+                </Button>
+              </>
+            ) : null}
+          </div>
         </div>
 
-        {entries.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              onClick={() =>
-                downloadTextFile("scan-history.csv", resultsToCsv(entries))
-              }
-              variant="ghost"
-              size="sm"
-              aria-label="Export history as CSV"
-            >
-              <Download className="h-3 w-3" />
-              CSV
-            </Button>
-            <Button
-              type="button"
-              onClick={() =>
-                downloadTextFile(
-                  "scan-history.json",
-                  resultsToJson(entries),
-                  "application/json",
-                )
-              }
-              variant="ghost"
-              size="sm"
-              aria-label="Export history as JSON"
-            >
-              <Download className="h-3 w-3" />
-              JSON
-            </Button>
-            <Button
-              type="button"
-              onClick={handleClear}
-              variant={confirmClear ? "dangerSolid" : "danger"}
-              size="sm"
-              aria-label={
-                confirmClear ? "Confirm clear all history" : "Clear all history"
-              }
-            >
-              <Trash2 className="h-3 w-3" />
-              {confirmClear ? "Confirm clear" : "Clear all"}
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="border-b border-[var(--sx-border)] px-3 py-2">
-        <div className="flex items-center rounded-md border border-[var(--sx-border)] bg-[var(--sx-bg)] px-2 transition focus-within:border-[var(--sx-accent)]">
-          <span
-            className="mr-1 shrink-0 text-xs text-[var(--sx-accent)]"
-            aria-hidden="true"
-          >
-            grep{">"}
-          </span>
+        <div className="mt-4">
           <Input
             value={historyQuery}
             onChange={(event) => onHistoryQueryChange(event.target.value)}
-            placeholder="filter..."
+            placeholder="Filter by URL or verdict"
             aria-label="Filter scan history"
-            className="h-8 border-0 bg-transparent px-0 py-1 text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-11"
           />
         </div>
-        <p className="mt-1 text-xs text-[var(--sx-text-muted)]">{statusText}</p>
-        {canUndoClear ? (
-          <p className="mt-1 text-xs text-[var(--sx-text-muted)]">
-            History was cleared locally. Use Undo clear to restore the previous
-            archive.
-          </p>
-        ) : null}
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {verdictFilters.map((tone) => (
+            <Button
+              key={tone}
+              type="button"
+              onClick={() => onFilterVerdictChange(tone)}
+              aria-pressed={filterVerdict === tone}
+              variant={filterVerdict === tone ? "view" : "ghost"}
+              size="sm"
+              className="rounded-full"
+            >
+              {tone}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--sx-border)] px-3 py-2">
-        <h3 className="sx-font-sans text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
-          Verdict
-        </h3>
-        <Separator
-          orientation="vertical"
-          className="mx-1 hidden h-4 sm:block"
-        />
-        {verdictFilters.map((tone) => (
-          <Button
-            key={tone}
-            type="button"
-            onClick={() => onFilterVerdictChange(tone)}
-            aria-pressed={filterVerdict === tone}
-            variant={filterVerdict === tone ? "terminal" : "ghost"}
-            size="sm"
-            className="rounded-full"
-          >
-            {tone}
-          </Button>
-        ))}
-      </div>
-
-      <div className="min-h-0 flex-1 px-2 py-1">
+      <div className="min-h-0 flex-1 px-3 py-3">
         {entries.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[var(--sx-border-muted)] px-3 py-6 text-center text-xs text-[var(--sx-text-muted)]">
+          <div className="flex h-full items-center justify-center rounded-[1.4rem] border border-dashed border-[var(--sx-border-muted)] px-5 py-8 text-center text-sm leading-6 text-[var(--sx-text-soft)]">
             {historyQuery || filterVerdict !== "all"
               ? "No scans match the current filter."
               : canUndoClear
@@ -243,33 +236,48 @@ export function HistoryPanel({
                 : "Completed scans persist here via IndexedDB."}
           </div>
         ) : (
-          <ScrollArea className="h-full pr-2">
-            <div className="space-y-1">
+          <ScrollArea className="h-full pr-1">
+            <div className="space-y-2 pr-2">
               {entries.map((entry) => (
                 <button
                   key={entry.id}
                   type="button"
                   onClick={() => onSelect(entry)}
-                  className="group flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition hover:border-[var(--sx-border)] hover:bg-[var(--sx-surface-elevated)]"
+                  className="group w-full rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-4 py-4 text-left transition hover:border-[var(--sx-active-accent)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)]"
                 >
-                  <span className="shrink-0 text-[11px] text-[var(--sx-info)]">
-                    [{formatTimestamp(entry.savedAt)}]
-                  </span>
-                  <span className="flex-1 truncate text-xs text-[var(--sx-text)] group-hover:text-[var(--sx-active-accent)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                      {formatTimestamp(entry.savedAt)}
+                    </span>
+                    <span
+                      className="rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase"
+                      style={{
+                        color: verdictColor(entry.verdict),
+                        backgroundColor: `color-mix(in_srgb, ${verdictColor(entry.verdict)} 12%, transparent)`,
+                      }}
+                    >
+                      {entry.verdict}
+                    </span>
+                  </div>
+
+                  <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--sx-text)] transition-colors group-hover:text-[var(--sx-active-accent)]">
                     {formatDisplayUrl(entry.url)}
-                  </span>
-                  <span
-                    className="shrink-0 text-xs font-bold uppercase"
-                    style={{ color: verdictColor(entry.verdict) }}
-                  >
-                    {entry.verdict}
-                  </span>
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--sx-text-soft)]">
+                    <span className="sx-font-hack">
+                      Score {entry.threatInfo?.score ?? "--"}
+                    </span>
+                    <span className="uppercase">
+                      {entry.threatInfo?.confidenceLabel ?? "n/a"} confidence
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
           </ScrollArea>
         )}
       </div>
-    </Card>
+    </section>
   );
 }

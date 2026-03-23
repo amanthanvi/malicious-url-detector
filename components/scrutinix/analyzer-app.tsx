@@ -42,7 +42,6 @@ import {
   type Verdict,
 } from "@/lib/domain/types";
 import {
-  THREAT_SCORE_MARKERS,
   threatScoreToVerdict,
 } from "@/lib/domain/score-bands";
 import { normalizeUrlInput } from "@/lib/domain/url";
@@ -546,15 +545,15 @@ export function HeaderMetrics() {
     : "Awaiting scan";
 
   return (
-    <div className="grid w-full gap-3 md:w-auto md:grid-cols-[minmax(17rem,20rem)_auto] md:items-end">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       <div
         className={clsx(
-          "rounded-lg border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-elevated)_60%,transparent)] px-3 py-2.5",
+          "min-w-[14rem] rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] px-3 py-2.5",
           !hasActivity && "border-dashed",
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[10px] tracking-[0.18em] text-[var(--sx-text)] uppercase">
+          <span className="text-[10px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
             Threat score
           </span>
           <span className="sx-font-hack text-xs text-[var(--sx-text)]">
@@ -580,38 +579,19 @@ export function HeaderMetrics() {
             }}
           />
         </div>
-        <div className="relative mt-2 hidden h-4 md:block">
-          {THREAT_SCORE_MARKERS.map((threshold) => (
-            <div
-              key={threshold.value}
-              className="absolute flex -translate-x-1/2 flex-col items-center"
-              style={{ left: `${threshold.value}%` }}
-            >
-              <div className="h-1.5 w-px bg-[var(--sx-border-muted)]" />
-              <span className="mt-0.5 text-[10px] leading-none tracking-[0.1em] text-[var(--sx-text)] uppercase">
-                {threshold.label}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
 
-      <div className="flex flex-col items-start gap-1 md:items-end">
-        <span className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
-          Signal coverage
+      <div className="flex items-center gap-2 rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] px-3 py-2">
+        <Badge variant={readinessVariant}>{readinessLabel}</Badge>
+        <span className="sx-font-hack text-xs tracking-[0.08em] text-[var(--sx-text-muted)]">
+          {coverageText}
         </span>
-        <div className="flex items-center gap-2">
-          <Badge variant={readinessVariant}>{readinessLabel}</Badge>
-          <span className="sx-font-hack text-xs tracking-[0.08em] text-[var(--sx-text-muted)]">
-            {coverageText}
-          </span>
-        </div>
       </div>
     </div>
   );
 }
 
-export function AnalyzerWorkspace() {
+export function ScanDock() {
   const {
     active,
     activeTab,
@@ -624,15 +604,148 @@ export function AnalyzerWorkspace() {
     setActiveTab,
     setBatchInput,
     setFormError,
-    setSelectedResult,
     setSingleUrl,
-    setViewMode,
     shareResult,
-    sharedSnapshot,
-    signals,
     singleUrl,
     startBatchScan,
     startSingleScan,
+  } = useAnalyzerRuntime();
+
+  return (
+    <section
+      id="scan-console"
+      className="sx-stage-in sx-panel rounded-[2rem] border border-[var(--sx-border)] p-5 sm:p-6"
+      data-delay="3"
+      aria-labelledby="scan-dock-heading"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+            Launch analysis
+          </p>
+          <h2
+            id="scan-dock-heading"
+            className="sx-font-sans text-xl font-semibold text-[var(--sx-text)] sm:text-2xl"
+          >
+            Start with one link or a short batch.
+          </h2>
+          <p className="sx-font-sans max-w-xl text-sm leading-6 text-[var(--sx-text-muted)]">
+            The scanner stays live in the hero, while the full evidence surface
+            below takes over once results begin streaming.
+          </p>
+        </div>
+
+        <Badge
+          variant={
+            live ? "active" : active ? "safe" : activeTab === "batch" ? "neutral" : "safe"
+          }
+        >
+          {live ? "Live stream" : active ? "Result ready" : "Ready"}
+        </Badge>
+      </div>
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value as Tab);
+          setFormError(null);
+        }}
+        className="mt-6 gap-4"
+      >
+        <TabsList aria-label="Scan mode" className="w-full justify-start sm:w-fit">
+          <TabsTrigger value="single">Single Scan</TabsTrigger>
+          <TabsTrigger value="batch">Batch Scan</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="single" className="mt-0">
+          <SingleInput
+            url={singleUrl}
+            onUrlChange={(value) => {
+              setFormError(null);
+              setSingleUrl(value);
+            }}
+            error={activeTab === "single" ? formError : null}
+            streaming={scan.state.isStreaming}
+            onSubmit={() => void startSingleScan()}
+            onCancel={scan.cancelScan}
+            result={active}
+            onExport={() => {
+              if (!active) return;
+              downloadTextFile(
+                "scan.json",
+                JSON.stringify(active, null, 2),
+                "application/json",
+              );
+              toast.success("Exported scan.json");
+            }}
+            onShare={() => active && void shareResult(active)}
+            onRescan={() => active && void rescanUrl(active.url)}
+          />
+        </TabsContent>
+
+        <TabsContent value="batch" className="mt-0">
+          <BatchInput
+            value={batchInput}
+            onChange={(value) => {
+              setFormError(null);
+              setBatchInput(value);
+            }}
+            error={activeTab === "batch" ? formError : null}
+            streaming={batch.state.isStreaming}
+            onSubmit={() => void startBatchScan()}
+            onCancel={batch.cancelBatch}
+            hasResults={batch.state.results.length > 0}
+            onCsv={() => {
+              downloadTextFile("batch.csv", resultsToCsv(batch.state.results));
+              toast.success("Exported batch.csv");
+            }}
+            onJson={() => {
+              downloadTextFile(
+                "batch.json",
+                resultsToJson(batch.state.results),
+                "application/json",
+              );
+              toast.success("Exported batch.json");
+            }}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {scan.state.error && (
+        <div className="mt-4 rounded-[1.2rem] border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
+          {scan.state.error.message}
+        </div>
+      )}
+      {batch.state.error && (
+        <div className="mt-4 rounded-[1.2rem] border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
+          {batch.state.error.message}
+        </div>
+      )}
+
+      <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--sx-border)] pt-4 text-[11px] tracking-[0.14em] text-[var(--sx-text-soft)] uppercase">
+        <span>8 live signals</span>
+        <span>NDJSON stream</span>
+        <span>Browser-only history</span>
+        <span>Batch max 10</span>
+      </div>
+    </section>
+  );
+}
+
+export function AnalyzerWorkspace() {
+  const {
+    active,
+    activeTab,
+    batch,
+    live,
+    rescanUrl,
+    scan,
+    setActiveTab,
+    setSelectedResult,
+    setSingleUrl,
+    setViewMode,
+    sharedSnapshot,
+    signals,
     viewMode,
     visibleSignals,
     done,
@@ -641,179 +754,114 @@ export function AnalyzerWorkspace() {
     unavailableSignalCount,
   } = useAnalyzerRuntime();
 
+  const coverageCopy =
+    activeTab === "single" && done > 0 && viewMode === "summary"
+      ? `Showing ${visibleSignals.length} priority signals from ${successfulSignalCount} completed checks.${caveatSignalCount + unavailableSignalCount > 0 ? ` ${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable or n/a signals remain in Full view.` : ""}`
+      : activeTab === "batch"
+        ? "Each queued URL stays isolated in the batch stream until you inspect it in single-scan mode."
+        : "Summary mode surfaces the highest-priority finished signals first. Full view keeps every signal visible.";
+
   return (
-    <div
-      id="scan-console"
-      className="grid gap-5 md:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)] xl:grid-cols-[1fr_minmax(0,1fr)]"
-    >
-      <div className="order-1 space-y-5 xl:order-2">
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            setActiveTab(value as Tab);
-            setFormError(null);
-          }}
-          className="gap-4"
-        >
-          <TabsList aria-label="Scan mode" className="w-fit">
-            <TabsTrigger value="single">Single Scan</TabsTrigger>
-            <TabsTrigger value="batch">Batch Scan</TabsTrigger>
-          </TabsList>
+    <section className="space-y-8">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
+        <div className="min-w-0">
+          {activeTab === "single" ? (
+            <VerdictHero
+              result={active}
+              isStreaming={scan.state.isStreaming}
+              streamUrl={scan.state.url}
+              sharedSnapshot={sharedSnapshot}
+              completedSignals={done}
+              onRunSharedScan={
+                sharedSnapshot
+                  ? () => {
+                      setSingleUrl(sharedSnapshot.url);
+                      void rescanUrl(sharedSnapshot.url);
+                    }
+                  : undefined
+              }
+            />
+          ) : (
+            <BatchPanel
+              items={batch.state.items}
+              isStreaming={batch.state.isStreaming}
+              results={batch.state.results}
+              onSelectResult={(result) => {
+                setSelectedResult(result);
+                setSingleUrl(result.url);
+                setActiveTab("single");
+              }}
+            />
+          )}
+        </div>
 
-          <Card className="bg-[var(--sx-bg)]">
-            <CardContent className="p-4">
-              <TabsContent value="single" className="mt-0 outline-none">
-                <SingleInput
-                  url={singleUrl}
-                  onUrlChange={(value) => {
-                    setFormError(null);
-                    setSingleUrl(value);
-                  }}
-                  error={activeTab === "single" ? formError : null}
-                  streaming={scan.state.isStreaming}
-                  onSubmit={() => void startSingleScan()}
-                  onCancel={scan.cancelScan}
-                  result={active}
-                  onExport={() => {
-                    if (!active) return;
-                    downloadTextFile(
-                      "scan.json",
-                      JSON.stringify(active, null, 2),
-                      "application/json",
-                    );
-                    toast.success("Exported scan.json");
-                  }}
-                  onShare={() => active && void shareResult(active)}
-                  onRescan={() => active && void rescanUrl(active.url)}
-                />
-              </TabsContent>
+        <div className="space-y-4">
+          <div className="sx-panel rounded-[1.5rem] border border-[var(--sx-border)] p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+                  Operational reading
+                </p>
+                <h2 className="sx-font-sans text-lg font-semibold text-[var(--sx-text)]">
+                  {activeTab === "single"
+                    ? "Read the verdict first."
+                    : "Inspect the queue, then drill in."}
+                </h2>
+              </div>
 
-              <TabsContent value="batch" className="mt-0 outline-none">
-                <BatchInput
-                  value={batchInput}
-                  onChange={(value) => {
-                    setFormError(null);
-                    setBatchInput(value);
-                  }}
-                  error={activeTab === "batch" ? formError : null}
-                  streaming={batch.state.isStreaming}
-                  onSubmit={() => void startBatchScan()}
-                  onCancel={batch.cancelBatch}
-                  hasResults={batch.state.results.length > 0}
-                  onCsv={() => {
-                    downloadTextFile(
-                      "batch.csv",
-                      resultsToCsv(batch.state.results),
-                    );
-                    toast.success("Exported batch.csv");
-                  }}
-                  onJson={() => {
-                    downloadTextFile(
-                      "batch.json",
-                      resultsToJson(batch.state.results),
-                      "application/json",
-                    );
-                    toast.success("Exported batch.json");
-                  }}
-                />
-              </TabsContent>
-
-              {scan.state.error && (
-                <div className="mt-3 rounded-lg border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-3 py-2 text-xs text-[var(--sx-malicious)]">
-                  {scan.state.error.message}
+              {activeTab === "single" ? (
+                <div
+                  className="inline-flex rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] p-1"
+                  role="group"
+                  aria-label="Signal view mode"
+                >
+                  <Button
+                    type="button"
+                    variant="view"
+                    size="sm"
+                    aria-pressed={viewMode === "summary"}
+                    data-state={viewMode === "summary" ? "active" : undefined}
+                    onClick={() => setViewMode("summary")}
+                    className="min-w-24"
+                  >
+                    Summary
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="view"
+                    size="sm"
+                    aria-pressed={viewMode === "full"}
+                    data-state={viewMode === "full" ? "active" : undefined}
+                    onClick={() => setViewMode("full")}
+                    className="min-w-20"
+                  >
+                    Full
+                  </Button>
                 </div>
-              )}
-              {batch.state.error && (
-                <div className="mt-3 rounded-lg border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-3 py-2 text-xs text-[var(--sx-malicious)]">
-                  {batch.state.error.message}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </Tabs>
+              ) : null}
+            </div>
 
-        {activeTab === "single" ? (
-          <VerdictHero
-            result={active}
-            isStreaming={scan.state.isStreaming}
-            streamUrl={scan.state.url}
-            sharedSnapshot={sharedSnapshot}
-            completedSignals={done}
-            onRunSharedScan={
-              sharedSnapshot
-                ? () => {
-                    setSingleUrl(sharedSnapshot.url);
-                    void rescanUrl(sharedSnapshot.url);
-                  }
-                : undefined
-            }
-          />
-        ) : (
-          <BatchPanel
-            items={batch.state.items}
-            isStreaming={batch.state.isStreaming}
-            results={batch.state.results}
-            onSelectResult={(result) => {
-              setSelectedResult(result);
-              setSingleUrl(result.url);
-              setActiveTab("single");
-            }}
-          />
-        )}
-        <EducationSection />
+            <p className="mt-4 text-sm leading-6 text-[var(--sx-text-muted)]">
+              {coverageCopy}
+            </p>
+          </div>
+
+          <EducationSection />
+        </div>
       </div>
 
-      <div className="order-2 xl:order-1">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="text-xs tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
-              {activeTab === "single" ? "Signal grid" : "Batch inspection"}
+            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+              {activeTab === "single" ? "Signal surface" : "Batch inspection"}
+            </p>
+            <h2 className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]">
+              {activeTab === "single"
+                ? "Evidence arrives in independent lanes."
+                : "Keep the queue moving, inspect a finished row when it matters."}
             </h2>
-            {activeTab === "single" && done > 0 && viewMode === "summary" ? (
-              <p className="text-[11px] text-[var(--sx-text-muted)]">
-                Showing the highest-priority {visibleSignals.length} of{" "}
-                {successfulSignalCount} successful signals.{" "}
-                {caveatSignalCount + unavailableSignalCount > 0
-                  ? `${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable or n/a signals remain in Full view.`
-                  : "No hidden caveats remain outside this summary."}
-              </p>
-            ) : activeTab === "batch" ? (
-              <p className="text-[11px] text-[var(--sx-text-muted)]">
-                Completed batch rows stay isolated in the stream table until you
-                choose one to inspect in single-scan mode.
-              </p>
-            ) : null}
           </div>
-          {activeTab === "single" ? (
-            <div
-              className="inline-flex rounded-lg border border-[var(--sx-border)] bg-[var(--sx-bg)] p-1"
-              role="group"
-              aria-label="Signal view mode"
-            >
-              <Button
-                type="button"
-                variant="view"
-                size="sm"
-                aria-pressed={viewMode === "summary"}
-                data-state={viewMode === "summary" ? "active" : undefined}
-                onClick={() => setViewMode("summary")}
-                className="min-w-24"
-              >
-                Summary
-              </Button>
-              <Button
-                type="button"
-                variant="view"
-                size="sm"
-                aria-pressed={viewMode === "full"}
-                data-state={viewMode === "full" ? "active" : undefined}
-                onClick={() => setViewMode("full")}
-                className="min-w-20"
-              >
-                Full
-              </Button>
-            </div>
-          ) : null}
         </div>
 
         {activeTab === "single" ? (
@@ -826,7 +874,7 @@ export function AnalyzerWorkspace() {
                   : "Awaiting scan."}
             </p>
             {visibleSignals.length > 0 ? (
-              <div className="grid auto-rows-fr grid-cols-1 gap-3 xl:grid-cols-2">
+              <div className="grid auto-rows-fr grid-cols-1 gap-4 xl:grid-cols-2">
                 {visibleSignals.map((signalName, index) => (
                   <SignalCard
                     key={signalName}
@@ -839,32 +887,32 @@ export function AnalyzerWorkspace() {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed bg-[var(--sx-surface)]">
-                <CardContent className="px-6 py-12 text-center">
-                  <p className="text-xs tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                    Awaiting scan — enter a URL to begin analysis
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="sx-panel rounded-[1.6rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
+                <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                  Awaiting scan
+                </p>
+                <p className="sx-font-sans mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--sx-text-muted)]">
+                  Enter a target above to start the stream. Completed signals
+                  will take over this surface as soon as providers resolve.
+                </p>
+              </div>
             )}
           </div>
         ) : (
-          <Card className="border-dashed bg-[var(--sx-surface)]">
-            <CardContent className="px-6 py-12 text-center">
-              <p className="text-xs tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                Batch runs stay isolated until you inspect one.
-              </p>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--sx-text-muted)]">
-                Every row can finish cleanly, fail independently, or surface a
-                verdict error without aborting the rest of the batch. Select any
-                completed item to open its full signal grid, verdict rationale,
-                and confidence breakdown in single-scan mode.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="sx-panel rounded-[1.6rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Batch rows stay isolated
+            </p>
+            <p className="sx-font-sans mx-auto mt-3 max-w-xl text-sm leading-6 text-[var(--sx-text-muted)]">
+              Every queued URL can finish cleanly, fail independently, or
+              surface a verdict error without aborting the rest of the batch.
+              Pick any completed item in the stream table to open its full
+              evidence surface in single-scan mode.
+            </p>
+          </div>
         )}
-      </div>
-    </div>
+      </section>
+    </section>
   );
 }
 
@@ -910,35 +958,35 @@ export function FooterTicker() {
       {ticker.length > 0 ? (
         live ? (
           <div className="flex w-full overflow-hidden whitespace-nowrap transition-opacity duration-300">
-            <div className="sx-marquee flex items-center gap-6 text-xs text-[var(--sx-text-muted)]">
+            <div className="sx-marquee flex items-center gap-7 text-[11px] text-[var(--sx-text-muted)]">
               {[...ticker, ...ticker].map((event, index) => (
                 <span key={`${event.id}-${index}`} className="shrink-0">
                   <span className="text-[var(--sx-info)]">{event.time}</span>
-                  <span className="mx-1 text-[var(--sx-border-muted)]">--</span>
+                  <span className="mx-1 text-[var(--sx-border-muted)]">/</span>
                   <span>{event.text}</span>
                 </span>
               ))}
             </div>
           </div>
         ) : (
-          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-1 py-1 text-xs text-[var(--sx-text-muted)] transition-opacity duration-300">
+          <div className="flex w-full flex-wrap items-center justify-end gap-x-5 gap-y-1 py-1 text-[11px] text-[var(--sx-text-muted)] transition-opacity duration-300">
             {ticker.slice(-4).map((event) => (
               <span key={event.id}>
                 <span className="text-[var(--sx-info)]">{event.time}</span>
-                <span className="mx-1 text-[var(--sx-border-muted)]">--</span>
+                <span className="mx-1 text-[var(--sx-border-muted)]">/</span>
                 <span>{event.text}</span>
               </span>
             ))}
           </div>
         )
       ) : (
-        <div className="sx-font-sans flex items-center gap-4 text-xs text-[var(--sx-text-muted)] transition-opacity duration-300">
-          <span>SCRUTINIX</span>
-          <span className="text-[var(--sx-border-muted)]">|</span>
+        <div className="sx-font-sans flex w-full flex-wrap items-center justify-end gap-x-5 gap-y-1 text-[11px] text-[var(--sx-text-muted)] transition-opacity duration-300">
           <span>8 SIGNALS</span>
-          <span className="text-[var(--sx-border-muted)]">|</span>
-          <span>STREAMED SIGNALS</span>
-          <span className="text-[var(--sx-border-muted)]">|</span>
+          <span className="text-[var(--sx-border-muted)]">/</span>
+          <span>STREAMED VERDICTS</span>
+          <span className="text-[var(--sx-border-muted)]">/</span>
+          <span>BROWSER-ONLY HISTORY</span>
+          <span className="text-[var(--sx-border-muted)]">/</span>
           <span>{live ? "STREAM ACTIVE" : "AWAITING TARGET"}</span>
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { ArrowRight, Download, Link2, RefreshCw } from "lucide-react";
 import type { AnalysisResult } from "@/lib/domain/types";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,19 +36,25 @@ export function SingleInput({
   const hasUrl = url.trim().length > 0;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-        <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-          Scan target
-        </h2>
-        {streaming && (
-          <span className="sx-pulse text-[var(--sx-suspicious)]">
-            [SCANNING...]
-          </span>
-        )}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+            Single target
+          </h2>
+          <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
+            Stream one live verdict, inspect the evidence, then export or share
+            the finished result.
+          </p>
+        </div>
+
+        <Badge variant={streaming ? "active" : hasUrl ? "neutral" : "safe"}>
+          {streaming ? "Streaming" : hasUrl ? "Ready" : "Paste URL"}
+        </Badge>
       </div>
+
       <div
-        className="flex items-center rounded border bg-[var(--sx-surface)] px-3 focus-within:border-[var(--sx-accent)]"
+        className="rounded-[1.4rem] border bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] p-2"
         style={{
           borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
         }}
@@ -55,37 +62,41 @@ export function SingleInput({
         <label htmlFor="sx-url-input" className="sr-only">
           URL to analyze
         </label>
-        <span
-          className="mr-2 shrink-0 text-sm text-[var(--sx-accent)]"
-          aria-hidden="true"
-        >
-          {">"}
-          <span className="sx-cursor">_</span>
-        </span>
-        <Input
-          id="sx-url-input"
-          type="text"
-          value={url}
-          onChange={(e) => onUrlChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && streaming) {
-              onCancel();
-              return;
-            }
-            if (e.key === "Enter" && !streaming) onSubmit();
-          }}
-          placeholder="Paste a suspicious or unexpected URL"
-          aria-label="URL to analyze"
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? "sx-url-error" : undefined}
-          className="h-auto border-0 bg-transparent px-0 py-2.5 text-[var(--sx-accent)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
+        <div className="flex items-center gap-3 rounded-[1rem] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-3">
+          <span
+            className="sx-font-hack shrink-0 text-sm text-[var(--sx-accent)]"
+            aria-hidden="true"
+          >
+            {">"}
+            <span className="sx-cursor">_</span>
+          </span>
+          <Input
+            id="sx-url-input"
+            type="text"
+            value={url}
+            onChange={(e) => onUrlChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && streaming) {
+                onCancel();
+                return;
+              }
+              if (e.key === "Enter" && !streaming) onSubmit();
+            }}
+            placeholder="https://example.com/suspicious"
+            aria-label="URL to analyze"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "sx-url-error" : undefined}
+            className="h-14 border-0 bg-transparent px-0 text-[var(--sx-text)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+        </div>
       </div>
+
       {error && (
         <p id="sx-url-error" className="text-xs text-[var(--sx-suspicious)]">
           {error}
         </p>
       )}
+
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
@@ -105,9 +116,6 @@ export function SingleInput({
             Cancel
           </Button>
         )}
-        <span className="text-[11px] text-[var(--sx-text-muted)]">
-          Press Enter to scan
-        </span>
         {result && (
           <>
             <Button type="button" onClick={onExport} variant="ghost" size="sm">
@@ -122,6 +130,11 @@ export function SingleInput({
           </>
         )}
       </div>
+
+      <p className="text-[11px] leading-5 text-[var(--sx-text-soft)]">
+        Press Enter to scan. Scrutinix processes the submitted URL live, while
+        local history remains in your browser.
+      </p>
     </div>
   );
 }
@@ -160,34 +173,36 @@ export function BatchInput({
   const hasUrls = value.trim().length > 0;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-        <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-          Batch queue
-        </h2>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+            Batch queue
+          </h2>
+          <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
+            Queue up to 10 URLs. Scrutinix processes 3 in parallel and isolates
+            failures so one broken target does not stop the rest.
+          </p>
+        </div>
         {urlCount > 0 && (
-          <span className="rounded-full border border-[var(--sx-border)] px-2 py-1 text-[11px] text-[var(--sx-info)]">
+          <Badge variant={streaming ? "active" : "neutral"}>
             {urlCount} URL{urlCount !== 1 ? "s" : ""}
-          </span>
+          </Badge>
         )}
       </div>
-      <p className="text-xs text-[var(--sx-text-muted)]">
-        One URL per line, up to 10 at a time. Scrutinix processes 3 in parallel
-        and keeps each URL isolated if another one fails.
-      </p>
+
       <label htmlFor="sx-batch-input" className="sr-only">
         URLs to analyze (one per line)
       </label>
-      {/* Terminal-chrome wrapper for batch textarea */}
       <div
-        className="rounded border bg-[var(--sx-surface)] focus-within:border-[var(--sx-accent)]"
+        className="rounded-[1.4rem] border bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] p-2"
         style={{
           borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
         }}
       >
-        <div className="flex items-start px-3 pt-2.5">
+        <div className="flex items-start gap-3 rounded-[1rem] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-3 pt-3">
           <span
-            className="mt-0.5 mr-2 shrink-0 text-sm text-[var(--sx-accent)]"
+            className="sx-font-hack mt-0.5 shrink-0 text-sm text-[var(--sx-accent)]"
             aria-hidden="true"
           >
             {">"}
@@ -210,10 +225,11 @@ export function BatchInput({
             aria-label="URLs to analyze, one per line"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "sx-batch-error" : undefined}
-            className="min-h-0 resize-none border-0 bg-transparent px-0 pb-2.5 text-[var(--sx-accent)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-0 resize-none border-0 bg-transparent px-0 pb-3 text-[var(--sx-text)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
       </div>
+
       {error && (
         <p id="sx-batch-error" className="text-xs text-[var(--sx-suspicious)]">
           {error}
@@ -238,9 +254,6 @@ export function BatchInput({
             Cancel
           </Button>
         )}
-        <span className="text-[11px] text-[var(--sx-text-muted)]">
-          Press Cmd/Ctrl+Enter to scan
-        </span>
         {hasResults && (
           <>
             <Button type="button" onClick={onCsv} variant="ghost" size="sm">
@@ -252,6 +265,11 @@ export function BatchInput({
           </>
         )}
       </div>
+
+      <p className="text-[11px] leading-5 text-[var(--sx-text-soft)]">
+        Press Cmd/Ctrl+Enter to start. Batch results stream independently and
+        export to CSV or JSON when complete.
+      </p>
     </div>
   );
 }

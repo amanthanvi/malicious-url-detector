@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft, Database, Fingerprint, Share2 } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { PublicPageShell } from "@/components/scrutinix/public-page-shell";
 
 export const metadata: Metadata = {
   title: "Scrutinix Privacy",
@@ -10,90 +8,93 @@ export const metadata: Metadata = {
     "What Scrutinix stores locally, what the server processes, and how shared links work.",
 };
 
-const sectionLabelClass =
-  "text-[11px] tracking-[0.18em] text-[var(--sx-accent)] uppercase";
-
 export default function PrivacyPage() {
   return (
-    <main
-      id="main-content"
-      className="scrutinix-theme min-h-screen bg-[var(--sx-bg)] px-4 py-6 sm:px-6 xl:px-8"
+    <PublicPageShell
+      eyebrow="Privacy posture"
+      title="Scrutinix keeps history in the browser and avoids storing raw URLs in server logs."
+      lead="The server still has to process submitted URLs to query providers and complete a live analysis, but the application is designed so your saved history and shareable snapshots remain client-side wherever possible."
+      proofRows={[
+        {
+          label: "History",
+          value: "IndexedDB only",
+          body: "Completed scans are stored locally on your device, and clearing that archive removes the client-side copy unless you use the immediate undo.",
+        },
+        {
+          label: "Logs",
+          value: "Hash-oriented",
+          body: "Operational logs keep scan IDs, timings, cache state, and hashed URL context rather than the original raw URL string.",
+        },
+        {
+          label: "Sharing",
+          value: "URL snapshot",
+          body: "Share links embed a browser-generated snapshot in the URL itself. They are not persisted to a server-side share database.",
+        },
+      ]}
     >
-      <div className="mx-auto max-w-5xl space-y-5">
-        <Link
-          href="/"
-          className="sx-btn-press sx-font-sans inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--sx-border)] px-4 py-2.5 text-xs font-semibold tracking-[0.14em] text-[var(--sx-text)] uppercase transition-all hover:border-[var(--sx-active-accent)]"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to scanner
-        </Link>
-
-        <Card>
-          <CardContent className="p-6 sm:p-7">
-            <p className={sectionLabelClass}>Privacy posture</p>
-            <h1 className="sx-font-sans mt-3 max-w-3xl text-3xl font-semibold tracking-[0.02em] text-[var(--sx-text)] sm:text-4xl">
-              Scrutinix keeps history in the browser and avoids storing raw URLs
-              in server logs.
-            </h1>
-            <p className="sx-font-sans mt-4 max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
-              The server still has to process submitted URLs to query providers
-              and complete a live analysis, but the application is designed so
-              your saved history and shareable snapshots remain client-side.
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.02fr)_minmax(18rem,0.98fr)]">
+        <section className="space-y-6">
+          <div className="border-b border-[var(--sx-border)] pb-6">
+            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+              What stays local
             </p>
-          </CardContent>
-        </Card>
+            <h2 className="sx-font-sans mt-3 text-2xl font-semibold text-[var(--sx-text)]">
+              History and shared snapshots are client-managed.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Completed scans are stored in IndexedDB on your device only.
+              Shareable links are generated in the browser by encoding a small
+              snapshot into the URL itself, so there is no server-side share
+              store to manage or breach.
+            </p>
+          </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card>
-            <CardContent className="p-5">
-              <Database
-                className="h-5 w-5 text-[var(--sx-safe)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Local history
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Scan history is stored in IndexedDB on your device only.
-                Clearing it removes that local archive unless you use the
-                immediate undo.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              What the server still does
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Submitted URLs must still be processed on the server to query
+              providers, compute the verdict, and stream the results back to the
+              browser. That processing is necessary for the product to function.
+            </p>
+          </div>
+        </section>
 
-          <Card>
-            <CardContent className="p-5">
-              <Fingerprint
-                className="h-5 w-5 text-[var(--sx-info)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Server logging
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Operational logs store scan identifiers, timing, cache state,
-                and hashed URL context rather than the original raw URL string.
-              </p>
-            </CardContent>
-          </Card>
+        <section className="grid gap-4">
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Logging boundary
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Operational logs capture scan identifiers, cache behavior, timing,
+              and hashed URL context rather than the original raw URL string.
+            </p>
+          </div>
 
-          <Card>
-            <CardContent className="p-5">
-              <Share2
-                className="h-5 w-5 text-[var(--sx-suspicious)]"
-                aria-hidden="true"
-              />
-              <h2 className="mt-4 text-xs font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase">
-                Shared links
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                Share links embed a small client-generated snapshot in the URL.
-                They are not persisted to a server-side share database.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Local clearing
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Clearing history removes the browser-side archive. The UI exposes
+              an immediate undo so accidental wipes can be reversed in the same
+              session.
+            </p>
+          </div>
+
+          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Shared links
+            </p>
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+              Shared links are convenient, but they represent a snapshot taken
+              in the browser at a point in time. Running a fresh scan verifies
+              the target against current provider responses.
+            </p>
+          </div>
+        </section>
       </div>
-    </main>
+    </PublicPageShell>
   );
 }

@@ -4,6 +4,7 @@ import {
   AnalyzerWorkspace,
   FooterTicker,
   HistoryRail,
+  ScanDock,
   ShellHeader,
 } from "@/components/scrutinix/analyzer-app";
 import { ScrutinixErrorBoundary } from "@/components/scrutinix/error-boundary";
@@ -15,20 +16,19 @@ export default function HomePage() {
       <AnalyzerChrome>
         <ShellHeader />
 
-        <main
-          id="main-content"
-          className="relative z-10 flex-1 px-4 py-5 sm:px-6 xl:px-8"
-        >
-          <div className="mx-auto flex max-w-[1600px] flex-col gap-5">
-            <IntroPanel />
+        <main id="main-content" className="relative z-10 flex-1 pb-10">
+          <IntroPanel dock={<ScanDock />} />
 
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mx-auto flex max-w-[1520px] flex-col gap-6 px-4 pt-6 sm:px-6 xl:px-8">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
               <ScrutinixErrorBoundary>
                 <AnalyzerWorkspace />
               </ScrutinixErrorBoundary>
 
               <ScrutinixErrorBoundary>
-                <HistoryRail />
+                <div className="xl:sticky xl:top-6">
+                  <HistoryRail />
+                </div>
               </ScrutinixErrorBoundary>
             </div>
           </div>

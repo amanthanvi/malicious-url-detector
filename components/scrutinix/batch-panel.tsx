@@ -7,7 +7,6 @@ import type { AnalysisResult } from "@/lib/domain/types";
 import { verdictColor } from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BatchItem {
@@ -32,17 +31,15 @@ export function BatchPanel({
 }: BatchPanelProps) {
   if (items.length === 0) {
     return (
-      <Card className="border-dashed">
-        <CardContent className="px-6 py-8 text-center">
-          <h2 className="text-xs tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-            Batch results will appear here
-          </h2>
-          <p className="mt-2 text-sm text-[var(--sx-text-muted)]">
-            Queue multiple URLs, stream each result independently, and inspect
-            any finished row without losing the rest of the batch.
-          </p>
-        </CardContent>
-      </Card>
+      <section className="sx-panel rounded-[2rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-10 text-center">
+        <h2 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          Batch results will appear here
+        </h2>
+        <p className="sx-font-sans mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--sx-text-soft)]">
+          Queue multiple URLs, let each row resolve independently, and inspect a
+          finished verdict without collapsing the rest of the stream.
+        </p>
+      </section>
     );
   }
 
@@ -50,127 +47,106 @@ export function BatchPanel({
     items.length > 0 ? Math.min(100, (results.length / items.length) * 100) : 0;
 
   return (
-    <section aria-label="Batch scan results">
-      <Card>
-        <CardHeader className="gap-3 border-b border-[var(--sx-border)] py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="sx-font-sans text-xs font-semibold tracking-[0.15em] text-[var(--sx-text-muted)] uppercase">
-              Batch Stream -- {results.length}/{items.length} Complete
+    <section
+      aria-label="Batch scan results"
+      className="sx-panel overflow-hidden rounded-[2rem] border border-[var(--sx-border)]"
+    >
+      <div className="border-b border-[var(--sx-border)] px-5 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-2">
+            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              Batch stream
+            </p>
+            <h2 className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]">
+              {results.length}/{items.length} complete
             </h2>
-            <Badge variant={isStreaming ? "suspicious" : "safe"}>
-              {isStreaming ? "In Progress" : "Complete"}
-            </Badge>
+            <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
+              Finished rows can be inspected immediately in single-scan mode
+              while the rest of the queue keeps running.
+            </p>
           </div>
-          <div className="h-1 rounded-full bg-[var(--sx-border)]">
-            <div
-              className="h-full rounded-full bg-[var(--sx-active-accent)]"
-              style={{
-                width: `${progressPct}%`,
-                transition: "width 300ms ease",
-              }}
-            />
-          </div>
-        </CardHeader>
+          <Badge variant={isStreaming ? "active" : "safe"}>
+            {isStreaming ? "In progress" : "Complete"}
+          </Badge>
+        </div>
 
-        <CardContent className="px-0 pb-0">
-          <ScrollArea className="w-full">
-            <div className="min-w-[700px]">
-              <table
-                className="min-w-full text-left text-xs"
-                aria-label="Batch scan results"
+        <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[var(--sx-border)]">
+          <div
+            className="h-full rounded-full bg-[var(--sx-active-accent)] transition-[width] duration-300"
+            style={{
+              width: `${progressPct}%`,
+            }}
+          />
+        </div>
+      </div>
+
+      <ScrollArea className="w-full">
+        <div className="min-w-[720px]">
+          <div className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] gap-3 border-b border-[var(--sx-border)] px-5 py-3 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <span>#</span>
+            <span>URL</span>
+            <span>Status</span>
+            <span>Verdict</span>
+            <span>Action</span>
+          </div>
+
+          <div className="divide-y divide-[var(--sx-border)]">
+            {items.map((item) => (
+              <div
+                key={`${item.index}-${item.url}`}
+                className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] items-center gap-3 px-5 py-4 text-sm transition hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)]"
               >
-                <caption className="sr-only">
-                  Batch scan results showing {items.length} URLs
-                </caption>
-                <thead>
-                  <tr className="border-b border-[var(--sx-border)] bg-[var(--sx-bg)]">
-                    <th className="px-4 py-2 font-semibold tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                      #
-                    </th>
-                    <th className="px-4 py-2 font-semibold tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                      URL
-                    </th>
-                    <th className="px-4 py-2 font-semibold tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 font-semibold tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                      Verdict
-                    </th>
-                    <th className="px-4 py-2 font-semibold tracking-[0.12em] text-[var(--sx-text-muted)] uppercase">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => (
-                    <tr
-                      key={`${item.index}-${item.url}`}
-                      className="border-b border-[var(--sx-border)] transition hover:bg-[var(--sx-surface-elevated)]"
-                    >
-                      <td className="px-4 py-2 text-[var(--sx-text-muted)]">
-                        {item.index + 1}
-                      </td>
-                      <td className="max-w-[320px] truncate px-4 py-2 text-[var(--sx-text)]">
-                        {formatDisplayUrl(item.url)}
-                      </td>
-                      <td className="px-4 py-2">
-                        <Badge
-                          variant={
-                            item.status === "complete"
-                              ? item.result?.verdict === "error"
-                                ? "error"
-                                : "safe"
-                              : "suspicious"
-                          }
-                        >
-                          {item.status === "complete"
-                            ? item.result?.verdict === "error"
-                              ? "Error"
-                              : "Done"
-                            : "Wait"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-2">
-                        {item.result ? (
-                          <span
-                            className="font-bold uppercase"
-                            style={{ color: verdictColor(item.result.verdict) }}
-                          >
-                            {item.result.verdict}
-                          </span>
-                        ) : (
-                          <span className="text-[var(--sx-text-muted)]">
-                            --
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {item.result ? (
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              if (item.result) onSelectResult(item.result);
-                            }}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Inspect
-                          </Button>
-                        ) : (
-                          <span className="text-[var(--sx-text-muted)]">
-                            --
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                <span className="sx-font-hack text-[var(--sx-text-soft)]">
+                  {item.index + 1}
+                </span>
+                <span className="truncate text-[var(--sx-text)]">
+                  {formatDisplayUrl(item.url)}
+                </span>
+                <Badge
+                  variant={
+                    item.status === "complete"
+                      ? item.result?.verdict === "error"
+                        ? "error"
+                        : "safe"
+                      : "neutral"
+                  }
+                >
+                  {item.status === "complete"
+                    ? item.result?.verdict === "error"
+                      ? "Error"
+                      : "Done"
+                    : "Queued"}
+                </Badge>
+                <span
+                  className="text-[11px] font-semibold tracking-[0.14em] uppercase"
+                  style={{
+                    color: item.result
+                      ? verdictColor(item.result.verdict)
+                      : "var(--sx-text-muted)",
+                  }}
+                >
+                  {item.result ? item.result.verdict : "--"}
+                </span>
+                {item.result ? (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (item.result) onSelectResult(item.result);
+                    }}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Inspect
+                  </Button>
+                ) : (
+                  <span className="text-[var(--sx-text-muted)]">--</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScrollArea>
     </section>
   );
 }

@@ -58,7 +58,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.variable} ${hack.variable}`}>
+      <body
+        className={`${GeistSans.variable} ${hack.variable} font-sans antialiased`}
+      >
         <a href="#main-content" className="sx-skip-link">
           Skip to content
         </a>

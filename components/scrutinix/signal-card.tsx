@@ -207,6 +207,17 @@ function SignalCardInner({
             : severity === "skipped"
               ? { label: "n/a", variant: "skipped" as const }
               : { label: "clear", variant: "safe" as const };
+  const statusCopy = isPending
+    ? isStreaming
+      ? "Resolving this signal now."
+      : "Queued for the next scan."
+    : isError
+      ? result.error
+      : isSkipped
+        ? result.error ?? "This signal does not apply to the current target."
+        : result.data
+          ? getSignalSummary(name, result.data)
+          : null;
 
   return (
     <article
@@ -214,82 +225,76 @@ function SignalCardInner({
         transitionDelay: index > 0 ? `${index * 60}ms` : undefined,
       }}
       className={clsx(
-        "h-full rounded border border-[var(--sx-border)] bg-[var(--sx-surface)] px-4 py-3 transition-[border-color,box-shadow,transform] duration-200",
+        "sx-panel h-full rounded-[1.5rem] border border-[var(--sx-border)] px-5 py-5 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
-        "hover:border-[var(--sx-active-accent)]/40 hover:shadow-[0_0_8px_color-mix(in_srgb,var(--sx-active-accent)_22%,transparent)]",
+        "hover:border-[var(--sx-active-accent)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_86%,transparent)]",
       )}
       aria-label={`${signalLabels[name]} signal: ${result.status}`}
     >
-      {/* LED + Name + Duration */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-3">
         <span
           className={clsx(
-            "sx-led",
+            "sx-led mt-1.5",
             isActivelyScanning && "sx-led-pulse",
             isError && "sx-led-pulse",
           )}
           style={{ backgroundColor: ledColor, color: ledColor }}
           aria-hidden="true"
         />
-        <SignalIcon
-          className="h-3.5 w-3.5 shrink-0 text-[var(--sx-text-muted)]"
-          aria-hidden="true"
-        />
-        <span className="flex-1 text-xs font-semibold tracking-[0.08em] text-[var(--sx-text)] uppercase">
-          {signalLabels[name]}
-        </span>
-        {!isPending && (
-          <Badge variant={statusBadge.variant} className="shrink-0">
-            {statusBadge.label}
-          </Badge>
-        )}
-        {result.durationMs > 0 && (
-          <span className="shrink-0 text-xs text-[var(--sx-info)]">
-            {result.durationMs}ms
-          </span>
-        )}
-      </div>
 
-      {/* Status + Summary */}
-      <div className="mt-1.5">
-        {isPending && isStreaming && (
-          <span className="sx-pulse text-xs tracking-[0.1em] text-[var(--sx-suspicious)] uppercase">
-            SCANNING
-          </span>
-        )}
-        {isPending && !isStreaming && (
-          <span className="text-xs tracking-[0.1em] text-[var(--sx-text-muted)] uppercase">
-            IDLE
-          </span>
-        )}
-        {isError && (
-          <div className="flex items-center gap-2">
-            <TriangleAlert
-              className="h-3.5 w-3.5 shrink-0 text-[var(--sx-error)]"
-              aria-hidden="true"
-            />
-            <span className="flex-1 text-xs leading-relaxed text-[var(--sx-error)]">
-              {result.error}
-            </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <SignalIcon
+                  className="h-4 w-4 shrink-0 text-[var(--sx-text-muted)]"
+                  aria-hidden="true"
+                />
+                <span className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                  {signalLabels[name]}
+                </span>
+              </div>
+              <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+            </div>
+
+            {result.durationMs > 0 ? (
+              <span className="sx-font-hack shrink-0 text-xs text-[var(--sx-text-soft)]">
+                {result.durationMs}ms
+              </span>
+            ) : null}
           </div>
-        )}
-        {isSkipped && (
-          <p className="text-xs leading-relaxed text-[var(--sx-text-muted)]">
-            {result.error ??
-              "This signal does not apply to the current target."}
-          </p>
-        )}
-        {isSuccess && result.data && (
-          <p
-            className={clsx(
-              "text-xs leading-relaxed text-[var(--sx-text-muted)]",
-              viewMode === "summary" ? "line-clamp-2" : "line-clamp-3",
-            )}
-          >
-            {getSignalSummary(name, result.data)}
-          </p>
-        )}
+
+          {isPending && isStreaming ? (
+            <p className="sx-pulse mt-4 text-[11px] tracking-[0.16em] text-[var(--sx-suspicious)] uppercase">
+              Resolving
+            </p>
+          ) : null}
+
+          {isError ? (
+            <div className="mt-4 flex items-start gap-2">
+              <TriangleAlert
+                className="mt-1 h-4 w-4 shrink-0 text-[var(--sx-error)]"
+                aria-hidden="true"
+              />
+              <p className="text-sm leading-6 text-[var(--sx-error)]">
+                {statusCopy}
+              </p>
+            </div>
+          ) : statusCopy ? (
+            <p
+              className={clsx(
+                "mt-4 text-sm leading-6",
+                isPending
+                  ? "text-[var(--sx-text-soft)]"
+                  : "text-[var(--sx-text)]",
+                isSuccess && viewMode === "summary" ? "line-clamp-3" : "",
+              )}
+            >
+              {statusCopy}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {viewMode === "full" &&
@@ -300,8 +305,8 @@ function SignalCardInner({
           if (!details) return null;
 
           return (
-            <details className="mt-2" open>
-              <summary className="cursor-pointer text-[11px] tracking-[0.14em] text-[var(--sx-info)] uppercase">
+            <details className="mt-5 border-t border-[var(--sx-border)] pt-4" open>
+              <summary className="cursor-pointer text-[11px] tracking-[0.16em] text-[var(--sx-info)] uppercase">
                 Full evidence
               </summary>
               {details}

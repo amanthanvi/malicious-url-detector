@@ -1,130 +1,159 @@
 /* ── Scrutinix Theme ── */
 .scrutinix-theme {
   --sx-active-accent: var(--sx-accent);
-  background: var(--sx-bg);
+  --sx-font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
+  --sx-font-hack: var(--font-hack), "Hack", "IBM Plex Mono", monospace;
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      color-mix(in srgb, var(--sx-active-accent) 14%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 84% 8%,
+      color-mix(in srgb, var(--sx-info) 12%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      var(--sx-bg-top) 0%,
+      var(--sx-bg) 42%,
+      var(--sx-bg-strong) 100%
+    );
   color: var(--sx-text);
   min-height: 100vh;
-  font-family: var(--font-hack), "Hack", "Fira Code", monospace;
-  --sx-font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
-  --sx-font-hack: var(--font-hack), "Hack", "Fira Code", monospace;
+  font-family: var(--sx-font-sans);
   position: relative;
+  isolation: isolate;
 }
 
-/* ── Subtle Noise Grain Overlay ── */
 .scrutinix-theme::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.01;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.38;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--sx-border) 72%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--sx-border) 72%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 96px 96px;
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.22) 42%,
+    transparent 100%
+  );
+}
+
+.scrutinix-theme::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 200px 200px;
+  background-size: 220px 220px;
 }
 
 .dark .scrutinix-theme::before {
-  opacity: 0.015;
+  opacity: 0.22;
 }
 
-/* ── Ambient Accent Atmosphere ── */
-.sx-atmosphere {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  width: 120vw;
-  height: 80vh;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    ellipse at center,
-    var(--sx-active-accent) 0%,
-    transparent 70%
-  );
-  opacity: 0.03;
-  transition: opacity 0.6s ease;
+.dark .scrutinix-theme::after {
+  opacity: 0.06;
 }
 
-/* ── Radar Sweep Background ── */
 .sx-radar-bg {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
 }
 
-.sx-radar-bg::before {
-  content: "";
+.sx-atmosphere {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 140vmax;
-  height: 140vmax;
-  transform: translate(-50%, -50%);
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    color-mix(in srgb, var(--sx-active-accent) 10%, transparent) 30deg,
-    transparent 60deg,
-    transparent 360deg
-  );
-  animation: sx-radar-sweep 8s linear infinite;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
+  background:
+    radial-gradient(
+      ellipse at 18% 24%,
+      color-mix(in srgb, var(--sx-active-accent) 16%, transparent),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 76% 14%,
+      color-mix(in srgb, var(--sx-info) 14%, transparent),
+      transparent 34%
+    );
+  opacity: 0.6;
+  transition: opacity 320ms ease;
 }
 
-@keyframes sx-radar-sweep {
+.sx-panel {
+  background: color-mix(in srgb, var(--sx-surface) 90%, transparent);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--sx-shadow-soft);
+}
+
+.sx-font-sans {
+  font-family: var(--sx-font-sans);
+}
+
+.sx-font-hack {
+  font-family: var(--sx-font-hack);
+}
+
+@keyframes sx-stage-in {
   from {
-    transform: translate(-50%, -50%) rotate(0deg);
+    opacity: 0;
+    transform: translateY(18px);
   }
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* ── Scrollbar ── */
-.scrutinix-theme ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-.scrutinix-theme ::-webkit-scrollbar-track {
-  background: var(--sx-bg);
-}
-.scrutinix-theme ::-webkit-scrollbar-thumb {
-  background: var(--sx-border-muted);
-  border-radius: 2px;
-}
-.scrutinix-theme ::-webkit-scrollbar-thumb:hover {
-  background: var(--sx-text-muted);
+.sx-stage-in {
+  animation: sx-stage-in 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ── Selection ── */
-.scrutinix-theme ::selection {
-  background: color-mix(in srgb, var(--sx-active-accent) 25%, transparent);
-  color: var(--sx-text);
+.sx-stage-in[data-delay="1"] {
+  animation-delay: 80ms;
 }
 
-/* ── Score Arc ── */
-@keyframes sx-arc-fill {
-  from {
-    stroke-dashoffset: 283;
-  }
+.sx-stage-in[data-delay="2"] {
+  animation-delay: 160ms;
 }
 
-/* ── Pulse ── */
+.sx-stage-in[data-delay="3"] {
+  animation-delay: 240ms;
+}
+
 @keyframes sx-pulse {
   0%,
   100% {
-    filter: brightness(1);
+    opacity: 1;
   }
   50% {
-    filter: brightness(1.16);
+    opacity: 0.72;
   }
 }
+
 .sx-pulse {
-  animation: sx-pulse 2s ease-in-out infinite;
+  animation: sx-pulse 1.8s ease-in-out infinite;
 }
 
-/* ── Cursor Blink ── */
 @keyframes cursor-blink {
   0%,
   100% {
@@ -134,109 +163,110 @@
     opacity: 0;
   }
 }
+
 .sx-cursor {
   animation: cursor-blink 1s step-end infinite;
 }
 
-/* ── Status LED ── */
 @keyframes led-glow {
   0%,
   100% {
-    box-shadow: 0 0 3px 1px currentColor;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 18%, transparent),
+      0 0 0 0 currentColor;
   }
   50% {
-    box-shadow: 0 0 8px 3px currentColor;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 22%, transparent),
+      0 0 16px 2px color-mix(in srgb, currentColor 28%, transparent);
   }
-}
-.sx-led {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.sx-led-pulse {
-  animation: led-glow 2s ease-in-out infinite;
 }
 
-/* ── Data Feed Scan Line ── */
+.sx-led {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.sx-led-pulse {
+  animation: led-glow 2.2s ease-in-out infinite;
+}
+
 @keyframes scan-line {
   0% {
-    left: -100%;
+    transform: translateX(-120%);
   }
   100% {
-    left: 100%;
+    transform: translateX(180%);
   }
 }
+
 .sx-scan-line {
   position: relative;
   overflow: hidden;
 }
+
 .sx-scan-line::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
+  inset: 0 auto 0 0;
+  width: 36%;
   background: linear-gradient(
     90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--sx-active-accent) 6%, transparent) 40%,
-    color-mix(in srgb, var(--sx-active-accent) 12%, transparent) 50%,
-    color-mix(in srgb, var(--sx-active-accent) 6%, transparent) 60%,
-    transparent 100%
+    transparent,
+    color-mix(in srgb, var(--sx-active-accent) 16%, transparent),
+    transparent
   );
-  animation: scan-line 3s linear infinite;
+  animation: scan-line 3.6s linear infinite;
   pointer-events: none;
 }
 
-/* ── Pending Scan Effect ── */
 @keyframes pending-scan {
   0% {
-    left: -40%;
+    transform: translateX(-130%);
   }
   100% {
-    left: 140%;
+    transform: translateX(180%);
   }
 }
+
 .sx-pending-scan {
   position: relative;
   overflow: hidden;
 }
+
 .sx-pending-scan::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: -40%;
-  width: 40%;
-  height: 100%;
+  inset: 0 auto 0 0;
+  width: 32%;
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--sx-suspicious) 18%, transparent),
+    color-mix(in srgb, var(--sx-active-accent) 12%, transparent),
     transparent
   );
-  animation: pending-scan 1.5s ease-in-out infinite;
+  animation: pending-scan 2.2s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* ── Red Alert Mode ── */
 @keyframes alert-pulse {
   0%,
   100% {
-    box-shadow: inset 0 0 30px rgba(255, 0, 128, 0.05);
+    box-shadow: inset 0 0 0 1px transparent;
   }
   50% {
-    box-shadow: inset 0 0 60px rgba(255, 0, 128, 0.12);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--sx-malicious) 24%, transparent);
   }
 }
+
 .sx-alert {
-  animation: alert-pulse 2s ease-in-out infinite;
-  border: 1px solid rgba(255, 0, 128, 0.2);
+  animation: alert-pulse 2.6s ease-in-out infinite;
 }
 
-/* ── Radar SVG Animation ── */
 @keyframes radar-rotate {
   from {
     transform: rotate(0deg);
@@ -245,84 +275,97 @@
     transform: rotate(360deg);
   }
 }
+
 .sx-radar-sweep-line {
   transform-origin: center;
-  animation: radar-rotate 4s linear infinite;
-}
-.sx-radar-sweep-fast {
-  transform-origin: center;
-  animation: radar-rotate 1.5s linear infinite;
+  animation: radar-rotate 8s linear infinite;
 }
 
-/* ── Concentric Radar Rings Pulse ── */
+.sx-radar-sweep-fast {
+  transform-origin: center;
+  animation: radar-rotate 2.2s linear infinite;
+}
+
 @keyframes ring-pulse {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.2;
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.5;
   }
 }
+
 .sx-radar-ring {
-  animation: ring-pulse 3s ease-in-out infinite;
-}
-.sx-radar-ring:nth-child(2) {
-  animation-delay: 0.5s;
-}
-.sx-radar-ring:nth-child(3) {
-  animation-delay: 1s;
+  animation: ring-pulse 3.8s ease-in-out infinite;
 }
 
-/* ── Threat Bar Fill ── */
+.sx-radar-ring:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.sx-radar-ring:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
 @keyframes threat-fill {
   from {
     width: 0%;
   }
 }
+
 .sx-threat-fill {
-  animation: threat-fill 1s ease-out forwards;
+  animation: threat-fill 850ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Edge accents ── */
 .sx-edge-safe {
-  border-left: 3px solid var(--sx-safe);
-}
-.sx-edge-neutral {
-  border-left: 3px solid var(--sx-info);
-}
-.sx-edge-suspicious {
-  border-left: 3px solid var(--sx-suspicious);
-}
-.sx-edge-malicious {
-  border-left: 3px solid var(--sx-malicious);
-}
-.sx-edge-critical {
-  border-left: 3px solid var(--sx-critical);
-}
-.sx-edge-error {
-  border-left: 3px solid var(--sx-error);
-}
-.sx-edge-pending {
-  border-left: 3px solid var(--sx-border-muted);
-}
-.sx-edge-skipped {
-  border-left: 3px solid var(--sx-border-muted);
+  box-shadow: inset 2px 0 0 var(--sx-safe);
 }
 
-/* ── Input Glow ── */
+.sx-edge-neutral {
+  box-shadow: inset 2px 0 0 var(--sx-info);
+}
+
+.sx-edge-suspicious {
+  box-shadow: inset 2px 0 0 var(--sx-suspicious);
+}
+
+.sx-edge-malicious {
+  box-shadow: inset 2px 0 0 var(--sx-malicious);
+}
+
+.sx-edge-critical {
+  box-shadow: inset 2px 0 0 var(--sx-critical);
+}
+
+.sx-edge-error {
+  box-shadow: inset 2px 0 0 var(--sx-error);
+}
+
+.sx-edge-pending,
+.sx-edge-skipped {
+  box-shadow: inset 2px 0 0 var(--sx-border-muted);
+}
+
 .sx-input-glow:focus {
   box-shadow:
-    0 0 0 1px var(--sx-bg),
-    0 0 0 2px var(--sx-focus-ring);
+    0 0 0 1px color-mix(in srgb, var(--sx-surface-strong) 94%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--sx-focus-ring) 18%, transparent);
 }
 
-/* ── Button Active States ── */
+.sx-btn-press {
+  transition:
+    transform 180ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease;
+}
+
 .sx-btn-press:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* ── Footer Marquee ── */
 @keyframes sx-marquee {
   from {
     transform: translateX(0);
@@ -331,33 +374,11 @@
     transform: translateX(-50%);
   }
 }
+
 .sx-marquee {
-  animation: sx-marquee 30s linear infinite;
+  animation: sx-marquee 32s linear infinite;
 }
 
-/* ── Toast Enter/Exit ── */
-@keyframes sx-toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes sx-toast-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(12px) scale(0.95);
-  }
-}
-
-/* ── Skeleton Shimmer ── */
 @keyframes sx-shimmer {
   0% {
     background-position: -200% 0;
@@ -366,26 +387,41 @@
     background-position: 200% 0;
   }
 }
+
 .sx-shimmer {
   background: linear-gradient(
     90deg,
-    var(--sx-surface) 0%,
-    var(--sx-surface-elevated) 40%,
-    var(--sx-surface) 80%
+    color-mix(in srgb, var(--sx-surface) 92%, transparent) 0%,
+    color-mix(in srgb, var(--sx-surface-elevated) 88%, transparent) 45%,
+    color-mix(in srgb, var(--sx-surface) 92%, transparent) 100%
   );
   background-size: 200% 100%;
   animation: sx-shimmer 2s ease-in-out infinite;
 }
 
-/* ── Font Utilities ── */
-.sx-font-sans {
-  font-family: var(--sx-font-sans);
-}
-.sx-font-hack {
-  font-family: var(--sx-font-hack);
+.scrutinix-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* ── Focus Visible (Accessibility) ── */
+.scrutinix-theme ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrutinix-theme ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sx-border-muted) 82%, transparent);
+  border-radius: 999px;
+}
+
+.scrutinix-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--sx-text-soft);
+}
+
+.scrutinix-theme ::selection {
+  background: color-mix(in srgb, var(--sx-active-accent) 22%, transparent);
+  color: var(--sx-text);
+}
+
 .scrutinix-theme button:focus-visible,
 .scrutinix-theme input:focus-visible,
 .scrutinix-theme textarea:focus-visible,
@@ -400,14 +436,15 @@
   position: absolute;
   top: 0.75rem;
   left: 1rem;
-  z-index: 40;
+  z-index: 50;
   transform: translateY(-180%);
-  border: 1px solid var(--sx-border);
+  border: 1px solid var(--sx-border-muted);
   border-radius: 999px;
-  background: var(--sx-surface);
+  background: color-mix(in srgb, var(--sx-surface-strong) 90%, transparent);
+  backdrop-filter: blur(16px);
   color: var(--sx-text);
   font-family: var(--sx-font-sans);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   padding: 0.75rem 1rem;
@@ -425,9 +462,8 @@
     color-mix(in srgb, var(--sx-focus-ring) 18%, transparent);
 }
 
-/* ── Reduced Motion (Accessibility) ── */
 @media (prefers-reduced-motion: reduce) {
-  .sx-radar-bg::before,
+  .sx-stage-in,
   .sx-radar-sweep-line,
   .sx-radar-sweep-fast,
   .sx-radar-ring,
@@ -439,8 +475,7 @@
   .sx-led-pulse,
   .sx-threat-fill,
   .sx-marquee,
-  .sx-shimmer,
-  .sx-atmosphere {
+  .sx-shimmer {
     animation: none !important;
   }
 }

@@ -26,7 +26,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "inline-flex h-auto items-center gap-1 rounded-lg border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_88%,transparent)] p-1 text-[var(--sx-text-muted)]",
+        "inline-flex h-auto items-center gap-1 rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_84%,transparent)] p-1 text-[var(--sx-text-muted)] backdrop-blur-sm",
         className,
       )}
       {...props}
@@ -42,7 +42,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "sx-btn-press sx-font-sans focus-visible:ring-offset-background inline-flex min-h-11 items-center justify-center rounded-md border border-transparent px-4 py-2 text-xs font-semibold tracking-[0.14em] text-[var(--sx-text-muted)] uppercase transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--sx-focus-ring)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-[var(--sx-active-accent)] data-[state=active]:bg-[var(--sx-active-accent)] data-[state=active]:text-[var(--sx-accent-fg)]",
+        "sx-btn-press sx-font-sans focus-visible:ring-offset-background inline-flex min-h-10 items-center justify-center rounded-full border border-transparent px-4 py-2 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--sx-focus-ring)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-[var(--sx-active-accent)] data-[state=active]:bg-[var(--sx-active-accent)] data-[state=active]:text-[var(--sx-accent-fg)]",
         className,
       )}
       {...props}
