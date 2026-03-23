@@ -84,8 +84,14 @@ tests/
 
 ```
 VIRUSTOTAL_API_KEY=...
-HUGGINGFACE_API_KEY=...
 GOOGLE_SAFE_BROWSING_API_KEY=...  # optional
+HUGGINGFACE_API_KEY=...
+HUGGINGFACE_URL_MODEL=DunnBC22/codebert-base-Malicious_URLs
+URLHAUS_AUTH_KEY=...              # optional
 UPSTASH_REDIS_REST_URL=...        # optional (rate limiting)
 UPSTASH_REDIS_REST_TOKEN=...      # optional
+KV_REST_API_URL=...               # optional Vercel KV alias
+KV_REST_API_TOKEN=...             # optional Vercel KV alias
+OPENPHISH_FEED_URL=https://openphish.com/feed.txt
+NEXT_PUBLIC_APP_URL=https://www.scrutinix.net
 ```

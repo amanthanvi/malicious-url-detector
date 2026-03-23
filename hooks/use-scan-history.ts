@@ -1,6 +1,6 @@
 "use client";
 
-import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import { deleteDB, openDB, type DBSchema, type IDBPDatabase } from "idb";
 import {
   useCallback,
   useEffect,
@@ -21,7 +21,8 @@ interface HistoryDatabase extends DBSchema {
   };
 }
 
-const DATABASE_NAME = "malicious-url-detector-v2";
+const DATABASE_NAME = "scrutinix-v2";
+const LEGACY_DATABASE_NAME = "malicious-url-detector-v2";
 const STORE_NAME = "scans";
 
 let dbPromise: Promise<IDBPDatabase<HistoryDatabase>> | null = null;
@@ -135,13 +136,112 @@ function getDatabase() {
   }
 
   if (!dbPromise) {
-    dbPromise = openDB<HistoryDatabase>(DATABASE_NAME, 1, {
-      upgrade(database) {
-        const store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
-        store.createIndex("by-saved-at", "savedAt");
-      },
-    });
+    dbPromise = openHistoryDatabase();
   }
 
   return dbPromise;
+}
+
+async function openHistoryDatabase() {
+  const database = await openDB<HistoryDatabase>(DATABASE_NAME, 1, {
+    upgrade(upgradeDatabase) {
+      initializeHistoryStore(upgradeDatabase);
+    },
+  });
+
+  try {
+    await migrateLegacyHistory(database);
+  } catch (error) {
+    console.warn("[Scrutinix] Failed to migrate legacy scan history.", error);
+  }
+  return database;
+}
+
+function initializeHistoryStore(database: IDBPDatabase<HistoryDatabase>) {
+  if (database.objectStoreNames.contains(STORE_NAME)) {
+    return;
+  }
+
+  const store = database.createObjectStore(STORE_NAME, { keyPath: "id" });
+  store.createIndex("by-saved-at", "savedAt");
+}
+
+async function migrateLegacyHistory(database: IDBPDatabase<HistoryDatabase>) {
+  const legacyEntries = await readLegacyHistoryEntries();
+  if (legacyEntries.length === 0) {
+    return;
+  }
+
+  const transaction = database.transaction(STORE_NAME, "readwrite");
+  await Promise.all(legacyEntries.map((entry) => transaction.store.put(entry)));
+  await transaction.done;
+
+  await deleteDB(LEGACY_DATABASE_NAME);
+}
+
+async function readLegacyHistoryEntries() {
+  const legacyDatabase = await openLegacyDatabase();
+  if (!legacyDatabase) {
+    return [];
+  }
+
+  if (legacyDatabase.wasCreated) {
+    legacyDatabase.database.close();
+    await deleteDB(LEGACY_DATABASE_NAME);
+    return [];
+  }
+
+  if (!legacyDatabase.database.objectStoreNames.contains(STORE_NAME)) {
+    legacyDatabase.database.close();
+    return [];
+  }
+
+  const transaction = legacyDatabase.database.transaction(
+    STORE_NAME,
+    "readonly",
+  );
+  const store = transaction.objectStore(STORE_NAME);
+  const entries = await requestToPromise<HistoryEntry[]>(store.getAll());
+  legacyDatabase.database.close();
+  return entries;
+}
+
+async function openLegacyDatabase() {
+  return await new Promise<{
+    database: IDBDatabase;
+    wasCreated: boolean;
+  } | null>((resolve, reject) => {
+    const request = window.indexedDB.open(LEGACY_DATABASE_NAME);
+    let wasCreated = false;
+
+    request.onupgradeneeded = () => {
+      wasCreated = true;
+    };
+    request.onsuccess = () => {
+      resolve({
+        database: request.result,
+        wasCreated,
+      });
+    };
+    request.onerror = () => {
+      reject(
+        request.error ??
+          new Error("Failed to open the legacy history database."),
+      );
+    };
+    request.onblocked = () => {
+      reject(new Error("Legacy history migration was blocked by another tab."));
+    };
+  });
+}
+
+async function requestToPromise<T>(request: IDBRequest<T>) {
+  return await new Promise<T>((resolve, reject) => {
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      reject(request.error ?? new Error("IndexedDB request failed."));
+    };
+  });
 }

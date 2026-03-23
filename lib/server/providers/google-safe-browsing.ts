@@ -21,7 +21,7 @@ export async function runGoogleSafeBrowsingProvider(
       },
       body: JSON.stringify({
         client: {
-          clientId: "malicious-url-detector",
+          clientId: "scrutinix",
           clientVersion: "3.0.0",
         },
         threatInfo: {

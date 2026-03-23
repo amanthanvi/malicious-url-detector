@@ -66,7 +66,7 @@ async function requestRedirectHop(url: string) {
         method: "GET",
         rejectUnauthorized: false,
         headers: {
-          "user-agent": "malicious-url-detector/3.0",
+          "user-agent": "scrutinix/3.0",
         },
       },
       (response) => {
