@@ -423,6 +423,25 @@
     color-mix(in srgb, var(--sx-focus-ring) 18%, transparent);
 }
 
+@media (min-width: 1024px) {
+  .sx-home-hero {
+    min-height: calc(100svh - 6rem);
+    align-items: center;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 760px) {
+  .sx-home-hero {
+    min-height: auto;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .sx-home-secondary-copy {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sx-stage-in,
   .sx-radar-sweep-line,

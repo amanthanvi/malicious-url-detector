@@ -7,7 +7,7 @@ import { useState } from "react";
 const contentId = "reading-results-content";
 
 export function EducationSection() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <section
@@ -23,13 +23,13 @@ export function EducationSection() {
       >
         <div className="space-y-2">
           <p className="text-xs text-[var(--sx-text-muted)]">
-            Method notes
+            Method and caveats
           </p>
           <h2
             id="reading-results-heading"
             className="sx-font-sans text-lg font-semibold text-[var(--sx-text)]"
           >
-            How to read this surface
+            How scoring and confidence behave
           </h2>
         </div>
         <ChevronDown
@@ -63,9 +63,8 @@ export function EducationSection() {
                     Weighted signals first
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                    Safe Browsing, community feeds, and multi-engine detections
-                    carry more weight than passive context like DNS posture or
-                    domain age.
+                    Safe Browsing, threat feeds, and multi-engine detections
+                    outrank passive context like DNS posture or domain age.
                   </p>
                 </div>
               </div>
@@ -80,9 +79,9 @@ export function EducationSection() {
                     Summary for triage, full for evidence
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                    Summary mode surfaces the highest-priority completed
-                    signals. Full mode keeps every lane visible, including
-                    caveats and not-applicable outcomes.
+                    Summary surfaces the highest-priority completed lanes. Full
+                    keeps every lane, caveat, and not-applicable outcome
+                    visible.
                   </p>
                 </div>
               </div>
@@ -97,9 +96,8 @@ export function EducationSection() {
                     Confidence matters
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                    Threat score bands run 0-24 safe, 25-54 suspicious, 55-79
-                    malicious, and 80-100 critical, but clean results still lose
-                    confidence when primary coverage fails.
+                    Clean verdicts lose confidence when primary coverage fails,
+                    even if no malicious evidence appears in completed signals.
                   </p>
                 </div>
               </div>

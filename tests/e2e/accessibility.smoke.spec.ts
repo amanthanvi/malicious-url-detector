@@ -33,15 +33,6 @@ test("home page keyboard navigation @smoke", async ({ page }) => {
   await expect(themeToggle).toBeFocused();
 
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /open scanner/i })).toBeFocused();
-
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /how it works/i })).toBeFocused();
-
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: /privacy/i })).toBeFocused();
-
-  await page.keyboard.press("Tab");
   await expect(page.getByRole("tab", { name: /single scan/i })).toBeFocused();
 
   await page.keyboard.press("ArrowRight");

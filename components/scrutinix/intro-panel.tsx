@@ -1,46 +1,35 @@
 import Link from "next/link";
-import { ArrowRight, Lock, ShieldCheck, Workflow } from "lucide-react";
+import { Lock, ShieldCheck, Workflow } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { EducationSection } from "@/components/scrutinix/education-section";
 import { Button } from "@/components/ui/button";
 
 interface IntroPanelProps {
   dock?: ReactNode;
 }
 
-const proofRows = [
+const supportRows = [
   {
     title: "Weighted evidence",
-    body: "Reputation lists and threat feeds outweigh softer context so the verdict follows stronger signals first.",
+    body: "High-signal reputation sources outrank softer context so the verdict stays conservative.",
     icon: ShieldCheck,
+    href: "/about",
+    cta: "How scoring works",
   },
   {
-    title: "Private by default",
-    body: "History persists in IndexedDB only, and shared links are generated in the browser rather than saved server-side.",
+    title: "Browser-only history",
+    body: "Saved scans stay on-device unless you choose to export or share them.",
     icon: Lock,
+    href: "/privacy",
+    cta: "Privacy details",
   },
   {
-    title: "Stream, then inspect",
-    body: "The hero starts the scan immediately, while the operational surface below expands into signal-by-signal evidence.",
+    title: "Batch stays isolated",
+    body: "Queue short lists now, then open any finished row in the single-scan surface.",
     icon: Workflow,
-  },
-] as const;
-
-const methodRows = [
-  {
-    label: "Coverage",
-    value: "8 signals",
-    body: "Safe Browsing, community feeds, TLS, redirects, DNS, registration, VirusTotal, and a local ensemble.",
-  },
-  {
-    label: "Delivery",
-    value: "NDJSON stream",
-    body: "Signals resolve independently, so partial results and failures stay visible instead of collapsing into one opaque error.",
-  },
-  {
-    label: "Retention",
-    value: "Browser only",
-    body: "Local history stays on-device, while operational logs keep hashes, scan IDs, timings, and verdict classes.",
+    href: "/#scan-console",
+    cta: "Open the console",
   },
 ] as const;
 
@@ -50,105 +39,110 @@ export function IntroPanel({ dock }: IntroPanelProps) {
       aria-labelledby="scrutinix-intro-heading"
       className="border-b border-border"
     >
-      <div className="relative z-10 mx-auto max-w-[1520px] px-4 py-6 sm:px-6 sm:py-8 xl:px-8">
-        <div className="grid gap-8 xl:min-h-[calc(100svh-6.5rem)] xl:grid-cols-[minmax(0,0.98fr)_minmax(22rem,0.82fr)] xl:items-center">
-          <div className="flex min-w-0 flex-col justify-between gap-8">
-            <div className="space-y-6">
-              <div className="sx-stage-in flex items-center gap-2" data-delay="0">
+      <div className="relative z-10 mx-auto max-w-[1520px] px-4 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-8">
+        <div className="sx-home-hero grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.72fr)] lg:items-start">
+          {dock ? <div className="order-1 min-w-0">{dock}</div> : null}
+
+          <div className="order-2 min-w-0 lg:pl-2">
+            <div className="sx-home-brand sx-stage-in space-y-4" data-delay="0">
+              <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-md border border-border bg-card px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.08em] text-[var(--sx-text-muted)] uppercase">
                   Public threat analysis
                 </span>
                 <span className="hidden text-xs text-[var(--sx-text-soft)] sm:inline">
-                  Eight signals, streamed live
+                  Eight streamed signals
                 </span>
               </div>
 
-              <div className="space-y-5">
-                <div className="sx-stage-in space-y-3" data-delay="1">
-                  <p className="text-sm font-medium text-[var(--sx-accent)]">
-                    Trust the verdict. Inspect the evidence.
-                  </p>
-                  <h1
-                    id="scrutinix-intro-heading"
-                    className="sx-font-sans text-5xl font-semibold tracking-[-0.05em] text-[var(--sx-text)] sm:text-6xl lg:text-7xl"
-                  >
-                    Scrutinix
-                  </h1>
-                </div>
-
-                <div className="sx-stage-in max-w-3xl space-y-4" data-delay="2">
-                  <h2 className="sx-font-sans max-w-3xl text-2xl font-medium leading-tight text-[var(--sx-text)] sm:text-[2rem]">
-                    Check any URL against browser-protection lists, community
-                    feeds, TLS posture, DNS, redirects, registration data, and
-                    a local ML ensemble.
-                  </h2>
-                  <p className="sx-font-sans max-w-2xl text-base leading-7 text-[var(--sx-text-muted)]">
-                    Scrutinix keeps the headline verdict grounded in weighted
-                    evidence, shows confidence caveats when coverage is limited,
-                    and keeps your local history in the browser instead of on a
-                    server archive.
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <h1
+                  id="scrutinix-intro-heading"
+                  className="sx-font-sans text-4xl font-semibold tracking-[-0.05em] text-[var(--sx-text)] sm:text-5xl lg:text-6xl"
+                >
+                  Scrutinix
+                </h1>
+                <p className="sx-font-sans max-w-xl text-xl leading-tight font-medium text-[var(--sx-text)] sm:text-2xl">
+                  Scan suspicious links without leaving the dashboard.
+                </p>
               </div>
 
-              <div className="sx-stage-in flex flex-wrap gap-3" data-delay="3">
-                <Button asChild variant="terminal" className="h-8 px-3">
-                  <a href="#scan-console">
-                    Open scanner
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </a>
-                </Button>
+              <p className="sx-home-secondary-copy sx-font-sans max-w-xl text-sm leading-6 text-[var(--sx-text-muted)] sm:text-base">
+                Eight streamed signals, short-batch triage, local history, and
+                export or share controls when you need them.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
                 <Button asChild variant="ghost" className="h-8 px-3">
-                  <Link href="/about">How it works</Link>
+                  <Link href="/about">How scoring works</Link>
                 </Button>
                 <Button asChild variant="ghost" className="h-8 px-3">
                   <Link href="/privacy">Privacy</Link>
                 </Button>
               </div>
-            </div>
 
-            <div className="sx-stage-in grid gap-5 border-t border-border pt-6 sm:grid-cols-3" data-delay="4">
-              {proofRows.map(({ body, icon: Icon, title }) => (
-                <div key={title} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      className="h-4 w-4 text-[var(--sx-accent)]"
-                      aria-hidden="true"
-                    />
-                    <h2 className="text-sm font-medium text-[var(--sx-text)]">
-                      {title}
-                    </h2>
-                  </div>
-                  <p className="sx-font-sans max-w-sm text-sm leading-6 text-[var(--sx-text-muted)]">
-                    {body}
-                  </p>
-                </div>
-              ))}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--sx-text-soft)]">
+                <span>8 signals</span>
+                <span>Batch max 10</span>
+                <span>Browser-only history</span>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          {dock ? <div className="min-w-0 xl:pl-4">{dock}</div> : null}
+export function HomeSupportSection() {
+  return (
+    <section
+      aria-labelledby="home-support-heading"
+      className="border-t border-border pt-8"
+    >
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-xs text-[var(--sx-text-muted)]">
+              Support and method
+            </p>
+            <h2
+              id="home-support-heading"
+              className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]"
+            >
+              Keep the live surface lean. Open the caveats when you need them.
+            </h2>
+            <p className="sx-font-sans max-w-2xl text-sm leading-6 text-[var(--sx-text-muted)]">
+              Method notes and privacy details stay here and on the dedicated
+              docs pages instead of crowding the scanner.
+            </p>
+          </div>
+
+          <EducationSection />
         </div>
 
-        <div
-          id="method"
-          className="sx-stage-in mt-8 grid gap-4 border-t border-border pt-6 lg:grid-cols-3"
-          data-delay="5"
-        >
-          {methodRows.map((row) => (
+        <div className="grid gap-3">
+          {supportRows.map(({ body, cta, href, icon: Icon, title }) => (
             <div
-              key={row.label}
-              className="flex flex-col gap-2 border-b border-border pb-4 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-5 last:border-r-0"
+              key={title}
+              className="sx-panel rounded-xl border border-border px-5 py-5"
             >
-              <span className="text-xs text-[var(--sx-text-muted)]">
-                {row.label}
-              </span>
-              <span className="sx-font-sans text-xl font-semibold text-[var(--sx-text)]">
-                {row.value}
-              </span>
-              <p className="sx-font-sans max-w-sm text-sm leading-6 text-[var(--sx-text-muted)]">
-                {row.body}
-              </p>
+              <div className="flex items-start gap-3">
+                <Icon
+                  className="mt-1 h-4 w-4 shrink-0 text-[var(--sx-accent)]"
+                  aria-hidden="true"
+                />
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-[var(--sx-text)]">
+                    {title}
+                  </h3>
+                  <p className="sx-font-sans text-sm leading-6 text-[var(--sx-text-muted)]">
+                    {body}
+                  </p>
+                  <Button asChild variant="ghost" size="sm" className="h-7 px-2.5">
+                    <Link href={href}>{cta}</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

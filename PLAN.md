@@ -14,7 +14,7 @@ cleanup.
 ## Current Snapshot
 
 - Date: 2026-03-23
-- Execution status: `P16 completed and verified`
+- Execution status: `P17 completed and verified`
 - Platform:
   - Next.js `16.1.6`
   - React `19.2.x`
@@ -24,11 +24,12 @@ cleanup.
   - `proxy.ts` enforces rate limits on `/api/analyze` request paths.
   - Node.js route handlers orchestrate eight signals and stream normalized results.
   - IndexedDB stores client-only history, export state, and re-scan sources.
-  - The home page renders a server-first shell with a full-bleed poster hero, inline scanner dock, calmer two-column operational workspace, and a sticky history rail, while smaller client islands still own scan orchestration, history hydration, and footer telemetry.
+  - The home page now renders scanner-first: a compact top band with the scan dock and minimal product framing, a calmer two-column operational workspace, a sticky history rail, and a clearly separate support/method section below the functional surface.
   - The public site now shares one editorial shell across `/`, `/about`, and `/privacy`, so the trust, methodology, and privacy surfaces stay visually aligned with the scanner.
   - The UI now uses the actual pulled shadcn preset `b1D24VYe` as its baseline language: neutral `radix-mira` tokens, compact controls, and smaller radii adapted onto the branded `components/scrutinix/*` surface.
   - Dark/light theme tokens stay in `app/globals.css`, while `app/scrutinix.css` is now limited to the lighter motion/effects layer needed for live scan states.
   - Body typography defaults to Geist Sans, while mono styling is reserved for telemetry, timings, hashes, and other code-like labels.
+  - Favicons and manifest are now served from checked-in assets under `public/` instead of a generated `app/icon.tsx` route.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
   - `package-lock.json` drift from the platform refresh bootstrap was kept intentionally because the project was fully re-scaffolded onto the new dependency graph.
@@ -197,6 +198,15 @@ Observed results:
 - [x] Remove the leftover pill, blur, and terminal chrome that was still masking the preset baseline across `/`, `/about`, and `/privacy`.
 - [x] Re-run lint, typecheck, build, Playwright smoke, and Lighthouse against the corrected preset-aligned UI.
 
+### P17 Make the home route dashboard-first and swap in the shipped favicon bundle
+
+- [x] Replace the generated icon route with the provided favicon asset set and a normalized `site.webmanifest`.
+- [x] Reduce the home hero to minimal scanner-adjacent framing so the scan dock is dominant on desktop and mobile.
+- [x] Move method/privacy explanation into a clearly secondary support section below the operational workspace.
+- [x] Tighten short-height and mobile viewport behavior so the scan dock, input, and primary action stay inside the first viewport.
+- [x] Update smoke assertions to target stable functional affordances instead of removed marketing copy.
+- [x] Re-run lint, typecheck, build, favicon endpoint checks, and Playwright smoke after the cleanup pass.
+
 ## Notes / Discoveries
 
 - 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
@@ -226,3 +236,4 @@ Observed results:
 - 2026-03-23: Public repo polish still mattered after the rename; the README needed to lead with product value, and the repo needed explicit `CONTRIBUTING.md` plus `SECURITY.md` entry points for external users.
 - 2026-03-23: The public-site redesign is easiest to keep coherent when the hero, scanner dock, workspace, and trust pages all share one token system and shell language; partial restyles drift quickly.
 - 2026-03-23: When a redesign is supposed to follow a shadcn preset, pull the generated preset first; matching the real token scale and control density matters more than loosely matching the mood.
+- 2026-03-23: The home route works better as a scanner-first dashboard than as a text-heavy hero; keeping the support/method layer below the workspace preserves readability on short laptop windows and mobile screens.

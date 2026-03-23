@@ -90,22 +90,6 @@ const BatchPanel = dynamic(
   },
 );
 
-const EducationSection = dynamic(
-  () =>
-    import("@/components/scrutinix/education-section").then(
-      (module) => module.EducationSection,
-    ),
-  {
-    loading: () => (
-      <Card>
-        <CardContent className="px-4 py-4 text-xs text-[var(--sx-text-muted)]">
-          Loading guidance...
-        </CardContent>
-      </Card>
-    ),
-  },
-);
-
 const HistoryPanel = dynamic(
   () =>
     import("@/components/scrutinix/history-panel").then(
@@ -613,24 +597,23 @@ export function ScanDock() {
   return (
     <section
       id="scan-console"
-      className="sx-stage-in sx-panel rounded-xl border border-border p-5 sm:p-6"
+      className="sx-stage-in sx-panel rounded-xl border border-border p-4 sm:p-5"
       data-delay="3"
       aria-labelledby="scan-dock-heading"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
           <p className="text-xs text-[var(--sx-text-muted)]">
-            Launch analysis
+            Scan console
           </p>
           <h2
             id="scan-dock-heading"
-            className="sx-font-sans text-xl font-semibold text-[var(--sx-text)] sm:text-2xl"
+            className="sx-font-sans text-xl font-semibold text-[var(--sx-text)]"
           >
-            Start with one link or a short batch.
+            Scan one link or a short batch.
           </h2>
           <p className="sx-font-sans max-w-xl text-sm leading-6 text-[var(--sx-text-muted)]">
-            The scanner stays live in the hero, while the full evidence surface
-            below takes over once results begin streaming.
+            Results stream into the workspace below as providers resolve.
           </p>
         </div>
 
@@ -649,7 +632,7 @@ export function ScanDock() {
           setActiveTab(value as Tab);
           setFormError(null);
         }}
-        className="mt-6 gap-4"
+        className="mt-5 gap-4"
       >
         <TabsList aria-label="Scan mode" className="w-full justify-start sm:w-fit">
           <TabsTrigger value="single">Single Scan</TabsTrigger>
@@ -755,14 +738,14 @@ export function AnalyzerWorkspace() {
 
   const coverageCopy =
     activeTab === "single" && done > 0 && viewMode === "summary"
-      ? `Showing ${visibleSignals.length} priority signals from ${successfulSignalCount} completed checks.${caveatSignalCount + unavailableSignalCount > 0 ? ` ${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable or n/a signals remain in Full view.` : ""}`
+      ? `Showing ${visibleSignals.length} priority signals from ${successfulSignalCount} completed checks.${caveatSignalCount + unavailableSignalCount > 0 ? ` ${caveatSignalCount} caveat and ${unavailableSignalCount} unavailable lanes remain in Full view.` : ""}`
       : activeTab === "batch"
-        ? "Each queued URL stays isolated in the batch stream until you inspect it in single-scan mode."
-        : "Summary mode surfaces the highest-priority finished signals first. Full view keeps every signal visible.";
+        ? "Queued URLs stay isolated until you inspect a finished row in single-scan mode."
+        : "Summary surfaces the highest-priority finished signals first. Full keeps every lane visible.";
 
   return (
-    <section className="space-y-8">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.92fr)]">
+    <section className="space-y-7">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(17rem,0.72fr)]">
         <div className="min-w-0">
           {activeTab === "single" ? (
             <VerdictHero
@@ -844,8 +827,6 @@ export function AnalyzerWorkspace() {
               {coverageCopy}
             </p>
           </div>
-
-          <EducationSection />
         </div>
       </div>
 

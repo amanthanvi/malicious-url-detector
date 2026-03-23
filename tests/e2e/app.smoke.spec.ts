@@ -233,18 +233,17 @@ test("single scan flow @smoke", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_000);
 
-  await expect(
-    page.getByRole("heading", {
-      name: /check any url against browser-protection lists/i,
-    }),
-  ).toBeVisible();
-  await expect(page.getByText(/signal coverage/i)).toBeVisible();
-  await expect(page.getByText(/^idle$/i)).toBeVisible();
-  await expect(page.getByText(/awaiting scan/i).first()).toBeVisible();
-
   const singleUrlInput = page.getByRole("textbox", {
     name: /url to analyze/i,
   });
+  await expect(page.getByRole("meter", { name: /threat score/i })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /single scan/i })).toBeVisible();
+  await expect(singleUrlInput).toBeVisible();
+  await expect(page.getByRole("button", { name: /^analyze$/i })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: /scan history/i }),
+  ).toBeVisible();
+
   await expect(async () => {
     await singleUrlInput.fill("example.com");
     await expect(singleUrlInput).toHaveValue("example.com");

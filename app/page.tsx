@@ -8,7 +8,10 @@ import {
   ShellHeader,
 } from "@/components/scrutinix/analyzer-app";
 import { ScrutinixErrorBoundary } from "@/components/scrutinix/error-boundary";
-import { IntroPanel } from "@/components/scrutinix/intro-panel";
+import {
+  HomeSupportSection,
+  IntroPanel,
+} from "@/components/scrutinix/intro-panel";
 
 export default function HomePage() {
   return (
@@ -19,7 +22,7 @@ export default function HomePage() {
         <main id="main-content" className="relative z-10 flex-1 pb-10">
           <IntroPanel dock={<ScanDock />} />
 
-          <div className="mx-auto flex max-w-[1520px] flex-col gap-6 px-4 pt-6 sm:px-6 xl:px-8">
+          <div className="mx-auto flex max-w-[1520px] flex-col gap-8 px-4 pt-5 sm:px-6 xl:px-8">
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
               <ScrutinixErrorBoundary>
                 <AnalyzerWorkspace />
@@ -31,6 +34,10 @@ export default function HomePage() {
                 </div>
               </ScrutinixErrorBoundary>
             </div>
+
+            <ScrutinixErrorBoundary>
+              <HomeSupportSection />
+            </ScrutinixErrorBoundary>
           </div>
         </main>
 

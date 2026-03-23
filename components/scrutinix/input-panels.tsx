@@ -43,8 +43,7 @@ export function SingleInput({
             Single target
           </h2>
           <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
-            Stream one live verdict, inspect the evidence, then export or share
-            the finished result.
+            Run one URL, then keep the result open for export or share.
           </p>
         </div>
 
@@ -125,8 +124,7 @@ export function SingleInput({
       </div>
 
       <p className="text-xs leading-5 text-[var(--sx-text-soft)]">
-        Press Enter to scan. Scrutinix processes the submitted URL live, while
-        local history remains in your browser.
+        Press Enter to scan. Local history stays in your browser.
       </p>
     </div>
   );
@@ -173,8 +171,8 @@ export function BatchInput({
             Batch queue
           </h2>
           <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
-            Queue up to 10 URLs. Scrutinix processes 3 in parallel and isolates
-            failures so one broken target does not stop the rest.
+            Queue up to 10 URLs. Scrutinix runs 3 in parallel and isolates
+            failures per row.
           </p>
         </div>
         {urlCount > 0 && (
@@ -253,8 +251,8 @@ export function BatchInput({
       </div>
 
       <p className="text-xs leading-5 text-[var(--sx-text-soft)]">
-        Press Cmd/Ctrl+Enter to start. Batch results stream independently and
-        export to CSV or JSON when complete.
+        Press Cmd/Ctrl+Enter to start. Export the finished batch to CSV or
+        JSON.
       </p>
     </div>
   );
