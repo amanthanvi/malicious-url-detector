@@ -353,7 +353,7 @@ Implementation note: batch streams also emit `batch_started`, `url_started`, and
 ### 6.2 Retries/timeouts/circuit breakers
 
 - **Per-source timeout:** 30s for external APIs, 10s for self-computed signals
-- **Auto-retry:** None in the shipped UI contract; failures surface directly so users understand coverage gaps immediately
+- **Auto-retry:** None in the current UI contract; failures surface directly so users understand coverage gaps immediately
 - **Manual retry:** Re-run the full scan from the primary controls when coverage gaps matter
 - **No circuit breaker needed** — external APIs are independent, no cascading failure risk
 
@@ -371,12 +371,15 @@ Implementation note: batch streams also emit `batch_started`, `url_started`, and
 
 ## 8) Rollout, Migration, Compatibility
 
-- **Strategy:** Big bang. Build complete v2, deploy when ready. Old site is already defunct
-- **Feature flags:** None needed (single deploy, no gradual rollout)
-- **Rollback plan:** Git revert + Vercel instant rollback to previous deployment
-- **Migration:** No data migration needed (server is stateless, client IndexedDB starts fresh). Old localStorage history will be lost (acceptable — old data format is incompatible)
-- **Backwards compatibility:** N/A (complete rewrite, no API consumers)
-- **Domain/DNS:** Same Vercel project, same domain. Zero-downtime deploy via Vercel
+- **Strategy:** Continuous delivery from `main` with protected previews and a
+  production deployment on Vercel
+- **Feature flags:** None currently required
+- **Rollback plan:** Git revert plus Vercel rollback to the previous deployment
+- **Migration:** Server-side state remains stateless; client-side scan history
+  migrates from `malicious-url-detector-v2` to `scrutinix-v2`
+- **Backwards compatibility:** Current public endpoints remain stable; no
+  versioned third-party API guarantee is advertised
+- **Domain/DNS:** `https://www.scrutinix.net` is the canonical production host
 
 ## 9) Testing & Acceptance Criteria
 
@@ -477,7 +480,7 @@ Then all content is readable and interactive without horizontal scrolling
 | 2026-03-04 | IP-based rate limiting                                                                    | Token bucket + fingerprint; auth-based    | Simple, effective, no auth needed                                                                              | Shared IP could hit limits unfairly                                            |
 | 2026-03-04 | IndexedDB for history                                                                     | localStorage; server-side DB              | Richer than localStorage, no server cost, privacy-friendly                                                     | More complex, but idb library helps                                            |
 | 2026-03-04 | Streaming results                                                                         | Wait for all; polling                     | Best UX — data within seconds vs 30s+ wait                                                                     | More complex client/server impl                                                |
-| 2026-03-04 | Big bang deploy                                                                           | Phased; MVP + fast follow                 | Portfolio — first impression matters                                                                           | Longer time to first deploy                                                    |
+| 2026-03-04 | Single-release initial launch                                                             | Phased; MVP + fast follow                 | Reduced coordination overhead while the public product surface was still being finalized                       | Longer time to first deploy                                                    |
 | 2026-03-04 | Modern bold aesthetic                                                                     | Dark hacker; clinical; brutalist          | Stands out, avoids AI-slop, signals quality                                                                    | Need custom design investment                                                  |
 | 2026-03-04 | Full test pyramid                                                                         | E2E only; unit + integration; minimal     | Security tool demands confidence                                                                               | More upfront test writing                                                      |
 | 2026-03-06 | Upgrade to the latest stable Next/React baseline                                          | Stay on Next 14.1                         | Existing baseline was already stale and carried known vulnerabilities plus removed tooling assumptions         | Re-scaffold was required                                                       |
@@ -501,7 +504,7 @@ Then all content is readable and interactive without horizontal scrolling
 
 ### Open Questions
 
-- No blocking implementation questions remain for the shipped state.
+- No blocking implementation questions remain for the current public state.
 - Optional next action: add real Upstash credentials if shared cross-instance rate limiting becomes necessary.
 - Optional next action: add another free or self-hosted feed if broader phishing-feed diversity becomes necessary.
 
