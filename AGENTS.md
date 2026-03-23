@@ -4,7 +4,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 
 ## Purpose
 
-- Build and ship Malicious URL Detector v2, a web-first malicious URL analysis tool with streamed multi-signal results, batch analysis, local history, and portfolio-grade UX.
+- Build and ship Scrutinix, a FOSS public URL threat analyzer with streamed multi-signal results, batch analysis, local history, and production-grade UX.
 - Treat `SPEC.md` as the product and architecture source of truth.
 - Treat `PLAN.md` as the execution source of truth. Update it whenever scope, order, or status changes.
 
@@ -43,7 +43,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 
 ## Conventions
 
-- Prefer small, reviewable diffs even during the rebuild. Replace subsystems cleanly rather than layering temporary compatibility code unless `PLAN.md` says otherwise.
+- Prefer small, reviewable diffs. Replace subsystems cleanly rather than layering temporary compatibility code unless `PLAN.md` says otherwise.
 - Keep server-side logic in reusable modules under `lib/` so route handlers stay thin and testable.
 - Keep external provider adapters behind stable interfaces. No provider-specific response shapes should leak into UI components.
 - Sanitize and normalize URLs once, centrally. Never duplicate validation logic in route handlers and UI.
@@ -75,12 +75,6 @@ Project-local operating notes for agents working in this repository. Keep this f
 
 ## Self-Correction Log
 
-- 2026-03-06: `vercel env add <name> preview` needs an explicit empty branch argument (`preview ''`) for non-interactive all-preview updates.
-- 2026-03-06: Hugging Face retired `api-inference.huggingface.co`; use `router.huggingface.co/hf-inference/models/...` with a currently hosted model.
-- 2026-03-06: Vercel KV exposes Upstash-compatible REST credentials as `KV_REST_API_URL` / `KV_REST_API_TOKEN`; the rate-limit config needs to honor those aliases.
-- 2026-03-06: URLhaus rejects `AuthKey`; use the documented `Auth-Key` header.
-- 2026-03-06: OpenPhish community feed is the supported free phishing-feed source here; the PhishTank path was removed after repeated Cloudflare challenge failures.
-- 2026-03-06: Redirect tracing should use a header-only Node HTTP(S) request with relaxed certificate validation, because SSL trust errors belong to the SSL signal and not to `redirectChain`.
 - 2026-03-06: `@lhci/cli` drags in vulnerable `lodash`/`tmp` transitive dependencies; use the direct `lighthouse` + `chrome-launcher` script path instead.
 - 2026-03-09: The current UI is intentionally hybrid: branded `components/scrutinix/*` screens backed by selective shadcn/ui primitives, not a full rewrite onto generic shadcn layouts.
 - 2026-03-09: Next.js App Router no longer accepts `themeColor` in `metadata`; move it to the `viewport` export to avoid build warnings.
@@ -89,3 +83,5 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-09: The SSL signal can be technically correct while the verdict still understates it; keep invalid or untrusted certificates weighted high enough to move the overall verdict into at least the suspicious band.
 - 2026-03-09: Clean verdicts can still look overconfident when a primary reputation source times out; cap safe-result confidence whenever VirusTotal, Google Safe Browsing, or threat-feed coverage fails to complete.
 - 2026-03-09: Tailwind arbitrary text-color utilities with raw CSS vars can be misleading on critical CTAs; prefer an explicit color utility or inline style when contrast correctness matters.
+- 2026-03-22: `npx vercel` may be authenticated even when `~/.vercel/auth.json` is absent; on this machine the token lives at `~/Library/Application Support/com.vercel.cli/auth.json`.
+- 2026-03-23: For Codex thread workspace migrations, update structured state fields (`session_meta.cwd`, `turn_context.cwd`, `.codex-global-state.json`) and avoid blind path replacement across JSONL transcripts.

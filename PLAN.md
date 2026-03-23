@@ -1,6 +1,8 @@
 # PLAN.md
 
-Living execution plan for the Malicious URL Detector v2 restart. This file now reflects the implemented and deployed ship state reached on 2026-03-09.
+Living execution plan for Scrutinix. This file reflects the implemented ship
+state plus the 2026-03-23 public-repo polish follow-up after the rename
+cleanup.
 
 ## Status Legend
 
@@ -11,8 +13,8 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
 
 ## Current Snapshot
 
-- Date: 2026-03-09
-- Execution status: `P13 completed and deployed`
+- Date: 2026-03-23
+- Execution status: `P14 completed and verified`
 - Platform:
   - Next.js `16.1.6`
   - React `19.2.x`
@@ -27,7 +29,7 @@ Living execution plan for the Malicious URL Detector v2 restart. This file now r
   - The UI now uses selective shadcn/ui primitives on top of the branded `components/scrutinix/*` surface, with dark/light theme tokens in `app/globals.css` and brand motion/effects in `app/scrutinix.css`.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
-  - `package-lock.json` drift from the restart bootstrap was kept intentionally because the project was fully re-scaffolded onto the new dependency graph.
+  - `package-lock.json` drift from the platform refresh bootstrap was kept intentionally because the project was fully re-scaffolded onto the new dependency graph.
 
 ## Verification Summary
 
@@ -46,8 +48,7 @@ Completed local verification:
 Completed deployment verification:
 
 - `npx vercel env ls --scope aman-thanvis-projects`
-- `npx vercel inspect https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
-- `npx vercel inspect https://malicious-url-detector-gmt0z5cv5-aman-thanvis-projects.vercel.app --scope aman-thanvis-projects`
+- `npx vercel inspect <protected preview deployment> --scope aman-thanvis-projects`
 - `HEAD https://www.scrutinix.net`
 - `POST https://www.scrutinix.net/api/analyze`
 
@@ -55,7 +56,7 @@ Observed results:
 
 - Unit tests: `8` files passed, `27` tests passed.
 - Integration tests: `2` files passed, `6` tests passed, including batch per-URL failure isolation.
-- Playwright smoke: `5` tests passed, covering single-scan, batch-scan, accessibility, keyboard navigation, and history clear undo.
+- Playwright smoke: `6` tests passed, covering legacy history migration, single-scan, batch-scan, accessibility, keyboard navigation, and history clear undo.
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
 - Security audit: `0` vulnerabilities reported across prod and dev dependencies.
 - Lighthouse:
@@ -63,8 +64,10 @@ Observed results:
   - Accessibility `1.00`
   - Best Practices `1.00`
   - SEO `1.00`
-- Vercel preview deployment: `Ready` at `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
+- Vercel preview deployments: protected and verified via `vercel inspect`
 - Vercel production deployment: `Ready` at `https://www.scrutinix.net`
+- GitHub repository: `amanthanvi/scrutinix` with updated description, homepage, and public topics
+- Vercel project: renamed from `malicious-url-detector` to `scrutinix` and reconnected to `https://github.com/amanthanvi/scrutinix`
 - Public production API smoke: `POST /api/analyze` returned NDJSON `200`, streamed all expected events, and produced a safe verdict for `https://example.com/`
 - Post-key-sync production smoke: Google Safe Browsing resolved successfully, URLhaus stopped warning once the `Auth-Key` header fix shipped, and the threat-feed source set was simplified to URLhaus plus the OpenPhish community feed.
 - Local production smoke: `redirectChain` now returns `success` for `https://example.com/`, and the scan no longer reports a false partial failure from TLS chain validation.
@@ -169,6 +172,14 @@ Observed results:
 - [x] Reconcile `PLAN.md`, `SPEC.md`, `AGENTS.md`, and user docs.
 - [x] Validate actual preview and production deployments on Vercel.
 
+### P14 Rename repository and public metadata to Scrutinix
+
+- [x] Rename package and repository metadata to `scrutinix`.
+- [x] Update docs and public links to the `Scrutinix` name and GitHub slug.
+- [x] Migrate IndexedDB history from `malicious-url-detector-v2` to `scrutinix-v2`.
+- [x] Refresh local Git/Vercel wiring to the current repository and project names.
+- [x] Refresh the README and add public contributor/security policy docs for the open-source repository.
+
 ## Notes / Discoveries
 
 - 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
@@ -192,3 +203,7 @@ Observed results:
 - 2026-03-09: TLS signal collection was already correctly identifying expired certificates, but the verdict engine initially underweighted that evidence; invalid or untrusted certificates now land in the suspicious band unless stronger evidence moves the result further.
 - 2026-03-09: A safe verdict can still be overconfident if a primary reputation source fails; the shipped confidence model now caps clean-result confidence when VirusTotal, Google Safe Browsing, or threat-feed coverage is missing.
 - 2026-03-09: The saved Scrutinix UI audit included several findings that were already obsolete on the current branch; treat old audit artifacts as input to reconcile, not as a literal current-state description.
+- 2026-03-21: GitHub had already been renamed to `amanthanvi/scrutinix`; local remotes and docs were still relying on redirects and stale `malicious-url-detector` metadata.
+- 2026-03-21: Renaming the IndexedDB database required a one-time browser migration so existing local scan history survives the Scrutinix rename.
+- 2026-03-22: The Vercel project rename can be patched through the Vercel projects API, then the local checkout should run `vercel git connect` so the linked GitHub repo metadata follows the new slug.
+- 2026-03-23: Public repo polish still mattered after the rename; the README needed to lead with product value, and the repo needed explicit `CONTRIBUTING.md` plus `SECURITY.md` entry points for external users.

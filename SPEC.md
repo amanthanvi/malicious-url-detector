@@ -1,10 +1,10 @@
-# SPEC.md — Malicious URL Detector v2
+# SPEC.md — Scrutinix
 
-## Implementation Notes (2026-03-06)
+## Current Implementation Notes
 
-- Status update: the restart is implemented, verified locally, and deployed to Vercel preview and production.
+- Status update: the current implementation is live, verified locally, and deployed to Vercel preview and production.
 - Rationale: the audit confirmed meaningful drift between docs and code, including missing batch API support, no test harness, vulnerable production dependencies, missing metadata assets, and misleading error-to-threat behavior.
-- Toolchain decision: the rebuild targets `next@16.1.6`, `react@19.2.4`, and Node `22.x` for engines and CI so Vercel stays on the Node 22 major line without auto-upgrading to a future major.
+- Toolchain decision: the current implementation targets `next@16.1.6`, `react@19.2.4`, and Node `22.x` for engines and CI so Vercel stays on the Node 22 major line without auto-upgrading to a future major.
 - Linting decision: use ESLint directly from npm scripts; do not use `next lint`.
 - Streaming decision: API responses stream `application/x-ndjson` over `fetch`, not SSE.
 - Framework decision: Next.js 16 deprecates `middleware.ts`, so request gating is implemented in `proxy.ts`.
@@ -33,13 +33,13 @@
 
 ## 0) Metadata
 
-- **Title:** Malicious URL Detector v2
+- **Title:** Scrutinix
 - **Owner (DRI):** Aman Thanvi (@amanthanvi)
 - **Stakeholders:** Aman Thanvi
 - **Status:** Deployed on Vercel preview and production
-- **Last updated:** 2026-03-09
-- **Target ship date:** TBD (big bang — ship when complete)
-- **Links:** [GitHub](https://github.com/amanthanvi/malicious-url-detector)
+- **Last updated:** 2026-03-22
+- **Shipping model:** Continuous delivery
+- **Links:** [GitHub](https://github.com/amanthanvi/scrutinix)
 
 ## 1) Executive Summary
 
@@ -49,20 +49,27 @@ A modern web-based URL threat analyzer that evaluates URLs against multiple secu
 
 ### 1.2 Problem statement / why now
 
-The original project was built with older LLMs and libraries, has unused dependencies, SSR bugs, sequential batch processing, no rate limiting, and a dated UI. It needs a complete rebuild to serve as a credible portfolio piece and useful open-source tool.
+Users routinely get dropped between disconnected reputation checks, browser
+warnings, and raw infrastructure lookups when they need to judge a suspicious
+link quickly. Scrutinix exists to turn that fragmented workflow into one
+streamed, evidence-first analysis surface with clear verdicts, explicit caveats,
+and privacy-aware defaults.
 
 ### 1.3 Success metrics (measurable)
 
 - **Primary KPIs:**
-  - Portfolio impact: project appears polished enough to demonstrate in interviews/portfolio
+  - Time to first streamed evidence stays under 10 seconds for standard scans
   - GitHub stars > 50 within 6 months of launch
   - Clean Lighthouse score (Performance > 90, Accessibility > 95)
 - **Guardrails:**
   - API quota usage stays within free-tier limits under normal usage
-  - Zero known security vulnerabilities in dependencies at ship time
+  - Zero known security vulnerabilities in dependencies on the default branch
   - Full test pyramid passing in CI
 - **"Done means":**
-  - A user can paste any URL, see a streaming multi-signal threat report within 10 seconds (first data), toggle between summary and full report views, run batch scans concurrently, and export history — all with a distinctive, modern UI
+  - A user can paste any URL, see a streaming multi-signal threat report within
+    10 seconds for first evidence, toggle between summary and full report
+    views, run batch scans concurrently, and export history without needing an
+    account
 
 ### 1.4 Non-goals / out of scope
 
@@ -463,17 +470,17 @@ Then all content is readable and interactive without horizontal scrolling
 
 | Date       | Decision                                                                                  | Alternatives                              | Rationale                                                                                                      | Consequences                                                                   |
 | ---------- | ----------------------------------------------------------------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 2026-03-04 | Complete greenfield rebuild                                                               | Incremental upgrade                       | Old codebase has too many issues — cheaper to restart                                                          | Lose git history of old code                                                   |
+| 2026-03-04 | Complete greenfield rewrite                                                               | Incremental upgrade                       | Starting fresh reduced risk versus carrying forward broken assumptions and stale dependencies                  | Lose git history of old code                                                   |
 | 2026-03-04 | Next.js + Vercel (web-first)                                                              | SPA + separate API; Astro; Remix          | Web-first product, Vercel free tier fits budget, familiar ecosystem                                            | API not independently consumable                                               |
 | 2026-03-04 | Multi-model ML ensemble + threat feeds                                                    | Single model; drop ML; train own          | Multiple signals = higher confidence. Feeds catch known-bad URLs                                               | Higher aggregation complexity                                                  |
-| 2026-03-04 | Free APIs + self-computed enrichment                                                      | Premium threat intel APIs                 | Budget constraint, portfolio project                                                                           | Less reliable data sources                                                     |
+| 2026-03-04 | Free APIs + self-computed enrichment                                                      | Premium threat intel APIs                 | Keeps the default deployment public, low-cost, and easy to self-host                                           | Less reliable data sources                                                     |
 | 2026-03-04 | IP-based rate limiting                                                                    | Token bucket + fingerprint; auth-based    | Simple, effective, no auth needed                                                                              | Shared IP could hit limits unfairly                                            |
 | 2026-03-04 | IndexedDB for history                                                                     | localStorage; server-side DB              | Richer than localStorage, no server cost, privacy-friendly                                                     | More complex, but idb library helps                                            |
 | 2026-03-04 | Streaming results                                                                         | Wait for all; polling                     | Best UX — data within seconds vs 30s+ wait                                                                     | More complex client/server impl                                                |
 | 2026-03-04 | Big bang deploy                                                                           | Phased; MVP + fast follow                 | Portfolio — first impression matters                                                                           | Longer time to first deploy                                                    |
 | 2026-03-04 | Modern bold aesthetic                                                                     | Dark hacker; clinical; brutalist          | Stands out, avoids AI-slop, signals quality                                                                    | Need custom design investment                                                  |
 | 2026-03-04 | Full test pyramid                                                                         | E2E only; unit + integration; minimal     | Security tool demands confidence                                                                               | More upfront test writing                                                      |
-| 2026-03-06 | Upgrade to latest stable Next/React at restart time                                       | Stay on Next 14.1                         | Existing baseline is already stale and carries known vulnerabilities and removed tooling assumptions           | Re-scaffold is required                                                        |
+| 2026-03-06 | Upgrade to the latest stable Next/React baseline                                          | Stay on Next 14.1                         | Existing baseline was already stale and carried known vulnerabilities plus removed tooling assumptions         | Re-scaffold was required                                                       |
 | 2026-03-06 | Use NDJSON over fetch for streaming contracts                                             | SSE; wait-for-all JSON                    | Works cleanly with App Router route handlers and shared client parsers                                         | Client needs a stream reader                                                   |
 | 2026-03-06 | Keep public `whois` signal name but implement via RDAP-style registration data            | Raw WHOIS only; rename the signal         | Preserves the user-facing contract while avoiding brittle raw WHOIS assumptions                                | UI copy should mention registration lookup rather than raw WHOIS where needed  |
 | 2026-03-06 | Add Upstash-backed `proxy.ts` rate limiting with an in-memory degraded fallback           | Dev/prod in-memory only                   | Shared state is preferred for deployed abuse controls, but the app should remain usable when Redis is absent   | Multi-instance deployments lose shared rate-limit state until Upstash is set   |
@@ -485,7 +492,7 @@ Then all content is readable and interactive without horizontal scrolling
 
 ### Assumptions
 
-- VirusTotal free tier (4 req/min, 500 req/day) is sufficient for portfolio-level traffic
+- VirusTotal free tier (4 req/min, 500 req/day) is sufficient for initial public traffic
 - HuggingFace Inference API will remain free for the models we select
 - Google Safe Browsing API free tier (10k req/day) is more than adequate
 - URLhaus and the OpenPhish public feed remain accessible

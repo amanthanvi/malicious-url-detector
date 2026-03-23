@@ -1,7 +1,26 @@
 {
-  "name": "malicious-url-detector",
+  "name": "scrutinix",
   "version": "3.0.0",
+  "description": "FOSS multi-signal URL threat analyzer with streamed NDJSON results, batch scans, and local history.",
   "private": true,
+  "license": "MIT",
+  "homepage": "https://www.scrutinix.net",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amanthanvi/scrutinix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amanthanvi/scrutinix/issues"
+  },
+  "keywords": [
+    "security",
+    "cybersecurity",
+    "url-scanner",
+    "phishing-detection",
+    "threat-intelligence",
+    "nextjs",
+    "typescript"
+  ],
   "engines": {
     "node": "22.x"
   },

@@ -1,41 +1,99 @@
-# Malicious URL Detector v2
+# Scrutinix
 
-Malicious URL Detector v2 is a rebuilt malicious-link triage app on Next.js 16 App Router. It streams eight signals over NDJSON, supports batch scans, keeps local IndexedDB history, exports CSV/JSON, offers client-only share links, and hardens the app with proxy-based rate limiting plus production security headers.
+Scrutinix is a FOSS multi-signal URL threat analyzer. Paste a suspicious link
+and get a streamed, evidence-first report that combines browser-protection
+lists, threat feeds, redirect tracing, DNS and TLS context, registration data,
+and ML scoring in one place.
 
-## Features
+- Live app: `https://www.scrutinix.net`
+- About: `https://www.scrutinix.net/about`
+- Privacy: `https://www.scrutinix.net/privacy`
+- Spec: [`SPEC.md`](./SPEC.md)
+- Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- Security: [`SECURITY.md`](./SECURITY.md)
 
-- Streamed single-URL analysis with `scan_started`, `signal_result`, `scan_complete`, and `scan_error` NDJSON events.
-- Batch analysis for up to 10 URLs with a concurrency cap of 3 and per-URL completion streaming.
-- Eight normalized signals on every result: `virusTotal`, `mlEnsemble`, `googleSafeBrowsing`, `threatFeeds`, `ssl`, `whois`, `dns`, and `redirectChain`.
-- Client-only history in IndexedDB with search, verdict filters, export, and re-scan support.
-- Summary and Full Report modes, per-signal unavailable/caveat states with full-scan rerun controls, expandable full-evidence cards, a persisted dark/light theme toggle, OG/robots/sitemap metadata routes, and shareable client-state links.
-- A scan-header shell that stays idle before a run, then shows threat score plus signal coverage without implying a result before one exists.
-- A first-visit onboarding layer with privacy/trust messaging plus dedicated `/about` and `/privacy` routes.
-- Upstash-backed production rate limiting with a process-local fallback when Redis is not configured.
-- Batch scans isolate per-URL failures instead of aborting the whole stream, and cleared history can be undone immediately from the history rail.
+## Why Scrutinix
+
+- Streamed analysis over NDJSON instead of spinner-then-dump results.
+- Eight normalized signals on every scan result.
+- Batch triage for up to 10 URLs with per-item failure isolation.
+- Client-side history with re-scan, search, filters, and CSV/JSON export.
+- Privacy-aware defaults: history stays in IndexedDB, and server logs avoid raw
+  URL strings.
+- Public-facing trust surfaces that explain methodology, caveats, and data
+  handling.
+
+## Signals
+
+- `virusTotal`: multi-engine reputation check
+- `googleSafeBrowsing`: browser-protection verdicts
+- `threatFeeds`: URLhaus plus cached OpenPhish community feed coverage
+- `mlEnsemble`: hosted classifier plus local lexical scoring
+- `ssl`: certificate validity and trust signals
+- `whois`: RDAP-backed registration and age context
+- `dns`: record-level infrastructure context
+- `redirectChain`: hop-by-hop redirect tracing with resilient certificate
+  handling
+
+## Product Surface
+
+- Single-URL scans stream `scan_started`, `signal_result`, `scan_complete`, and
+  `scan_error` events.
+- Batch scans stream per-URL progress and keep one broken URL from aborting the
+  rest of the run.
+- Summary and Full Report modes present the same scan at different levels of
+  density.
+- Share links are client-generated snapshots; they do not create a server-side
+  share database.
+- `/about` and `/privacy` explain how verdicts are formed and what data stays in
+  the browser.
 
 ## Stack
 
-- Next.js `16.1.6`
-- React `19.2.0`
+- Next.js `16`
+- React `19`
 - TypeScript `5.9`
 - Tailwind CSS `4`
-- shadcn/ui primitives + next-themes
+- selective shadcn/ui primitives + `next-themes`
 - Vitest + MSW
 - Playwright + axe-core
-- Lighthouse CI
+- Lighthouse
 
-## Prerequisites
+## Run Locally
 
-- Node.js `22.x`
-- npm
+1. Install dependencies.
 
-Optional provider environment variables:
+```bash
+npm install
+```
+
+2. Copy the example env file and add any provider keys you want to enable.
+
+```bash
+cp .env.example .env.local
+```
+
+3. Start the app.
+
+```bash
+npm run dev
+```
+
+For browser automation and local audits, bind the host explicitly:
+
+```bash
+npm run dev -- --hostname 127.0.0.1 --port 3000
+```
+
+## Environment
+
+Core provider and deployment variables:
 
 ```env
 VIRUSTOTAL_API_KEY=
 GOOGLE_SAFE_BROWSING_API_KEY=
 HUGGINGFACE_API_KEY=
+HUGGINGFACE_URL_MODEL=DunnBC22/codebert-base-Malicious_URLs
 URLHAUS_AUTH_KEY=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
@@ -45,32 +103,14 @@ OPENPHISH_FEED_URL=https://openphish.com/feed.txt
 NEXT_PUBLIC_APP_URL=https://www.scrutinix.net
 ```
 
-The app still functions in a degraded mode without third-party keys; local enrichment signals continue to run and provider failures are surfaced explicitly instead of being mislabeled as malicious findings.
-When a primary reputation source such as VirusTotal does not complete, safe verdict confidence is intentionally capped so the UI does not overstate certainty.
-Rate limiting accepts either `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` or the Vercel KV aliases `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
-Threat-feed coverage uses the OpenPhish community TXT feed plus URLhaus. The OpenPhish integration is feed-backed and cached, not a paid database/API lookup.
+Scrutinix still runs in a degraded mode without third-party keys. Local
+enrichment signals remain available, provider failures are surfaced explicitly,
+and safe-result confidence is capped when primary reputation coverage is
+missing.
 
-## Development
+## Quality Bar
 
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the app:
-
-```bash
-npm run dev
-```
-
-For browser automation or local audits, the proven host-bound form is:
-
-```bash
-npm run dev -- --hostname 127.0.0.1 --port 3000
-```
-
-## Scripts
+Primary local checks:
 
 ```bash
 npm run lint
@@ -80,63 +120,36 @@ npm run test:unit -- --run
 npm run test:integration -- --run
 npm run test:e2e -- --grep @smoke
 npm run build
+```
+
+Additional repo maintenance checks:
+
+```bash
 npm audit
 npm run lighthouse
 ```
 
 ## Architecture
 
-- `app/api/analyze/route.ts`: single-scan NDJSON API.
-- `app/api/analyze/batch/route.ts`: batch NDJSON API.
-- `app/about/page.tsx` and `app/privacy/page.tsx`: static trust and privacy surfaces linked from the home route.
-- `proxy.ts`: request gating and rate limiting for `/api/analyze`.
-- `lib/server/`: orchestration, provider adapters, local signal collectors, cache, logging, rate limiting, and stream helpers.
-- `components/scrutinix/`: branded analyzer UI, server-rendered shell components, and smaller client runtime islands for scan orchestration, history, and footer telemetry.
-- `components/ui/`: selective shadcn/ui primitives used for buttons, inputs, tabs, cards, badges, scroll areas, and notifications.
-- `hooks/`: NDJSON client readers and IndexedDB-backed history hooks.
-- `tests/`: unit, integration, E2E smoke, accessibility, and keyboard checks.
+- `app/api/analyze/route.ts`: single-scan NDJSON endpoint
+- `app/api/analyze/batch/route.ts`: batch NDJSON endpoint
+- `proxy.ts`: request gating and rate limiting for `/api/analyze`
+- `lib/server/`: orchestration, provider adapters, caching, logging, and stream
+  helpers
+- `components/scrutinix/`: branded analyzer UI and client runtime islands
+- `hooks/`: NDJSON stream readers and IndexedDB-backed history
+- `tests/`: unit, integration, accessibility, keyboard, and E2E smoke coverage
 
-## Verification Snapshot
+## Repository Guide
 
-The current rebuilt state has been verified locally with:
-
-```bash
-npm run lint
-npm run format -- --check .
-npm run typecheck
-npm run test:unit -- --run
-npm run test:integration -- --run
-npm run test:e2e -- --grep @smoke
-npm run build
-npm audit
-npm run lighthouse
-```
-
-Latest Lighthouse scores from `.lighthouseci/lhr-*.json`:
-
-- Performance: `0.91`
-- Accessibility: `1.00`
-- Best Practices: `1.00`
-- SEO: `1.00`
-
-The current UI audit findings have been folded back into the product surface: the home route now has an onboarding/value layer, explicit privacy/trust pages, accessible touch targets, a skip link, full-evidence access for signal cards, inline validation feedback, batch error isolation, and history undo.
-
-Deployment verification completed on Vercel:
-
-- Preview: `https://malicious-url-detector-aibfl56qi-aman-thanvis-projects.vercel.app`
-- Production: `https://www.scrutinix.net`
-- Public production smoke: `POST /api/analyze` returned streamed NDJSON `200`
-- Current live provider state: Google Safe Browsing succeeds, URLhaus succeeds with the documented `Auth-Key` header, and OpenPhish is sourced from the free community feed.
-- Redirect tracing is resilient to invalid upstream certificate chains and no longer causes a false partial failure for `https://example.com/`.
-- Full `npm audit` is clean after replacing the legacy Lighthouse CLI dependency chain with a script-backed `lighthouse` + `chrome-launcher` setup.
-- The public production experience now centers the `scrutinix.net` brand and exposes `/about` plus `/privacy` for trust-building and disclosure.
+- [`SPEC.md`](./SPEC.md): product and architecture source of truth
+- [`PLAN.md`](./PLAN.md): execution history and validation record
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md): local setup and contribution rules
+- [`SECURITY.md`](./SECURITY.md): private vulnerability reporting guidance
+- [`LICENSE`](./LICENSE): MIT
 
 ## Deployment
 
-The app is configured for Vercel with:
-
-- `npm install`
-- `npm run build`
-- `npm run dev`
-
-Local production behavior has been verified with `npm run build` and `npm run start -- --hostname 127.0.0.1 --port 3000`, and the current build has also been deployed on Vercel preview and production. Preview requests are protection-gated in this project, so `vercel inspect` is the reliable readiness check when anonymous HTTP requests return `401`.
+Scrutinix is deployed on Vercel at `https://www.scrutinix.net`. Preview
+deployments are protection-gated in this project; use `vercel inspect` when
+anonymous preview requests return `401`.

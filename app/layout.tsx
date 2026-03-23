@@ -26,11 +26,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Scrutinix — Multi-Signal URL Threat Analyzer",
   description:
-    "Stream 8 independent security signals in real-time to classify URLs as safe, suspicious, malicious, or critical.",
+    "Inspect suspicious links with streamed evidence from browser-protection lists, threat feeds, redirects, DNS, TLS, and ML scoring.",
   openGraph: {
     title: "Scrutinix — Multi-Signal URL Threat Analyzer",
     description:
-      "Streamed multi-signal malicious URL analysis for suspicious links.",
+      "Streamed, evidence-first URL threat analysis for suspicious links.",
     url: siteUrl,
     siteName: "Scrutinix",
     images: ["/opengraph-image"],
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Scrutinix — Multi-Signal URL Threat Analyzer",
     description:
-      "Streamed multi-signal malicious URL analysis for suspicious links.",
+      "Streamed, evidence-first URL threat analysis for suspicious links.",
     images: ["/opengraph-image"],
   },
 };
