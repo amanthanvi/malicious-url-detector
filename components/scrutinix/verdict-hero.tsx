@@ -15,6 +15,7 @@ import { formatDisplayUrl } from "@/lib/domain/url";
 import type { AnalysisResult } from "@/lib/domain/types";
 import {
   verdictColor,
+  verdictInk,
   type SharedSnapshot,
 } from "@/components/shared/scrutinix-types";
 
@@ -60,12 +61,12 @@ export function VerdictHero({
   if (!result && !isStreaming && !sharedSnapshot) {
     return (
       <section
-        className="sx-panel rounded-[2rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-8 sm:px-8"
+        className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-8 sm:px-8"
         aria-label="Awaiting target URL"
       >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
           <div className="space-y-4">
-            <p className="text-[11px] tracking-[0.2em] text-[var(--sx-text-muted)] uppercase">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Awaiting target
             </p>
             <h2 className="sx-font-sans max-w-2xl text-3xl font-semibold tracking-[-0.03em] text-[var(--sx-text)]">
@@ -79,16 +80,16 @@ export function VerdictHero({
           </div>
 
           <div className="grid gap-3 text-sm text-[var(--sx-text-soft)]">
-            <div className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] px-4 py-4">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-4 py-4">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Readiness
               </p>
               <p className="sx-font-sans mt-2 text-lg font-semibold text-[var(--sx-text)]">
                 Idle until a URL is submitted
               </p>
             </div>
-            <div className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] px-4 py-4">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-4 py-4">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Signal coverage
               </p>
               <p className="mt-2 leading-6">
@@ -108,13 +109,13 @@ export function VerdictHero({
 
     return (
       <section
-        className="sx-panel sx-scan-line rounded-[2rem] border border-[var(--sx-accent)] px-6 py-6 sm:px-8"
+        className="sx-panel sx-scan-line rounded-xl border border-[var(--sx-accent)] px-6 py-6 sm:px-8"
         aria-label="Scanning URL"
         aria-live="polite"
       >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
           <div className="space-y-4">
-            <p className="sx-pulse text-[11px] tracking-[0.18em] text-[var(--sx-accent)] uppercase">
+            <p className="sx-pulse text-xs text-[var(--sx-accent)]">
               Stream in progress
             </p>
             <h2 className="truncate sx-font-sans text-2xl font-semibold text-[var(--sx-text)] sm:text-3xl">
@@ -126,7 +127,7 @@ export function VerdictHero({
               not-applicable.
             </p>
             <div className="max-w-xl">
-              <div className="flex items-center justify-between gap-3 text-[11px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+              <div className="flex items-center justify-between gap-3 text-xs text-[var(--sx-text-muted)]">
                 <span>Signal coverage</span>
                 <span>{completedSignals}/8 complete</span>
               </div>
@@ -139,15 +140,15 @@ export function VerdictHero({
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-5 py-5">
-            <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Live status
             </p>
             <p className="sx-font-sans mt-3 text-4xl font-semibold text-[var(--sx-text)]">
               {completedSignals}
               <span className="ml-1 text-lg text-[var(--sx-text-soft)]">/8</span>
             </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+            <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
               Completed signals now. The verdict will settle once enough
               weighted evidence is available.
             </p>
@@ -219,7 +220,7 @@ export function VerdictHero({
   return (
     <section
       className={clsx(
-        "sx-panel rounded-[2rem] border p-6 transition-all duration-200 sm:p-8",
+        "sx-panel rounded-xl border p-6 transition-all duration-200 sm:p-8",
         isMalicious
           ? "border-[var(--sx-malicious)]"
           : "border-[var(--sx-border)]",
@@ -231,14 +232,14 @@ export function VerdictHero({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-3 py-1 text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                <span className="rounded-md border border-border bg-card px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.08em] text-[var(--sx-text-muted)] uppercase">
                   {result ? "Live result" : "Shared snapshot"}
                 </span>
                 {result ? (
                   <span
-                    className="rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase"
+                    className="rounded-md px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.08em] uppercase"
                     style={{
-                      color,
+                      color: verdictInk(result.verdict),
                       backgroundColor: `color-mix(in_srgb, ${color} 12%, transparent)`,
                     }}
                   >
@@ -246,9 +247,9 @@ export function VerdictHero({
                   </span>
                 ) : sharedVerdict ? (
                   <span
-                    className="rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase"
+                    className="rounded-md px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.08em] uppercase"
                     style={{
-                      color: verdictColor(sharedVerdict),
+                      color: verdictInk(sharedVerdict),
                       backgroundColor: `color-mix(in_srgb, ${verdictColor(sharedVerdict)} 12%, transparent)`,
                     }}
                   >
@@ -256,7 +257,7 @@ export function VerdictHero({
                   </span>
                 ) : null}
                 {result ? (
-                  <span className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                  <span className="text-xs text-[var(--sx-text-muted)]">
                     {threatScoreBandLabel(score)}
                   </span>
                 ) : null}
@@ -281,7 +282,7 @@ export function VerdictHero({
           </div>
 
           {!result && sharedSnapshot ? (
-            <div className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-4 py-4 text-sm leading-6 text-[var(--sx-text-soft)]">
+            <div className="rounded-lg border border-border bg-card px-4 py-4 text-sm leading-6 text-[var(--sx-text-muted)]">
               This snapshot is client-shared state. Run a fresh scan to verify
               the verdict against current provider results.
             </div>
@@ -292,17 +293,17 @@ export function VerdictHero({
           </p>
 
           {coverageCallout ? (
-            <div className="rounded-[1.5rem] border border-[var(--sx-suspicious)] bg-[color-mix(in_srgb,var(--sx-suspicious)_10%,transparent)] px-4 py-4">
+            <div className="rounded-lg border border-[var(--sx-suspicious)] bg-[color-mix(in_srgb,var(--sx-suspicious)_10%,transparent)] px-4 py-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle
                   className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sx-suspicious)]"
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-suspicious)] uppercase">
+                  <p className="text-xs font-medium text-[var(--sx-suspicious)]">
                     {coverageCallout.title}
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
                     {coverageCallout.body}
                   </p>
                 </div>
@@ -312,14 +313,14 @@ export function VerdictHero({
 
           {evidenceReasons.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              <h3 className="text-xs text-[var(--sx-text-muted)]">
                 Why this verdict
               </h3>
               <div className="grid gap-3">
                 {evidenceReasons.slice(0, 6).map((reason, index) => (
                   <div
                     key={`${index}-${reason}`}
-                    className="rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] px-4 py-3"
+                    className="rounded-lg border border-border bg-card px-4 py-3"
                   >
                     <div className="flex items-start gap-3">
                       <span
@@ -336,7 +337,7 @@ export function VerdictHero({
               </div>
             </div>
           ) : result ? (
-            <div className="rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_76%,transparent)] px-4 py-4 text-sm leading-6 text-[var(--sx-text-soft)]">
+            <div className="rounded-lg border border-border bg-card px-4 py-4 text-sm leading-6 text-[var(--sx-text-muted)]">
               <CheckCircle2
                 className="mr-2 inline h-4 w-4 align-[-2px] text-[var(--sx-safe)]"
                 aria-hidden="true"
@@ -349,8 +350,8 @@ export function VerdictHero({
           {(recommendations.length > 0 || limitations.length > 0) && (
             <div className="grid gap-4 lg:grid-cols-2">
               {recommendations.length > 0 ? (
-                <div className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-4 py-4">
-                  <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                <div className="rounded-lg border border-border bg-card px-4 py-4">
+                  <h3 className="text-xs text-[var(--sx-text-muted)]">
                     Recommended next steps
                   </h3>
                   <ul className="mt-3 space-y-2">
@@ -371,15 +372,15 @@ export function VerdictHero({
               ) : null}
 
               {limitations.length > 0 ? (
-                <div className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-4 py-4">
-                  <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                <div className="rounded-lg border border-border bg-card px-4 py-4">
+                  <h3 className="text-xs text-[var(--sx-text-muted)]">
                     Signal caveats
                   </h3>
                   <ul className="mt-3 space-y-2">
                     {limitations.slice(0, 4).map((item, index) => (
                       <li
                         key={`${index}-${item}`}
-                        className="text-sm leading-6 text-[var(--sx-text-soft)]"
+                        className="text-sm leading-6 text-[var(--sx-text-muted)]"
                       >
                         {item}
                       </li>
@@ -393,8 +394,8 @@ export function VerdictHero({
 
         <aside className="space-y-4">
           {result ? (
-            <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] px-5 py-5">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Threat score
               </p>
               <p
@@ -417,12 +418,12 @@ export function VerdictHero({
               </div>
             </div>
           ) : (
-            <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] px-5 py-5">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Shared verdict
               </p>
               <p
-                className="sx-font-sans mt-3 text-3xl font-semibold uppercase"
+                className="sx-font-sans mt-3 text-3xl font-semibold capitalize"
                 style={{ color }}
               >
                 {sharedVerdict}
@@ -436,8 +437,8 @@ export function VerdictHero({
           )}
 
           {result ? (
-            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-5 py-5">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Confidence
               </p>
               <div className="mt-3 flex items-end justify-between gap-3">
@@ -462,7 +463,7 @@ export function VerdictHero({
                   {confidenceReasons.slice(0, 4).map((reason) => (
                     <li
                       key={reason}
-                      className="text-sm leading-6 text-[var(--sx-text-soft)]"
+                      className="text-sm leading-6 text-[var(--sx-text-muted)]"
                     >
                       {reason}
                     </li>
@@ -473,13 +474,13 @@ export function VerdictHero({
           ) : null}
 
           {result ? (
-            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-5 py-5">
-              <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 Scan metadata
               </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
                 <div>
-                  <p className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                  <p className="text-xs text-[var(--sx-text-muted)]">
                     Coverage
                   </p>
                   <p className="sx-font-sans mt-1 text-lg font-semibold text-[var(--sx-text)]">
@@ -487,7 +488,7 @@ export function VerdictHero({
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                  <p className="text-xs text-[var(--sx-text-muted)]">
                     Duration
                   </p>
                   <p className="sx-font-hack mt-1 text-sm text-[var(--sx-text)]">
@@ -495,7 +496,7 @@ export function VerdictHero({
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                  <p className="text-xs text-[var(--sx-text-muted)]">
                     Completed
                   </p>
                   <p className="mt-1 text-sm leading-6 text-[var(--sx-text-soft)]">
@@ -503,10 +504,10 @@ export function VerdictHero({
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                  <p className="text-xs text-[var(--sx-text-muted)]">
                     Evidence balance
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--sx-text-soft)]">
+                  <p className="mt-1 text-sm leading-6 text-[var(--sx-text-muted)]">
                     {threatInfo?.hasPositiveEvidence
                       ? "Direct risk indicators influenced the final score."
                       : "No direct malicious indicators across completed signals."}
@@ -515,13 +516,13 @@ export function VerdictHero({
               </div>
             </div>
           ) : (
-            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_74%,transparent)] px-5 py-5">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
               <div className="flex items-start gap-3">
                 <ShieldCheck
                   className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sx-info)]"
                   aria-hidden="true"
                 />
-                <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
+                <p className="text-sm leading-6 text-[var(--sx-text-muted)]">
                   Shared links embed a browser-generated snapshot only. They do
                   not rely on a server-side share store.
                 </p>

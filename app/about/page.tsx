@@ -34,14 +34,14 @@ export default function AboutPage() {
     >
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.95fr)]">
         <section className="space-y-6">
-          <div className="border-b border-[var(--sx-border)] pb-6">
-            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <div className="border-b border-border pb-6">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Scoring approach
             </p>
             <h2 className="sx-font-sans mt-3 text-2xl font-semibold text-[var(--sx-text)]">
               High-confidence evidence moves the verdict most.
             </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--sx-text-muted)]">
               Safe Browsing matches, community feed hits, and stronger
               multi-engine detections outweigh softer context. DNS posture,
               TLS quality, WHOIS age, and redirect behavior still matter, but
@@ -50,8 +50,8 @@ export default function AboutPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-              <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <h3 className="text-sm font-medium text-[var(--sx-text-muted)]">
                 Risk-moving signals
               </h3>
               <ul className="mt-4 space-y-2 text-sm leading-6 text-[var(--sx-text)]">
@@ -62,8 +62,8 @@ export default function AboutPage() {
               </ul>
             </div>
 
-            <div className="rounded-[1.5rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-              <h3 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <div className="rounded-lg border border-border bg-card px-5 py-5">
+              <h3 className="text-sm font-medium text-[var(--sx-text-muted)]">
                 Resilience signals
               </h3>
               <ul className="mt-4 space-y-2 text-sm leading-6 text-[var(--sx-text)]">
@@ -77,44 +77,44 @@ export default function AboutPage() {
         </section>
 
         <section className="space-y-6">
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Confidence behavior
             </p>
             <p className="sx-font-sans mt-3 text-xl font-semibold text-[var(--sx-text)]">
               Verdicts are coverage-aware, not just score bands.
             </p>
-            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-muted)]">
               Partial provider failures reduce confidence even when the headline
               verdict remains safe. Multiple agreeing risk signals raise
               confidence because the evidence came from different categories.
             </p>
           </div>
 
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Score bands
             </p>
             <div className="mt-4 grid gap-3 text-sm leading-6 text-[var(--sx-text)]">
               <div className="flex items-center justify-between gap-3">
                 <span>0-24</span>
-                <span className="text-[var(--sx-safe)] uppercase">Safe</span>
+                <span className="text-[var(--sx-safe)]">Safe</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>25-54</span>
-                <span className="text-[var(--sx-suspicious)] uppercase">
+                <span className="text-[var(--sx-suspicious)]">
                   Suspicious
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>55-79</span>
-                <span className="text-[var(--sx-malicious)] uppercase">
+                <span className="text-[var(--sx-malicious)]">
                   Malicious
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>80-100</span>
-                <span className="text-[var(--sx-critical)] uppercase">
+                <span className="text-[var(--sx-critical)]">
                   Critical
                 </span>
               </div>

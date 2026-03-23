@@ -34,14 +34,14 @@ export default function PrivacyPage() {
     >
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.02fr)_minmax(18rem,0.98fr)]">
         <section className="space-y-6">
-          <div className="border-b border-[var(--sx-border)] pb-6">
-            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <div className="border-b border-border pb-6">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               What stays local
             </p>
             <h2 className="sx-font-sans mt-3 text-2xl font-semibold text-[var(--sx-text)]">
               History and shared snapshots are client-managed.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-4 text-sm leading-7 text-[var(--sx-text-muted)]">
               Completed scans are stored in IndexedDB on your device only.
               Shareable links are generated in the browser by encoding a small
               snapshot into the URL itself, so there is no server-side share
@@ -49,11 +49,11 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               What the server still does
             </p>
-            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-muted)]">
               Submitted URLs must still be processed on the server to query
               providers, compute the verdict, and stream the results back to the
               browser. That processing is necessary for the product to function.
@@ -62,32 +62,32 @@ export default function PrivacyPage() {
         </section>
 
         <section className="grid gap-4">
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Logging boundary
             </p>
-            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-muted)]">
               Operational logs capture scan identifiers, cache behavior, timing,
               and hashed URL context rather than the original raw URL string.
             </p>
           </div>
 
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Local clearing
             </p>
-            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-muted)]">
               Clearing history removes the browser-side archive. The UI exposes
               an immediate undo so accidental wipes can be reversed in the same
               session.
             </p>
           </div>
 
-          <div className="rounded-[1.6rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-5 py-5">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="rounded-lg border border-border bg-card px-5 py-5">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Shared links
             </p>
-            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-soft)]">
+            <p className="mt-3 text-sm leading-7 text-[var(--sx-text-muted)]">
               Shared links are convenient, but they represent a snapshot taken
               in the browser at a point in time. Running a fresh scan verifies
               the target against current provider responses.

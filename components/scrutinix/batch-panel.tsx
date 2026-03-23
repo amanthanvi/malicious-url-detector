@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 
 import { formatDisplayUrl } from "@/lib/domain/url";
 import type { AnalysisResult } from "@/lib/domain/types";
-import { verdictColor } from "@/components/shared/scrutinix-types";
+import { verdictInk } from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,8 +31,8 @@ export function BatchPanel({
 }: BatchPanelProps) {
   if (items.length === 0) {
     return (
-      <section className="sx-panel rounded-[2rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-10 text-center">
-        <h2 className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+      <section className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-10 text-center">
+        <h2 className="text-xs text-[var(--sx-text-muted)]">
           Batch results will appear here
         </h2>
         <p className="sx-font-sans mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--sx-text-soft)]">
@@ -49,12 +49,12 @@ export function BatchPanel({
   return (
     <section
       aria-label="Batch scan results"
-      className="sx-panel overflow-hidden rounded-[2rem] border border-[var(--sx-border)]"
+      className="sx-panel overflow-hidden rounded-xl border border-border"
     >
-      <div className="border-b border-[var(--sx-border)] px-5 py-5">
+      <div className="border-b border-border px-5 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-2">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Batch stream
             </p>
             <h2 className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]">
@@ -82,7 +82,7 @@ export function BatchPanel({
 
       <ScrollArea className="w-full">
         <div className="min-w-[720px]">
-          <div className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] gap-3 border-b border-[var(--sx-border)] px-5 py-3 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] gap-3 border-b border-border px-5 py-3 text-xs font-medium text-[var(--sx-text-muted)]">
             <span>#</span>
             <span>URL</span>
             <span>Status</span>
@@ -90,11 +90,11 @@ export function BatchPanel({
             <span>Action</span>
           </div>
 
-          <div className="divide-y divide-[var(--sx-border)]">
+          <div className="divide-y divide-border">
             {items.map((item) => (
               <div
                 key={`${item.index}-${item.url}`}
-                className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] items-center gap-3 px-5 py-4 text-sm transition hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)]"
+                className="grid grid-cols-[60px_minmax(0,1fr)_110px_130px_120px] items-center gap-3 px-5 py-4 text-sm transition hover:bg-muted/40"
               >
                 <span className="sx-font-hack text-[var(--sx-text-soft)]">
                   {item.index + 1}
@@ -118,10 +118,10 @@ export function BatchPanel({
                     : "Queued"}
                 </Badge>
                 <span
-                  className="text-[11px] font-semibold tracking-[0.14em] uppercase"
+                  className="text-xs font-medium capitalize"
                   style={{
                     color: item.result
-                      ? verdictColor(item.result.verdict)
+                      ? verdictInk(item.result.verdict)
                       : "var(--sx-text-muted)",
                   }}
                 >

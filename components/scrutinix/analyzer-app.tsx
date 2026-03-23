@@ -522,7 +522,6 @@ export function AnalyzerChrome({ children }: { children: ReactNode }) {
       )}
       style={{ "--sx-active-accent": accentColor } as CSSProperties}
     >
-      <div className="sx-atmosphere" />
       {children}
     </div>
   );
@@ -548,12 +547,12 @@ export function HeaderMetrics() {
     <div className="flex flex-wrap items-center justify-end gap-2">
       <div
         className={clsx(
-          "min-w-[14rem] rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] px-3 py-2.5",
+          "min-w-[13rem] rounded-lg border border-border bg-card px-3 py-3",
           !hasActivity && "border-dashed",
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="text-[10px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <span className="text-xs text-[var(--sx-text-muted)]">
             Threat score
           </span>
           <span className="sx-font-hack text-xs text-[var(--sx-text)]">
@@ -581,7 +580,7 @@ export function HeaderMetrics() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] px-3 py-2">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
         <Badge variant={readinessVariant}>{readinessLabel}</Badge>
         <span className="sx-font-hack text-xs tracking-[0.08em] text-[var(--sx-text-muted)]">
           {coverageText}
@@ -614,13 +613,13 @@ export function ScanDock() {
   return (
     <section
       id="scan-console"
-      className="sx-stage-in sx-panel rounded-[2rem] border border-[var(--sx-border)] p-5 sm:p-6"
+      className="sx-stage-in sx-panel rounded-xl border border-border p-5 sm:p-6"
       data-delay="3"
       aria-labelledby="scan-dock-heading"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <p className="text-xs text-[var(--sx-text-muted)]">
             Launch analysis
           </p>
           <h2
@@ -712,17 +711,17 @@ export function ScanDock() {
       </Tabs>
 
       {scan.state.error && (
-        <div className="mt-4 rounded-[1.2rem] border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
+        <div className="mt-4 rounded-lg border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
           {scan.state.error.message}
         </div>
       )}
       {batch.state.error && (
-        <div className="mt-4 rounded-[1.2rem] border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
+        <div className="mt-4 rounded-lg border border-[var(--sx-malicious)] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,transparent)] px-4 py-3 text-xs text-[var(--sx-malicious)]">
           {batch.state.error.message}
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--sx-border)] pt-4 text-[11px] tracking-[0.14em] text-[var(--sx-text-soft)] uppercase">
+      <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-4 text-xs text-[var(--sx-text-soft)]">
         <span>8 live signals</span>
         <span>NDJSON stream</span>
         <span>Browser-only history</span>
@@ -796,10 +795,10 @@ export function AnalyzerWorkspace() {
         </div>
 
         <div className="space-y-4">
-          <div className="sx-panel rounded-[1.5rem] border border-[var(--sx-border)] p-5">
+          <div className="sx-panel rounded-xl border border-border p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-1">
-                <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+                <p className="text-xs text-[var(--sx-text-muted)]">
                   Operational reading
                 </p>
                 <h2 className="sx-font-sans text-lg font-semibold text-[var(--sx-text)]">
@@ -811,7 +810,7 @@ export function AnalyzerWorkspace() {
 
               {activeTab === "single" ? (
                 <div
-                  className="inline-flex rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] p-1"
+                  className="inline-flex rounded-md bg-muted p-1"
                   role="group"
                   aria-label="Signal view mode"
                 >
@@ -853,7 +852,7 @@ export function AnalyzerWorkspace() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               {activeTab === "single" ? "Signal surface" : "Batch inspection"}
             </p>
             <h2 className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]">
@@ -887,8 +886,8 @@ export function AnalyzerWorkspace() {
                 ))}
               </div>
             ) : (
-              <div className="sx-panel rounded-[1.6rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
-                <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+              <div className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
+                <p className="text-xs text-[var(--sx-text-muted)]">
                   Awaiting scan
                 </p>
                 <p className="sx-font-sans mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--sx-text-muted)]">
@@ -899,8 +898,8 @@ export function AnalyzerWorkspace() {
             )}
           </div>
         ) : (
-          <div className="sx-panel rounded-[1.6rem] border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
-            <p className="text-[11px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+          <div className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-14 text-center">
+            <p className="text-xs text-[var(--sx-text-muted)]">
               Batch rows stay isolated
             </p>
             <p className="sx-font-sans mx-auto mt-3 max-w-xl text-sm leading-6 text-[var(--sx-text-muted)]">

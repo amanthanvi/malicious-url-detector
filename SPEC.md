@@ -23,9 +23,11 @@
   - Replace `@lhci/cli` with a direct `lighthouse` + `chrome-launcher` script so the verification path does not carry stale vulnerable transitive dependencies.
 - UI decision:
   - Preserve the custom Scrutinix visual identity, but standardize reusable controls on selective shadcn/ui primitives with Tailwind v4 CSS variables, `next-themes`, and `sonner`.
+  - Treat the pulled shadcn preset `b1D24VYe` as the actual public-site baseline: neutral `radix-mira` tokens, compact controls, and small radii adapted into Scrutinix-specific layouts instead of a loose visual interpretation.
   - Restore dark/light theme support through the shared semantic token layer in `app/globals.css` while keeping `app/scrutinix.css` for the branded motion/effects layer.
+  - When a theme toggle sits inside a server-rendered header, gate any `resolvedTheme`-dependent icon or label behind a mount-safe client snapshot to avoid hydration mismatches.
   - Keep the top header metrics truthful in idle state: the threat meter stays visually inert and the coverage badge reads as idle until a scan actually runs.
-  - The public site now uses a full-bleed poster hero with an inline scanner dock on `/`, a calmer two-column operational workspace with a sticky history rail, and matching editorial shells for `/about` and `/privacy`.
+  - The public site now uses a full-bleed poster hero with an inline scanner dock on `/`, a calmer two-column operational workspace with a sticky history rail, and matching editorial shells for `/about` and `/privacy`, all expressed through the preset-aligned neutral system.
   - Sans-serif typography is the default reading mode; mono is reserved for telemetry, timings, hashes, and other code-like labels.
 - Verdict decision:
   - Clean verdict confidence must be capped when a primary reputation source such as VirusTotal, Google Safe Browsing, or threat feeds does not complete, even if the remaining signals stay clean.

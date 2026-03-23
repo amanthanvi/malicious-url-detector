@@ -75,7 +75,6 @@ Project-local operating notes for agents working in this repository. Keep this f
 
 ## Self-Correction Log
 
-- 2026-03-09: The current UI is intentionally hybrid: branded `components/scrutinix/*` screens backed by selective shadcn/ui primitives, not a full rewrite onto generic shadcn layouts.
 - 2026-03-09: Next.js App Router no longer accepts `themeColor` in `metadata`; move it to the `viewport` export to avoid build warnings.
 - 2026-03-09: Keep IndexedDB history out of the root home-page runtime; the scan shell now renders server-first, and the history rail hydrates as its own client island.
 - 2026-03-09: Deferring the history rail behind idle or first-interaction hooks looked promising on paper but regressed the scripted Lighthouse score from `0.99` to `0.92`; keep the current eager history island unless a future chunk-analysis proves a net win.
@@ -83,6 +82,7 @@ Project-local operating notes for agents working in this repository. Keep this f
 - 2026-03-09: Clean verdicts can still look overconfident when a primary reputation source times out; cap safe-result confidence whenever VirusTotal, Google Safe Browsing, or threat-feed coverage fails to complete.
 - 2026-03-09: Tailwind arbitrary text-color utilities with raw CSS vars can be misleading on critical CTAs; prefer an explicit color utility or inline style when contrast correctness matters.
 - 2026-03-22: `npx vercel` may be authenticated even when `~/.vercel/auth.json` is absent; on this machine the token lives at `~/Library/Application Support/com.vercel.cli/auth.json`.
-- 2026-03-23: For Codex thread workspace migrations, update structured state fields (`session_meta.cwd`, `turn_context.cwd`, `.codex-global-state.json`) and avoid blind path replacement across JSONL transcripts.
 - 2026-03-23: Do not run `git commit` and `git push` in parallel; the push can race the new commit and falsely report `Everything up-to-date`.
 - 2026-03-23: Next.js 16 rejects `next/dynamic(..., { ssr: false })` inside Server Components; if a shared shell owns the theme toggle, make that shell component explicitly client-side.
+- 2026-03-23: `next-themes` `resolvedTheme` can still trigger hydration mismatches inside a server-rendered header; gate icon/label rendering behind a mount-safe client snapshot before reading it.
+- 2026-03-23: Tailwind utility classes lose to repo CSS resets when those resets live outside `@layer base`; keep link/button resets layered or they can silently override CTA colors.

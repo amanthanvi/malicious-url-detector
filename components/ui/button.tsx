@@ -7,27 +7,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "sx-btn-press sx-font-sans inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full text-[11px] font-semibold tracking-[0.16em] uppercase transition-all outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 focus-visible:ring-2 focus-visible:ring-[var(--sx-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "sx-btn-press group/button sx-font-sans inline-flex shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium transition-all outline-none select-none disabled:pointer-events-none disabled:opacity-50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
         terminal:
-          "border border-[var(--sx-active-accent)] bg-[var(--sx-active-accent)] text-[var(--sx-accent-fg)] shadow-[0_20px_46px_-28px_color-mix(in_srgb,var(--sx-active-accent)_60%,transparent)] hover:-translate-y-0.5 hover:brightness-105",
+          "bg-[var(--sx-active-accent)] text-primary-foreground hover:opacity-90",
         ghost:
-          "border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_72%,transparent)] text-[var(--sx-text-muted)] hover:border-[var(--sx-active-accent)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_90%,transparent)] hover:text-[var(--sx-text)]",
+          "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground dark:hover:bg-muted/60",
         subtle:
-          "border border-transparent bg-[color-mix(in_srgb,var(--sx-surface-elevated)_76%,transparent)] text-[var(--sx-text-muted)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] hover:text-[var(--sx-text)]",
+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_srgb,var(--secondary)_88%,transparent)]",
         danger:
-          "border border-[color-mix(in_srgb,var(--sx-malicious)_36%,transparent)] text-[var(--sx-malicious)] hover:bg-[color-mix(in_srgb,var(--sx-malicious)_10%,transparent)]",
+          "border-[color-mix(in_srgb,var(--sx-malicious)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,var(--background))] text-[var(--sx-malicious-ink)] hover:bg-[color-mix(in_srgb,var(--sx-malicious)_12%,var(--background))] focus-visible:border-[color-mix(in_srgb,var(--sx-malicious)_55%,var(--sx-border))] focus-visible:ring-[color-mix(in_srgb,var(--sx-malicious)_18%,transparent)]",
         dangerSolid:
-          "border border-[var(--sx-malicious)] bg-[var(--sx-malicious)] text-white hover:-translate-y-0.5 hover:brightness-105",
-        tab: "border border-[var(--sx-border)] bg-transparent text-[var(--sx-text-muted)] data-[state=active]:border-[var(--sx-active-accent)] data-[state=active]:bg-[var(--sx-active-accent)] data-[state=active]:text-[var(--sx-accent-fg)] hover:border-[var(--sx-active-accent)] hover:text-[var(--sx-text)]",
-        view: "border border-transparent bg-transparent text-[var(--sx-text-muted)] data-[state=active]:bg-[color-mix(in_srgb,var(--sx-surface-strong)_90%,transparent)] data-[state=active]:text-[var(--sx-text)] hover:text-[var(--sx-text)]",
+          "bg-[var(--sx-malicious)] text-[oklch(0.98_0.01_17.09)] hover:opacity-92",
+        tab: "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        view: "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
       },
       size: {
-        default: "min-h-11 px-4 py-2.5",
-        sm: "min-h-10 px-3.5 py-2 text-[10px]",
-        icon: "h-11 w-11 px-0 py-0",
+        default:
+          "h-7 px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
+        sm: "h-6 px-2 text-xs/relaxed [&_svg:not([class*='size-'])]:size-3",
+        icon: "size-7 px-0 py-0",
       },
     },
     defaultVariants: {
@@ -52,6 +53,8 @@ function Button({
   return (
     <Comp
       data-slot="button"
+      data-variant={variant}
+      data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

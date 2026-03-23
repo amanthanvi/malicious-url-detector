@@ -14,7 +14,7 @@ cleanup.
 ## Current Snapshot
 
 - Date: 2026-03-23
-- Execution status: `P15 completed and verified`
+- Execution status: `P16 completed and verified`
 - Platform:
   - Next.js `16.1.6`
   - React `19.2.x`
@@ -26,7 +26,8 @@ cleanup.
   - IndexedDB stores client-only history, export state, and re-scan sources.
   - The home page renders a server-first shell with a full-bleed poster hero, inline scanner dock, calmer two-column operational workspace, and a sticky history rail, while smaller client islands still own scan orchestration, history hydration, and footer telemetry.
   - The public site now shares one editorial shell across `/`, `/about`, and `/privacy`, so the trust, methodology, and privacy surfaces stay visually aligned with the scanner.
-  - The UI now uses selective shadcn/ui primitives on top of the branded `components/scrutinix/*` surface, with dark/light theme tokens in `app/globals.css` and brand motion/effects in `app/scrutinix.css`.
+  - The UI now uses the actual pulled shadcn preset `b1D24VYe` as its baseline language: neutral `radix-mira` tokens, compact controls, and smaller radii adapted onto the branded `components/scrutinix/*` surface.
+  - Dark/light theme tokens stay in `app/globals.css`, while `app/scrutinix.css` is now limited to the lighter motion/effects layer needed for live scan states.
   - Body typography defaults to Geist Sans, while mono styling is reserved for telemetry, timings, hashes, and other code-like labels.
   - Production headers include CSP, permissions policy, referrer policy, and anti-sniff/frame protections.
 - Intentional baseline decision:
@@ -189,6 +190,13 @@ Observed results:
 - [x] Convert `/about` and `/privacy` to the shared editorial shell and align their copy with actual logging, history, and share-link behavior.
 - [x] Re-run lint, typecheck, unit, build, Playwright smoke, and Lighthouse after the UI overhaul.
 
+### P16 Align the public site to the actual shadcn preset baseline
+
+- [x] Pull and inspect the generated `b1D24VYe` preset output instead of relying on an interpreted direction.
+- [x] Port the preset's neutral token scale, compact `radix-mira` control language, and smaller radii into the shared primitives and public shell.
+- [x] Remove the leftover pill, blur, and terminal chrome that was still masking the preset baseline across `/`, `/about`, and `/privacy`.
+- [x] Re-run lint, typecheck, build, Playwright smoke, and Lighthouse against the corrected preset-aligned UI.
+
 ## Notes / Discoveries
 
 - 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
@@ -217,3 +225,4 @@ Observed results:
 - 2026-03-22: The Vercel project rename can be patched through the Vercel projects API, then the local checkout should run `vercel git connect` so the linked GitHub repo metadata follows the new slug.
 - 2026-03-23: Public repo polish still mattered after the rename; the README needed to lead with product value, and the repo needed explicit `CONTRIBUTING.md` plus `SECURITY.md` entry points for external users.
 - 2026-03-23: The public-site redesign is easiest to keep coherent when the hero, scanner dock, workspace, and trust pages all share one token system and shell language; partial restyles drift quickly.
+- 2026-03-23: When a redesign is supposed to follow a shadcn preset, pull the generated preset first; matching the real token scale and control density matters more than loosely matching the mood.

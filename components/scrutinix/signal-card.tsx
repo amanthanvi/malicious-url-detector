@@ -225,10 +225,10 @@ function SignalCardInner({
         transitionDelay: index > 0 ? `${index * 60}ms` : undefined,
       }}
       className={clsx(
-        "sx-panel h-full rounded-[1.5rem] border border-[var(--sx-border)] px-5 py-5 transition-[border-color,box-shadow,transform] duration-200",
+        "sx-panel h-full rounded-lg border border-border px-5 py-5 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
-        "hover:border-[var(--sx-active-accent)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_86%,transparent)]",
+        "hover:border-[var(--sx-active-accent)] hover:bg-muted/35",
       )}
       aria-label={`${signalLabels[name]} signal: ${result.status}`}
     >
@@ -251,7 +251,7 @@ function SignalCardInner({
                   className="h-4 w-4 shrink-0 text-[var(--sx-text-muted)]"
                   aria-hidden="true"
                 />
-                <span className="text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                <span className="text-xs font-medium text-[var(--sx-text-muted)]">
                   {signalLabels[name]}
                 </span>
               </div>
@@ -266,7 +266,7 @@ function SignalCardInner({
           </div>
 
           {isPending && isStreaming ? (
-            <p className="sx-pulse mt-4 text-[11px] tracking-[0.16em] text-[var(--sx-suspicious)] uppercase">
+            <p className="sx-pulse mt-4 text-xs text-[var(--sx-suspicious)]">
               Resolving
             </p>
           ) : null}
@@ -305,8 +305,8 @@ function SignalCardInner({
           if (!details) return null;
 
           return (
-            <details className="mt-5 border-t border-[var(--sx-border)] pt-4" open>
-              <summary className="cursor-pointer text-[11px] tracking-[0.16em] text-[var(--sx-info)] uppercase">
+            <details className="mt-5 border-t border-border pt-4" open>
+              <summary className="cursor-pointer text-xs text-[var(--sx-info)]">
                 Full evidence
               </summary>
               {details}

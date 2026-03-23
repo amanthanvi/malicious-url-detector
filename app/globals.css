@@ -3,104 +3,128 @@
 
 :root {
   color-scheme: light;
-  --radius: 1.35rem;
+  --radius: 0.45rem;
 
-  --background: #f2f4f2;
-  --foreground: #132129;
-  --card: #ffffff;
-  --card-foreground: #132129;
-  --popover: #ffffff;
-  --popover-foreground: #132129;
-  --primary: #0e6872;
-  --primary-foreground: #f6fbfc;
-  --secondary: #dfe8ea;
-  --secondary-foreground: #132129;
-  --muted: #e7eeef;
-  --muted-foreground: #60737a;
-  --accent: #0e6872;
-  --accent-foreground: #f6fbfc;
-  --destructive: #c94456;
-  --destructive-foreground: #fff8f8;
-  --border: #ced8dc;
-  --input: #d8e2e5;
-  --ring: #0e6872;
-  --sx-focus-ring: #0e6872;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.49 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.97 0.014 17.04);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sx-focus-ring: var(--primary);
 
-  --sx-bg: #eef2f2;
-  --sx-bg-top: #f7f7f2;
-  --sx-bg-strong: #e5ecee;
-  --sx-surface: rgba(255, 255, 255, 0.72);
-  --sx-surface-strong: #ffffff;
-  --sx-surface-elevated: #dfe8eb;
-  --sx-border: rgba(19, 33, 41, 0.12);
-  --sx-border-muted: rgba(19, 33, 41, 0.24);
-  --sx-text: #132129;
-  --sx-text-muted: #60737a;
-  --sx-text-soft: #7b8d94;
-  --sx-accent: #0e6872;
-  --sx-accent-fg: #f6fbfc;
-  --sx-safe: #1d8c68;
-  --sx-suspicious: #bd7b19;
-  --sx-malicious: #c94456;
-  --sx-critical: #903a75;
-  --sx-error: #735564;
-  --sx-info: #366db0;
-  --sx-shadow-soft: 0 28px 70px -46px rgba(16, 29, 36, 0.28);
-  --sx-shadow-strong: 0 32px 90px -54px rgba(12, 24, 31, 0.38);
-  --sx-ring-safe: rgba(29, 140, 104, 0.16);
-  --sx-ring-suspicious: rgba(189, 123, 25, 0.18);
-  --sx-ring-malicious: rgba(201, 68, 86, 0.18);
-  --sx-ring-critical: rgba(144, 58, 117, 0.18);
+  --sx-bg: oklch(0.985 0 0);
+  --sx-bg-top: oklch(1 0 0);
+  --sx-bg-strong: oklch(0.97 0 0);
+  --sx-surface: oklch(1 0 0 / 0.94);
+  --sx-surface-strong: oklch(1 0 0);
+  --sx-surface-elevated: oklch(0.985 0 0);
+  --sx-border: var(--border);
+  --sx-border-muted: oklch(0.86 0 0);
+  --sx-text: var(--foreground);
+  --sx-text-muted: var(--muted-foreground);
+  --sx-text-soft: oklch(0.49 0 0);
+  --sx-accent: var(--primary);
+  --sx-accent-fg: var(--primary-foreground);
+  --sx-safe: oklch(0.58 0.142 156.31);
+  --sx-suspicious: oklch(0.69 0.16 73.2);
+  --sx-malicious: oklch(0.603 0.224 28.59);
+  --sx-critical: oklch(0.562 0.245 326.18);
+  --sx-error: oklch(0.516 0.108 18.2);
+  --sx-info: oklch(0.57 0.17 258.34);
+  --sx-safe-ink: color-mix(in srgb, var(--sx-safe) 62%, var(--foreground) 38%);
+  --sx-suspicious-ink: color-mix(
+    in srgb,
+    var(--sx-suspicious) 68%,
+    var(--foreground) 32%
+  );
+  --sx-malicious-ink: color-mix(
+    in srgb,
+    var(--sx-malicious) 70%,
+    var(--foreground) 30%
+  );
+  --sx-critical-ink: color-mix(
+    in srgb,
+    var(--sx-critical) 68%,
+    var(--foreground) 32%
+  );
+  --sx-error-ink: color-mix(in srgb, var(--sx-error) 70%, var(--foreground) 30%);
+  --sx-info-ink: color-mix(in srgb, var(--sx-info) 64%, var(--foreground) 36%);
+  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.03), 0 12px 30px -22px rgb(0 0 0 / 0.16);
+  --sx-shadow-strong: 0 18px 42px -28px rgb(0 0 0 / 0.22);
+  --sx-ring-safe: color-mix(in srgb, var(--sx-safe) 18%, transparent);
+  --sx-ring-suspicious: color-mix(in srgb, var(--sx-suspicious) 18%, transparent);
+  --sx-ring-malicious: color-mix(in srgb, var(--sx-malicious) 18%, transparent);
+  --sx-ring-critical: color-mix(in srgb, var(--sx-critical) 18%, transparent);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #091015;
-  --foreground: #e8f0f1;
-  --card: #111a1f;
-  --card-foreground: #e8f0f1;
-  --popover: #111a1f;
-  --popover-foreground: #e8f0f1;
-  --primary: #7ed7dd;
-  --primary-foreground: #082027;
-  --secondary: #18242a;
-  --secondary-foreground: #e8f0f1;
-  --muted: #172127;
-  --muted-foreground: #97acb3;
-  --accent: #7ed7dd;
-  --accent-foreground: #082027;
-  --destructive: #ff7a86;
-  --destructive-foreground: #fff7f8;
-  --border: #23343b;
-  --input: #27383f;
-  --ring: #7ed7dd;
-  --sx-focus-ring: #7ed7dd;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.424 0.199 265.638);
+  --primary-foreground: oklch(0.97 0.014 254.604);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.98 0.01 17.09);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sx-focus-ring: var(--primary);
 
-  --sx-bg: #091015;
-  --sx-bg-top: #111a1f;
-  --sx-bg-strong: #071015;
-  --sx-surface: rgba(17, 26, 31, 0.76);
-  --sx-surface-strong: #111a1f;
-  --sx-surface-elevated: #17242b;
-  --sx-border: rgba(232, 240, 241, 0.12);
-  --sx-border-muted: rgba(232, 240, 241, 0.22);
-  --sx-text: #e8f0f1;
-  --sx-text-muted: #97acb3;
-  --sx-text-soft: #738a92;
-  --sx-accent: #7ed7dd;
-  --sx-accent-fg: #082027;
-  --sx-safe: #57ca94;
-  --sx-suspicious: #f3b45a;
-  --sx-malicious: #ff7a86;
-  --sx-critical: #ef7ac8;
-  --sx-error: #ab8a9c;
-  --sx-info: #7fb2ff;
-  --sx-shadow-soft: 0 34px 84px -56px rgba(0, 0, 0, 0.72);
-  --sx-shadow-strong: 0 40px 100px -58px rgba(0, 0, 0, 0.82);
-  --sx-ring-safe: rgba(87, 202, 148, 0.2);
-  --sx-ring-suspicious: rgba(243, 180, 90, 0.2);
-  --sx-ring-malicious: rgba(255, 122, 134, 0.22);
-  --sx-ring-critical: rgba(239, 122, 200, 0.22);
+  --sx-bg: oklch(0.145 0 0);
+  --sx-bg-top: oklch(0.175 0 0);
+  --sx-bg-strong: oklch(0.115 0 0);
+  --sx-surface: oklch(0.205 0 0 / 0.94);
+  --sx-surface-strong: oklch(0.205 0 0);
+  --sx-surface-elevated: oklch(0.25 0 0);
+  --sx-border: var(--border);
+  --sx-border-muted: oklch(0.34 0 0);
+  --sx-text: var(--foreground);
+  --sx-text-muted: var(--muted-foreground);
+  --sx-text-soft: oklch(0.74 0 0);
+  --sx-accent: var(--primary);
+  --sx-accent-fg: var(--primary-foreground);
+  --sx-safe: oklch(0.74 0.145 158.3);
+  --sx-suspicious: oklch(0.78 0.15 76.4);
+  --sx-malicious: oklch(0.73 0.19 26.4);
+  --sx-critical: oklch(0.73 0.22 326.5);
+  --sx-error: oklch(0.7 0.08 18.4);
+  --sx-info: oklch(0.73 0.13 255.2);
+  --sx-safe-ink: var(--sx-safe);
+  --sx-suspicious-ink: var(--sx-suspicious);
+  --sx-malicious-ink: var(--sx-malicious);
+  --sx-critical-ink: var(--sx-critical);
+  --sx-error-ink: var(--sx-error);
+  --sx-info-ink: var(--sx-info);
+  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.2), 0 14px 34px -24px rgb(0 0 0 / 0.5);
+  --sx-shadow-strong: 0 20px 44px -28px rgb(0 0 0 / 0.56);
+  --sx-ring-safe: color-mix(in srgb, var(--sx-safe) 22%, transparent);
+  --sx-ring-suspicious: color-mix(in srgb, var(--sx-suspicious) 22%, transparent);
+  --sx-ring-malicious: color-mix(in srgb, var(--sx-malicious) 22%, transparent);
+  --sx-ring-critical: color-mix(in srgb, var(--sx-critical) 22%, transparent);
 }
 
 @theme inline {
@@ -125,9 +149,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 0.25rem);
-  --radius-md: calc(var(--radius) - 0.125rem);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
 * {
@@ -139,17 +164,13 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: var(--sx-bg);
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Geist", system-ui, sans-serif;
+  line-height: 1.5;
   margin: 0;
   min-height: 100vh;
   text-rendering: optimizeLegibility;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
 button,
@@ -158,6 +179,13 @@ textarea {
   font: inherit;
 }
 
-* {
-  border-color: var(--border);
+@layer base {
+  :where(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  * {
+    border-color: var(--border);
+  }
 }

@@ -10,7 +10,10 @@ import {
 } from "@/lib/client/export";
 import { formatDisplayUrl } from "@/lib/domain/url";
 import type { HistoryEntry, Verdict } from "@/lib/domain/types";
-import { verdictColor } from "@/components/shared/scrutinix-types";
+import {
+  verdictColor,
+  verdictInk,
+} from "@/components/shared/scrutinix-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,15 +115,15 @@ export function HistoryPanel({
 
   return (
     <section
-      className="sx-panel flex h-full max-h-[calc(100vh-7.5rem)] min-h-[24rem] flex-col overflow-hidden rounded-[1.8rem] border border-[var(--sx-border)]"
+      className="sx-panel flex h-full max-h-[calc(100vh-7.5rem)] min-h-[24rem] flex-col overflow-hidden rounded-xl border border-border"
       aria-label="Scan history"
       role="region"
     >
-      <div className="border-b border-[var(--sx-border)] px-5 py-5">
+      <div className="border-b border-border px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <p className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+              <p className="text-xs text-[var(--sx-text-muted)]">
                 History rail
               </p>
               <Badge variant="neutral">{entries.length}</Badge>
@@ -205,7 +208,7 @@ export function HistoryPanel({
             onChange={(event) => onHistoryQueryChange(event.target.value)}
             placeholder="Filter by URL or verdict"
             aria-label="Filter scan history"
-            className="h-11"
+            className="h-10"
           />
         </div>
 
@@ -218,7 +221,7 @@ export function HistoryPanel({
               aria-pressed={filterVerdict === tone}
               variant={filterVerdict === tone ? "view" : "ghost"}
               size="sm"
-              className="rounded-full"
+              className="rounded-md"
             >
               {tone}
             </Button>
@@ -228,7 +231,7 @@ export function HistoryPanel({
 
       <div className="min-h-0 flex-1 px-3 py-3">
         {entries.length === 0 ? (
-          <div className="flex h-full items-center justify-center rounded-[1.4rem] border border-dashed border-[var(--sx-border-muted)] px-5 py-8 text-center text-sm leading-6 text-[var(--sx-text-soft)]">
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[var(--sx-border-muted)] px-5 py-8 text-center text-sm leading-6 text-[var(--sx-text-soft)]">
             {historyQuery || filterVerdict !== "all"
               ? "No scans match the current filter."
               : canUndoClear
@@ -243,16 +246,16 @@ export function HistoryPanel({
                   key={entry.id}
                   type="button"
                   onClick={() => onSelect(entry)}
-                  className="group w-full rounded-[1.35rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-4 py-4 text-left transition hover:border-[var(--sx-active-accent)] hover:bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)]"
+                  className="group w-full rounded-lg border border-border bg-card px-4 py-4 text-left transition hover:border-[var(--sx-active-accent)] hover:bg-muted/40"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-[10px] tracking-[0.14em] text-[var(--sx-text-muted)] uppercase">
+                    <span className="text-xs text-[var(--sx-text-muted)]">
                       {formatTimestamp(entry.savedAt)}
                     </span>
                     <span
-                      className="rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase"
+                      className="rounded-md px-2.5 py-1 text-[0.65rem] font-medium tracking-[0.08em] uppercase"
                       style={{
-                        color: verdictColor(entry.verdict),
+                        color: verdictInk(entry.verdict),
                         backgroundColor: `color-mix(in_srgb, ${verdictColor(entry.verdict)} 12%, transparent)`,
                       }}
                     >
@@ -268,7 +271,7 @@ export function HistoryPanel({
                     <span className="sx-font-hack">
                       Score {entry.threatInfo?.score ?? "--"}
                     </span>
-                    <span className="uppercase">
+                    <span className="capitalize">
                       {entry.threatInfo?.confidenceLabel ?? "n/a"} confidence
                     </span>
                   </div>

@@ -4,25 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "sx-font-sans inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.15em] uppercase transition-colors",
+  "sx-font-sans inline-flex items-center rounded-md border px-2 py-0.5 text-[0.65rem] font-semibold tracking-[0.08em] uppercase transition-colors",
   {
     variants: {
       variant: {
-        safe: "border-[color-mix(in_srgb,var(--sx-safe)_36%,transparent)] bg-[color-mix(in_srgb,var(--sx-safe)_10%,transparent)] text-[var(--sx-safe)]",
+        safe: "border-[color-mix(in_srgb,var(--sx-safe)_20%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-safe)_9%,var(--background))] text-[var(--sx-safe-ink)]",
         suspicious:
-          "border-[color-mix(in_srgb,var(--sx-suspicious)_36%,transparent)] bg-[color-mix(in_srgb,var(--sx-suspicious)_10%,transparent)] text-[var(--sx-suspicious)]",
+          "border-[color-mix(in_srgb,var(--sx-suspicious)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-suspicious)_10%,var(--background))] text-[var(--sx-suspicious-ink)]",
         malicious:
-          "border-[color-mix(in_srgb,var(--sx-malicious)_38%,transparent)] bg-[color-mix(in_srgb,var(--sx-malicious)_10%,transparent)] text-[var(--sx-malicious)]",
+          "border-[color-mix(in_srgb,var(--sx-malicious)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-malicious)_10%,var(--background))] text-[var(--sx-malicious-ink)]",
         critical:
-          "border-[color-mix(in_srgb,var(--sx-critical)_38%,transparent)] bg-[color-mix(in_srgb,var(--sx-critical)_10%,transparent)] text-[var(--sx-critical)]",
+          "border-[color-mix(in_srgb,var(--sx-critical)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-critical)_10%,var(--background))] text-[var(--sx-critical-ink)]",
         active:
-          "border-[color-mix(in_srgb,var(--sx-info)_36%,transparent)] bg-[color-mix(in_srgb,var(--sx-info)_10%,transparent)] text-[var(--sx-info)]",
+          "border-[color-mix(in_srgb,var(--sx-info)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-info)_10%,var(--background))] text-[var(--sx-info-ink)]",
         error:
-          "border-[color-mix(in_srgb,var(--sx-error)_40%,transparent)] bg-[color-mix(in_srgb,var(--sx-error)_10%,transparent)] text-[var(--sx-error)]",
+          "border-[color-mix(in_srgb,var(--sx-error)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-error)_10%,var(--background))] text-[var(--sx-error-ink)]",
         skipped:
-          "border-[var(--sx-border-muted)] bg-transparent text-[var(--sx-text-muted)] opacity-80",
+          "border-[var(--sx-border)] bg-transparent text-[var(--sx-text-soft)]",
         neutral:
-          "border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_82%,transparent)] text-[var(--sx-text-muted)]",
+          "border-[var(--sx-border)] bg-secondary text-[var(--sx-text-muted)]",
       },
     },
     defaultVariants: {

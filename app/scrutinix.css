@@ -4,20 +4,10 @@
   --sx-font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
   --sx-font-hack: var(--font-hack), "Hack", "IBM Plex Mono", monospace;
   background:
-    radial-gradient(
-      circle at 10% 10%,
-      color-mix(in srgb, var(--sx-active-accent) 14%, transparent),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 84% 8%,
-      color-mix(in srgb, var(--sx-info) 12%, transparent),
-      transparent 28%
-    ),
     linear-gradient(
       180deg,
-      var(--sx-bg-top) 0%,
-      var(--sx-bg) 42%,
+      color-mix(in srgb, var(--sx-bg-top) 96%, var(--sx-active-accent) 4%) 0%,
+      var(--sx-bg) 18rem,
       var(--sx-bg-strong) 100%
     );
   color: var(--sx-text);
@@ -33,50 +23,31 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.38;
-  background-image:
+  opacity: 1;
+  background:
     linear-gradient(
-      to right,
-      color-mix(in srgb, var(--sx-border) 72%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--sx-border) 72%, transparent) 1px,
-      transparent 1px
+      180deg,
+      color-mix(in srgb, var(--sx-active-accent) 8%, transparent),
+      transparent 20rem
     );
-  background-size: 96px 96px;
   mask-image: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.22) 42%,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.3) 28%,
     transparent 100%
   );
 }
 
 .scrutinix-theme::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.08;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 220px 220px;
+  content: none;
 }
 
 .dark .scrutinix-theme::before {
-  opacity: 0.22;
-}
-
-.dark .scrutinix-theme::after {
-  opacity: 0.06;
+  opacity: 0.88;
 }
 
 .sx-radar-bg {
   position: relative;
-  overflow: clip;
 }
 
 .sx-atmosphere {
@@ -86,22 +57,16 @@
   z-index: 0;
   background:
     radial-gradient(
-      ellipse at 18% 24%,
-      color-mix(in srgb, var(--sx-active-accent) 16%, transparent),
-      transparent 42%
-    ),
-    radial-gradient(
-      ellipse at 76% 14%,
-      color-mix(in srgb, var(--sx-info) 14%, transparent),
-      transparent 34%
+      ellipse at top,
+      color-mix(in srgb, var(--sx-active-accent) 8%, transparent),
+      transparent 60%
     );
-  opacity: 0.6;
+  opacity: 0.35;
   transition: opacity 320ms ease;
 }
 
 .sx-panel {
-  background: color-mix(in srgb, var(--sx-surface) 90%, transparent);
-  backdrop-filter: blur(18px);
+  background: var(--sx-surface);
   box-shadow: var(--sx-shadow-soft);
 }
 
@@ -348,9 +313,7 @@
 }
 
 .sx-input-glow:focus {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--sx-surface-strong) 94%, transparent),
-    0 0 0 4px color-mix(in srgb, var(--sx-focus-ring) 18%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sx-focus-ring) 14%, transparent);
 }
 
 .sx-btn-press {
@@ -363,7 +326,7 @@
 }
 
 .sx-btn-press:active {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
 @keyframes sx-marquee {
@@ -439,16 +402,14 @@
   z-index: 50;
   transform: translateY(-180%);
   border: 1px solid var(--sx-border-muted);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sx-surface-strong) 90%, transparent);
-  backdrop-filter: blur(16px);
+  border-radius: calc(var(--radius) * 1.4);
+  background: var(--sx-surface-strong);
   color: var(--sx-text);
   font-family: var(--sx-font-sans);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   padding: 0.75rem 1rem;
-  text-transform: uppercase;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,

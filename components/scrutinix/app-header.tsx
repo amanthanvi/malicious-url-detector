@@ -17,14 +17,14 @@ export function AppHeader({ children }: AppHeaderProps) {
 
   const brand = (
     <>
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)]">
-        <Shield className="h-5 w-5 text-[var(--sx-accent)]" />
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card">
+        <Shield className="h-4.5 w-4.5 text-[var(--sx-accent)]" />
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="sx-font-sans text-sm font-semibold tracking-[0.2em] text-[var(--sx-text)] uppercase">
+        <span className="sx-font-sans text-sm font-semibold text-[var(--sx-text)]">
           Scrutinix
         </span>
-        <span className="sx-font-sans text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+        <span className="sx-font-sans text-xs text-[var(--sx-text-muted)]">
           Public threat analysis
         </span>
       </span>
@@ -32,12 +32,12 @@ export function AppHeader({ children }: AppHeaderProps) {
   );
 
   return (
-    <header className="relative z-20 border-b border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface)_80%,transparent)] backdrop-blur-xl">
+    <header className="relative z-20 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-[1520px] flex-wrap items-center gap-4 px-4 py-4 sm:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-4">
           {isHome ? (
             <div
-              className="flex items-center gap-3 rounded-full text-left"
+              className="flex items-center gap-3 rounded-md text-left"
               aria-label="Scrutinix"
             >
               {brand}
@@ -45,7 +45,7 @@ export function AppHeader({ children }: AppHeaderProps) {
           ) : (
             <Link
               href="/"
-              className="sx-btn-press flex items-center gap-3 rounded-full text-left"
+              className="sx-btn-press flex items-center gap-3 rounded-md text-left"
             >
               {brand}
             </Link>
@@ -58,19 +58,19 @@ export function AppHeader({ children }: AppHeaderProps) {
             >
               <Link
                 href="/"
-                className="sx-btn-press rounded-full px-3 py-2 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase transition-colors hover:text-[var(--sx-text)]"
+                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
               >
                 Scanner
               </Link>
               <Link
                 href="/about"
-                className="sx-btn-press rounded-full px-3 py-2 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase transition-colors hover:text-[var(--sx-text)]"
+                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
               >
                 Method
               </Link>
               <Link
                 href="/privacy"
-                className="sx-btn-press rounded-full px-3 py-2 text-[10px] font-semibold tracking-[0.16em] text-[var(--sx-text-muted)] uppercase transition-colors hover:text-[var(--sx-text)]"
+                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
               >
                 Privacy
               </Link>
@@ -80,12 +80,12 @@ export function AppHeader({ children }: AppHeaderProps) {
 
         <div className="ml-auto flex flex-1 items-center justify-end gap-3">
           {children ? (
-            <div className="hidden min-w-0 flex-1 justify-end xl:flex">
+            <div className="hidden min-w-0 flex-1 justify-end lg:flex">
               {children}
             </div>
           ) : null}
           <div className="flex items-center gap-2">
-            <span className="hidden text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase sm:inline">
+            <span className="hidden text-xs text-[var(--sx-text-muted)] sm:inline">
               Multi-signal URL triage
             </span>
             <ThemeToggle />

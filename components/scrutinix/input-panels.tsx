@@ -39,7 +39,7 @@ export function SingleInput({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <h2 className="text-xs text-[var(--sx-text-muted)]">
             Single target
           </h2>
           <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
@@ -54,7 +54,7 @@ export function SingleInput({
       </div>
 
       <div
-        className="rounded-[1.4rem] border bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] p-2"
+        className="rounded-lg border bg-card p-3"
         style={{
           borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
         }}
@@ -62,14 +62,7 @@ export function SingleInput({
         <label htmlFor="sx-url-input" className="sr-only">
           URL to analyze
         </label>
-        <div className="flex items-center gap-3 rounded-[1rem] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-3">
-          <span
-            className="sx-font-hack shrink-0 text-sm text-[var(--sx-accent)]"
-            aria-hidden="true"
-          >
-            {">"}
-            <span className="sx-cursor">_</span>
-          </span>
+        <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3">
           <Input
             id="sx-url-input"
             type="text"
@@ -86,7 +79,7 @@ export function SingleInput({
             aria-label="URL to analyze"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "sx-url-error" : undefined}
-            className="h-14 border-0 bg-transparent px-0 text-[var(--sx-text)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-11 border-0 bg-transparent px-0 text-[var(--sx-text)] shadow-none focus-visible:ring-0"
           />
         </div>
       </div>
@@ -131,7 +124,7 @@ export function SingleInput({
         )}
       </div>
 
-      <p className="text-[11px] leading-5 text-[var(--sx-text-soft)]">
+      <p className="text-xs leading-5 text-[var(--sx-text-soft)]">
         Press Enter to scan. Scrutinix processes the submitted URL live, while
         local history remains in your browser.
       </p>
@@ -176,7 +169,7 @@ export function BatchInput({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-[11px] tracking-[0.18em] text-[var(--sx-text-muted)] uppercase">
+          <h2 className="text-xs text-[var(--sx-text-muted)]">
             Batch queue
           </h2>
           <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
@@ -195,19 +188,12 @@ export function BatchInput({
         URLs to analyze (one per line)
       </label>
       <div
-        className="rounded-[1.4rem] border bg-[color-mix(in_srgb,var(--sx-surface-strong)_88%,transparent)] p-2"
+        className="rounded-lg border bg-card p-3"
         style={{
           borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
         }}
       >
-        <div className="flex items-start gap-3 rounded-[1rem] bg-[color-mix(in_srgb,var(--sx-surface)_76%,transparent)] px-3 pt-3">
-          <span
-            className="sx-font-hack mt-0.5 shrink-0 text-sm text-[var(--sx-accent)]"
-            aria-hidden="true"
-          >
-            {">"}
-            <span className="sx-cursor">_</span>
-          </span>
+        <div className="flex items-start gap-3 rounded-md border border-border bg-background px-3 pt-3">
           <Textarea
             id="sx-batch-input"
             value={value}
@@ -225,7 +211,7 @@ export function BatchInput({
             aria-label="URLs to analyze, one per line"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "sx-batch-error" : undefined}
-            className="min-h-0 resize-none border-0 bg-transparent px-0 pb-3 text-[var(--sx-text)] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-0 resize-none border-0 bg-transparent px-0 pb-3 text-[var(--sx-text)] shadow-none focus-visible:ring-0"
           />
         </div>
       </div>
@@ -266,7 +252,7 @@ export function BatchInput({
         )}
       </div>
 
-      <p className="text-[11px] leading-5 text-[var(--sx-text-soft)]">
+      <p className="text-xs leading-5 text-[var(--sx-text-soft)]">
         Press Cmd/Ctrl+Enter to start. Batch results stream independently and
         export to CSV or JSON when complete.
       </p>

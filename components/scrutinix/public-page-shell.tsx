@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { AppFooter } from "@/components/scrutinix/app-footer";
 import { AppHeader } from "@/components/scrutinix/app-header";
+import { Button } from "@/components/ui/button";
 
 interface ProofRow {
   label: string;
@@ -27,31 +28,22 @@ export function PublicPageShell({
   children,
 }: PublicPageShellProps) {
   return (
-    <div className="sx-radar-bg flex min-h-screen flex-col">
-      <div className="sx-atmosphere" />
+    <div className="flex min-h-screen flex-col">
       <AppHeader />
 
       <main id="main-content" className="relative z-10 flex-1">
-        <section className="relative overflow-hidden border-b border-[var(--sx-border)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--sx-bg-top)_92%,transparent),color-mix(in_srgb,var(--sx-bg)_90%,transparent))]">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-90"
-            aria-hidden="true"
-          >
-            <div className="absolute inset-x-0 top-0 h-[26rem] bg-[radial-gradient(circle_at_12%_16%,color-mix(in_srgb,var(--sx-accent)_16%,transparent),transparent_42%),radial-gradient(circle_at_82%_10%,color-mix(in_srgb,var(--sx-info)_18%,transparent),transparent_34%)]" />
-          </div>
-
+        <section className="border-b border-border">
           <div className="relative z-10 mx-auto max-w-[1520px] px-4 pb-8 pt-6 sm:px-6 sm:pb-10 xl:px-8 xl:pt-8">
-            <Link
-              href="/"
-              className="sx-btn-press inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--sx-border)] px-4 py-2.5 text-[11px] font-semibold tracking-[0.16em] text-[var(--sx-text)] uppercase transition-all hover:border-[var(--sx-active-accent)]"
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              Back to scanner
-            </Link>
+            <Button asChild variant="ghost" className="h-8 px-3">
+              <Link href="/">
+                <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                Back to scanner
+              </Link>
+            </Button>
 
             <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] xl:items-start">
               <div className="space-y-5">
-                <p className="text-[11px] tracking-[0.2em] text-[var(--sx-accent)] uppercase">
+                <p className="text-sm font-medium text-[var(--sx-accent)]">
                   {eyebrow}
                 </p>
                 <h1 className="sx-font-sans max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-[var(--sx-text)] sm:text-5xl lg:text-6xl">
@@ -62,19 +54,19 @@ export function PublicPageShell({
                 </p>
               </div>
 
-              <div className="grid gap-3">
+              <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
                 {proofRows.map((row) => (
                   <div
                     key={row.label}
-                    className="rounded-[1.4rem] border border-[var(--sx-border)] bg-[color-mix(in_srgb,var(--sx-surface-strong)_84%,transparent)] px-4 py-4"
+                    className="rounded-lg border border-border bg-card px-4 py-4"
                   >
-                    <p className="text-[10px] tracking-[0.16em] text-[var(--sx-text-muted)] uppercase">
+                    <p className="text-xs text-[var(--sx-text-muted)]">
                       {row.label}
                     </p>
                     <p className="sx-font-sans mt-2 text-xl font-semibold text-[var(--sx-text)]">
                       {row.value}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                    <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
                       {row.body}
                     </p>
                   </div>

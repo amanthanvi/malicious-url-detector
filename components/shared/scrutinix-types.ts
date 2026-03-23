@@ -22,6 +22,21 @@ export function verdictColor(verdict: Verdict | string): string {
   }
 }
 
+export function verdictInk(verdict: Verdict | string): string {
+  switch (verdict) {
+    case "safe":
+      return "var(--sx-safe-ink)";
+    case "suspicious":
+      return "var(--sx-suspicious-ink)";
+    case "malicious":
+      return "var(--sx-malicious-ink)";
+    case "critical":
+      return "var(--sx-critical-ink)";
+    default:
+      return "var(--sx-error-ink)";
+  }
+}
+
 /** Returns the CSS var string for the active accent based on verdict */
 export function getActiveAccent(verdict: Verdict | string | undefined): string {
   if (!verdict) return "var(--sx-accent)";
