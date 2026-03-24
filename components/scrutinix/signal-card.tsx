@@ -56,13 +56,13 @@ interface SignalCardProps {
 function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
   if (name === "redirectChain") {
     const d = data as RedirectData;
-    if (d.hops.length === 0) return null;
+    if (!d.hops?.length) return null;
     return (
-      <ol className="sx-font-hack mt-2 list-inside list-decimal space-y-0.5">
-        {d.hops.map((hop) => (
+      <ol className="sx-font-hack mt-2 list-inside list-decimal space-y-1.5">
+        {(d.hops ?? []).map((hop) => (
           <li
             key={`${hop.url}-${hop.status}`}
-            className="rounded bg-[var(--sx-bg)] px-2 py-1 text-xs text-[var(--sx-text)]"
+            className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs text-[var(--sx-text)]"
           >
             <span className="mr-1 text-[var(--sx-info)]">{hop.status}</span>
             <span className="break-all">{hop.url}</span>
@@ -122,11 +122,11 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
             },
           ];
     return (
-      <div className="sx-font-hack mt-2 grid grid-cols-2 gap-1">
+      <div className="sx-font-hack mt-2 grid grid-cols-2 gap-2">
         {entries.map((e) => (
           <div
             key={e.label}
-            className="rounded bg-[var(--sx-bg)] px-2 py-1 text-xs"
+            className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs"
           >
             <span className="text-[var(--sx-text-muted)]">{e.label}: </span>
             <span className="break-words text-[var(--sx-text)]">{e.value}</span>
@@ -138,13 +138,16 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
 
   if (name === "threatFeeds") {
     const d = data as ThreatFeedsData;
-    if (d.matches.length === 0) return null;
+    const hasMatches = (d.matches?.length ?? 0) > 0;
+    const hasNotes =
+      (d.observations?.length ?? 0) > 0 || (d.warnings?.length ?? 0) > 0;
+    if (!hasMatches && !hasNotes) return null;
     return (
-      <div className="sx-font-hack mt-2 space-y-0.5">
-        {d.matches.map((m) => (
+      <div className="sx-font-hack mt-2 space-y-1.5">
+        {(d.matches ?? []).map((m) => (
           <div
             key={`${m.feed}-${m.matchedUrl}`}
-            className="rounded bg-[var(--sx-bg)] px-2 py-1 text-xs"
+            className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs"
           >
             <span className="font-semibold text-[var(--sx-text)]">
               {m.feed}
@@ -154,6 +157,22 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
             </span>
           </div>
         ))}
+        {(d.observations ?? []).map((text, i) => (
+          <div
+            key={`obs-${i}`}
+            className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs text-[var(--sx-text-muted)]"
+          >
+            {text}
+          </div>
+        ))}
+        {(d.warnings ?? []).map((text, i) => (
+          <div
+            key={`warn-${i}`}
+            className="rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs text-[var(--sx-suspicious)]"
+          >
+            {text}
+          </div>
+        ))}
       </div>
     );
   }
@@ -161,11 +180,11 @@ function renderRichDetails(name: SignalName, data: unknown): React.ReactNode {
   const entries = getSignalDetailEntries(name, data as never);
   if (entries.length === 0) return null;
   return (
-    <div className="sx-font-hack mt-2 space-y-0.5">
+    <div className="sx-font-hack mt-2 space-y-1.5">
       {entries.map((entry) => (
         <div
           key={entry.label}
-          className="flex gap-2 rounded bg-[var(--sx-bg)] px-2 py-1 text-xs"
+          className="flex gap-2 rounded bg-[var(--sx-bg)] px-3 py-1.5 text-xs"
         >
           <span className="shrink-0 text-[var(--sx-text-muted)]">
             {entry.label}:
@@ -225,10 +244,10 @@ function SignalCardInner({
         transitionDelay: index > 0 ? `${index * 60}ms` : undefined,
       }}
       className={clsx(
-        "sx-panel h-full rounded-lg border border-border px-5 py-5 transition-[border-color,box-shadow,transform] duration-200",
+        "sx-panel h-full rounded-xl border border-border px-6 py-6 transition-[border-color,box-shadow,transform] duration-200",
         edgeClass,
         isActivelyScanning && "sx-pending-scan",
-        "hover:border-[var(--sx-active-accent)] hover:bg-muted/35",
+        "hover:-translate-y-0.5 hover:border-[var(--sx-active-accent)] hover:shadow-[0_8px_24px_-12px_color-mix(in_srgb,var(--sx-active-accent)_18%,transparent)]",
       )}
       aria-label={`${signalLabels[name]} signal: ${result.status}`}
     >
@@ -259,7 +278,7 @@ function SignalCardInner({
             </div>
 
             {result.durationMs > 0 ? (
-              <span className="sx-font-hack shrink-0 text-xs text-[var(--sx-text-soft)]">
+              <span className="sx-font-hack shrink-0 tabular-nums text-xs text-[var(--sx-text-soft)]">
                 {result.durationMs}ms
               </span>
             ) : null}
@@ -284,7 +303,7 @@ function SignalCardInner({
           ) : statusCopy ? (
             <p
               className={clsx(
-                "mt-4 text-sm leading-6",
+                "mt-5 text-sm leading-6",
                 isPending
                   ? "text-[var(--sx-text-soft)]"
                   : "text-[var(--sx-text)]",

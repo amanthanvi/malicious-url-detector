@@ -31,18 +31,22 @@ export function getSignalSummary(
     }
     case "googleSafeBrowsing": {
       const d = data as GoogleSafeBrowsingData;
-      return d.matches.length
+      return (d.matches?.length ?? 0) > 0
         ? `${d.matches.length} Safe Browsing threat match${d.matches.length === 1 ? "" : "es"} found.`
         : "No Safe Browsing threat matches were reported.";
     }
     case "threatFeeds": {
       const d = data as ThreatFeedsData;
-      if (d.matches.length) {
+      if (d.matches?.length) {
         return `${d.matches.length} community feed match${d.matches.length === 1 ? "" : "es"} found.`;
       }
 
-      if (d.warnings.length) {
+      if (d.warnings?.length) {
         return "No community-feed matches were found, but one or more feed checks completed with caveats.";
+      }
+
+      if (d.observations?.length) {
+        return "No feed matches for this exact URL; see signal notes for URLhaus listing context.";
       }
 
       return "No matches were found in the checked community feeds.";
@@ -50,7 +54,7 @@ export function getSignalSummary(
     case "ssl": {
       const d = data as SSLData;
       if (!d.available) {
-        return d.observations[0] ?? "No TLS service responded on port 443.";
+        return d.observations?.[0] ?? "No TLS service responded on port 443.";
       }
 
       if (d.validationState === "trusted") {
@@ -62,7 +66,7 @@ export function getSignalSummary(
       }
 
       return (
-        d.observations[0] ??
+        d.observations?.[0] ??
         "TLS responded, but the certificate was not trusted."
       );
     }
@@ -70,7 +74,7 @@ export function getSignalSummary(
       const d = data as WhoisData;
       if (!d.available) {
         return (
-          d.observations[0] ??
+          d.observations?.[0] ??
           "Registration data was unavailable during this scan."
         );
       }
@@ -82,23 +86,23 @@ export function getSignalSummary(
     case "dns": {
       const d = data as DNSData;
       if (d.subjectType === "ip") {
-        return d.observations[0] ?? "The target is a literal IP address.";
+        return d.observations?.[0] ?? "The target is a literal IP address.";
       }
 
-      if (d.addresses.length === 0 && d.cnames.length === 0) {
+      if ((d.addresses?.length ?? 0) === 0 && (d.cnames?.length ?? 0) === 0) {
         return (
-          d.observations[0] ??
+          d.observations?.[0] ??
           "The hostname did not resolve to web-facing address records."
         );
       }
 
-      return `${d.addresses.length} address${d.addresses.length === 1 ? "" : "es"} and ${d.mx.length} mail exchange record${d.mx.length === 1 ? "" : "s"} were found.`;
+      return `${d.addresses?.length ?? 0} address${(d.addresses?.length ?? 0) === 1 ? "" : "es"} and ${d.mx?.length ?? 0} mail exchange record${(d.mx?.length ?? 0) === 1 ? "" : "s"} were found.`;
     }
     case "redirectChain": {
       const d = data as RedirectData;
       if (!d.reachable) {
         return (
-          d.observations[0] ??
+          d.observations?.[0] ??
           "The target did not accept a redirect probe, so chain analysis was limited."
         );
       }
@@ -124,7 +128,7 @@ export function getSignalDetailEntries(
   switch (name) {
     case "virusTotal": {
       const d = data as VirusTotalData;
-      return d.results.slice(0, 5).map((r) => ({
+      return (d.results ?? []).slice(0, 5).map((r) => ({
         label: r.engine,
         value: r.result ?? r.category,
       }));
@@ -147,28 +151,34 @@ export function getSignalDetailEntries(
           value: `${d.hostedModel.label} (${((d.hostedModel.score ?? 0) * 100).toFixed(0)}%)`,
         });
       }
-      if (d.reasons.length) {
+      if (d.reasons?.length) {
         entries.push({ label: "Why", value: d.reasons.slice(0, 2).join(" ") });
       }
-      if (d.warnings.length) {
+      if (d.warnings?.length) {
         entries.push({ label: "Warnings", value: d.warnings.join(" ") });
       }
       return entries;
     }
     case "googleSafeBrowsing": {
       const d = data as GoogleSafeBrowsingData;
-      return d.matches.map((m) => ({
+      return (d.matches ?? []).map((m) => ({
         label: m.threatType,
         value: `${m.platformType} / ${m.threatEntryType}`,
       }));
     }
     case "threatFeeds": {
       const d = data as ThreatFeedsData;
-      const entries: DetailEntry[] = d.matches.map((m) => ({
+      const entries: DetailEntry[] = (d.matches ?? []).map((m) => ({
         label: m.feed,
         value: m.detail,
       }));
-      if (d.warnings.length) {
+      if (d.observations?.length) {
+        entries.push({
+          label: "Notes",
+          value: d.observations.join(" "),
+        });
+      }
+      if (d.warnings?.length) {
         entries.push({ label: "Warnings", value: d.warnings.join(" ") });
       }
       return entries;
@@ -195,7 +205,7 @@ export function getSignalDetailEntries(
             : "Unknown",
         },
       ];
-      if (d.observations.length) {
+      if (d.observations?.length) {
         entries.push({
           label: "Notes",
           value: d.observations.join(" "),
@@ -222,7 +232,7 @@ export function getSignalDetailEntries(
             : "Unknown",
         },
       ];
-      if (d.observations.length) {
+      if (d.observations?.length) {
         entries.push({ label: "Notes", value: d.observations.join(" ") });
       }
       return entries;
@@ -230,26 +240,26 @@ export function getSignalDetailEntries(
     case "dns": {
       const d = data as DNSData;
       const entries: DetailEntry[] = [
-        { label: "A records", value: d.addresses.join(", ") || "None" },
-        { label: "MX records", value: d.mx.join(", ") || "None" },
+        { label: "A records", value: d.addresses?.join(", ") || "None" },
+        { label: "MX records", value: d.mx?.join(", ") || "None" },
       ];
-      if (d.reverseHostnames.length) {
+      if (d.reverseHostnames?.length) {
         entries.push({
           label: "Reverse DNS",
           value: d.reverseHostnames.join(", "),
         });
       }
-      if (d.anomalies.length) {
+      if (d.anomalies?.length) {
         entries.push({ label: "Anomalies", value: d.anomalies.join(" ") });
       }
-      if (d.observations.length) {
+      if (d.observations?.length) {
         entries.push({ label: "Notes", value: d.observations.join(" ") });
       }
       return entries;
     }
     case "redirectChain": {
       const d = data as RedirectData;
-      const entries = d.hops.map((hop) => ({
+      const entries = (d.hops ?? []).map((hop) => ({
         label: `${hop.status}`,
         value: hop.location ? `${hop.url} → ${hop.location}` : hop.url,
       }));
@@ -259,7 +269,7 @@ export function getSignalDetailEntries(
           value: d.terminalError,
         });
       }
-      if (d.observations.length) {
+      if (d.observations?.length) {
         entries.push({
           label: "Notes",
           value: d.observations.join(" "),

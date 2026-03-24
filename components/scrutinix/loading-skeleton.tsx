@@ -1,31 +1,42 @@
-function Block({ className }: { className?: string }) {
-  return <div className={`sx-shimmer rounded ${className ?? ""}`} />;
+function Block({
+  className,
+  delay = 0,
+}: {
+  className?: string;
+  delay?: number;
+}) {
+  return (
+    <div
+      className={`sx-shimmer rounded ${className ?? ""}`}
+      style={delay > 0 ? { animationDelay: `${delay}ms` } : undefined}
+    />
+  );
 }
 
 export function LoadingSkeleton() {
   return (
-    <div className="mx-auto grid max-w-[1600px] gap-5 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[1fr_minmax(0,2fr)_300px]">
-      {/* Signal grid skeleton */}
-      <div className="order-3 space-y-3 xl:order-1">
-        <Block className="h-4 w-24" />
-        <Block className="h-24" />
-        <Block className="h-24" />
-        <Block className="h-24" />
-      </div>
+    <div className="mx-auto grid max-w-[1520px] gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      {/* Workspace skeleton */}
+      <div className="space-y-5">
+        {/* Verdict hero placeholder */}
+        <Block className="h-64 rounded-xl" delay={0} />
 
-      {/* Center column skeleton */}
-      <div className="order-1 space-y-5 xl:order-2">
-        <div className="flex gap-2">
-          <Block className="h-8 w-28" />
-          <Block className="h-8 w-28" />
+        {/* Signal grid — 4 cards in 2×2 */}
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <Block className="h-36 rounded-xl" delay={120} />
+          <Block className="h-36 rounded-xl" delay={240} />
+          <Block className="h-36 rounded-xl" delay={360} />
+          <Block className="h-36 rounded-xl" delay={480} />
         </div>
-        <Block className="h-32" />
-        <Block className="h-64" />
+
+        {/* Education / support section */}
+        <Block className="h-20 rounded-xl" delay={600} />
       </div>
 
-      {/* History panel skeleton */}
-      <div className="order-2 xl:order-3">
-        <Block className="h-80" />
+      {/* History rail skeleton */}
+      <div className="space-y-4">
+        <Block className="h-12 rounded-lg" delay={160} />
+        <Block className="h-96 rounded-xl" delay={280} />
       </div>
     </div>
   );

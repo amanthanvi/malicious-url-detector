@@ -2,6 +2,7 @@ import { isIP } from "node:net";
 
 import { getEnv } from "@/lib/config/env";
 import type { ClassificationFinding, MLSignalData } from "@/lib/domain/types";
+import { getUrlStructureRisk } from "@/lib/domain/url-structure-risk";
 import { classifyConsensus } from "@/lib/domain/verdict";
 import { normalizeUrlInput } from "@/lib/domain/url";
 import { fetchWithTimeout } from "@/lib/server/http";
@@ -146,6 +147,10 @@ function buildLexicalModel(url: string): ClassificationFinding {
     score += 0.08;
     reasons.push("The URL is unusually long.");
   }
+
+  const structure = getUrlStructureRisk(url);
+  score += structure.scoreDelta;
+  reasons.push(...structure.reasons);
 
   const label =
     score >= 0.74 ? "malicious" : score >= 0.45 ? "risky" : "benign";

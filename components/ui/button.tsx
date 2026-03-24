@@ -12,7 +12,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         terminal:
-          "bg-[var(--sx-active-accent)] text-primary-foreground hover:opacity-90",
+          "bg-[var(--sx-active-accent)] text-white dark:text-black hover:opacity-90",
         ghost:
           "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground dark:hover:bg-muted/60",
         subtle:
@@ -20,7 +20,7 @@ const buttonVariants = cva(
         danger:
           "border-[color-mix(in_srgb,var(--sx-malicious)_22%,var(--sx-border))] bg-[color-mix(in_srgb,var(--sx-malicious)_8%,var(--background))] text-[var(--sx-malicious-ink)] hover:bg-[color-mix(in_srgb,var(--sx-malicious)_12%,var(--background))] focus-visible:border-[color-mix(in_srgb,var(--sx-malicious)_55%,var(--sx-border))] focus-visible:ring-[color-mix(in_srgb,var(--sx-malicious)_18%,transparent)]",
         dangerSolid:
-          "bg-[var(--sx-malicious)] text-[oklch(0.98_0.01_17.09)] hover:opacity-92",
+          "bg-[var(--sx-malicious)] text-destructive-foreground hover:opacity-90",
         tab: "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
         view: "text-[var(--sx-text-muted)] hover:bg-muted hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
       },

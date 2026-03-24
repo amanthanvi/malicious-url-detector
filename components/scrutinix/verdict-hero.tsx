@@ -12,12 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { threatScoreBandLabel } from "@/lib/domain/score-bands";
 import { formatDisplayUrl } from "@/lib/domain/url";
-import type { AnalysisResult } from "@/lib/domain/types";
+import { createPendingSignalResults, type AnalysisResult } from "@/lib/domain/types";
 import {
   verdictColor,
   verdictInk,
   type SharedSnapshot,
 } from "@/components/shared/scrutinix-types";
+import { ScoreRing } from "@/components/scrutinix/score-ring";
 
 interface VerdictHeroProps {
   result: AnalysisResult | null;
@@ -64,39 +65,30 @@ export function VerdictHero({
         className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-8 sm:px-8"
         aria-label="Awaiting target URL"
       >
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-          <div className="space-y-4">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+          <div className="space-y-5">
             <p className="text-xs text-[var(--sx-text-muted)]">
               Awaiting target
             </p>
-            <h2 className="sx-font-sans max-w-2xl text-3xl font-semibold tracking-[-0.03em] text-[var(--sx-text)]">
+            <h2 className="max-w-2xl text-2xl font-semibold tracking-[-0.03em] text-[var(--sx-text)]">
               Run a link to open the evidence surface.
             </h2>
-            <p className="sx-font-sans max-w-2xl text-sm leading-7 text-[var(--sx-text-muted)] sm:text-base">
+            <p className="max-w-2xl text-sm leading-6 text-[var(--sx-text-muted)] sm:text-base">
               The verdict area stays calm until a scan starts. Once the stream
               begins, this section becomes the main reading surface for score,
               confidence, caveats, and next actions.
             </p>
           </div>
 
-          <div className="grid gap-3 text-sm text-[var(--sx-text-soft)]">
-            <div className="rounded-lg border border-border bg-card px-4 py-4">
-              <p className="text-xs text-[var(--sx-text-muted)]">
-                Readiness
-              </p>
-              <p className="sx-font-sans mt-2 text-lg font-semibold text-[var(--sx-text)]">
-                Idle until a URL is submitted
-              </p>
-            </div>
-            <div className="rounded-lg border border-border bg-card px-4 py-4">
-              <p className="text-xs text-[var(--sx-text-muted)]">
-                Signal coverage
-              </p>
-              <p className="mt-2 leading-6">
-                Signals arrive independently, then the cards below sort into
-                summary or full evidence mode.
-              </p>
-            </div>
+          <div className="flex flex-col items-center gap-3">
+            <ScoreRing
+              score={0}
+              color="var(--sx-border-muted)"
+              isIdle
+            />
+            <p className="text-xs text-[var(--sx-text-soft)]">
+              Idle
+            </p>
           </div>
         </div>
       </section>
@@ -114,14 +106,14 @@ export function VerdictHero({
         aria-live="polite"
       >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
-          <div className="space-y-4">
+          <div className="space-y-5">
             <p className="sx-pulse text-xs text-[var(--sx-accent)]">
               Stream in progress
             </p>
-            <h2 className="truncate sx-font-sans text-2xl font-semibold text-[var(--sx-text)] sm:text-3xl">
+            <h2 className="truncate text-2xl font-semibold text-[var(--sx-text)] sm:text-3xl">
               {displayUrl}
             </h2>
-            <p className="sx-font-sans max-w-2xl text-sm leading-7 text-[var(--sx-text-muted)]">
+            <p className="max-w-2xl text-sm leading-6 text-[var(--sx-text-muted)]">
               Signals are resolving independently. The working surface below
               will fill as each provider completes, errors, or marks itself
               not-applicable.
@@ -140,17 +132,17 @@ export function VerdictHero({
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card px-5 py-5">
+          <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card px-5 py-5">
             <p className="text-xs text-[var(--sx-text-muted)]">
               Live status
             </p>
-            <p className="sx-font-sans mt-3 text-4xl font-semibold text-[var(--sx-text)]">
-              {completedSignals}
-              <span className="ml-1 text-lg text-[var(--sx-text-soft)]">/8</span>
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-              Completed signals now. The verdict will settle once enough
-              weighted evidence is available.
+            <ScoreRing
+              score={completedSignals}
+              color="var(--sx-accent)"
+              isStreaming
+            />
+            <p className="sx-font-hack text-sm tabular-nums text-[var(--sx-text-soft)]">
+              {completedSignals}/8 signals
             </p>
           </div>
         </div>
@@ -160,6 +152,8 @@ export function VerdictHero({
 
   const color = result ? verdictColor(result.verdict) : "var(--sx-accent)";
   const score = result ? verdictScore(result) : 0;
+  const resultSignals = result?.signals ?? createPendingSignalResults();
+  const resultMetadata = result?.metadata;
   const displayUrl = result
     ? formatDisplayUrl(result.url)
     : sharedSnapshot
@@ -171,17 +165,17 @@ export function VerdictHero({
     "Signal cards will populate independently as each provider finishes.";
   const threatInfo = result?.threatInfo ?? null;
   const failedSignals = result
-    ? Object.values(result.signals).filter(
+    ? Object.values(resultSignals).filter(
         (signal) => signal.status === "error",
       ).length
     : 0;
   const skippedSignals = result
-    ? Object.values(result.signals).filter(
+    ? Object.values(resultSignals).filter(
         (signal) => signal.status === "skipped",
       ).length
     : 0;
   const completedSignalCount = result
-    ? Object.values(result.signals).filter(
+    ? Object.values(resultSignals).filter(
         (signal) => signal.status !== "pending",
       ).length
     : completedSignals;
@@ -189,14 +183,14 @@ export function VerdictHero({
     threatInfo?.hasPositiveEvidence && threatInfo?.reasons
       ? threatInfo.reasons
       : [];
-  const confidenceLabel = threatInfo
+  const confidenceLabel = threatInfo?.confidenceLabel
     ? threatInfo.confidenceLabel.toUpperCase()
     : "LOW";
   const confidenceReasons = threatInfo?.confidenceReasons ?? [];
   const recommendations = threatInfo?.recommendations ?? [];
   const limitations = threatInfo?.limitations ?? [];
   const confidenceValue = threatInfo?.confidence ?? 1;
-  const showLimitedCoverage = Boolean(result?.metadata.partialFailure);
+  const showLimitedCoverage = Boolean(resultMetadata?.partialFailure);
   const showProvisionalSafe =
     result?.verdict === "safe" && confidenceValue < 0.5;
   const coverageCallout =
@@ -227,8 +221,8 @@ export function VerdictHero({
       )}
       aria-label={`Scan result: ${result?.verdict ?? sharedVerdict ?? "pending"}`}
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.72fr)]">
-        <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(18rem,0.72fr)]">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -263,7 +257,7 @@ export function VerdictHero({
                 ) : null}
               </div>
 
-              <h2 className="sx-font-sans break-all text-2xl font-semibold tracking-[-0.03em] text-[var(--sx-text)] sm:text-3xl">
+              <h2 className="break-all text-2xl font-semibold tracking-[-0.03em] text-[var(--sx-text)] sm:text-3xl">
                 {displayUrl}
               </h2>
             </div>
@@ -288,7 +282,7 @@ export function VerdictHero({
             </div>
           ) : null}
 
-          <p className="sx-font-sans max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
+          <p className="max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
             {summaryText}
           </p>
 
@@ -316,11 +310,11 @@ export function VerdictHero({
               <h3 className="text-xs text-[var(--sx-text-muted)]">
                 Why this verdict
               </h3>
-              <div className="grid gap-3">
+              <div className="grid gap-4">
                 {evidenceReasons.slice(0, 6).map((reason, index) => (
                   <div
                     key={`${index}-${reason}`}
-                    className="rounded-lg border border-border bg-card px-4 py-3"
+                    className="rounded-lg border border-border bg-card px-5 py-4"
                   >
                     <div className="flex items-start gap-3">
                       <span
@@ -392,22 +386,18 @@ export function VerdictHero({
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-6">
           {result ? (
-            <div className="rounded-lg border border-border bg-card px-5 py-5">
-              <p className="text-xs text-[var(--sx-text-muted)]">
+            <div className="flex flex-col items-center rounded-lg border border-border bg-card px-5 py-5">
+              <p className="mb-3 self-start text-xs text-[var(--sx-text-muted)]">
                 Threat score
               </p>
-              <p
-                className="sx-font-sans mt-3 text-6xl font-semibold leading-none"
-                style={{ color }}
-              >
-                {score}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
-                {threatScoreBandLabel(score)}
-              </p>
-              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[var(--sx-border)]">
+              <ScoreRing
+                score={score}
+                color={color}
+                bandLabel={threatScoreBandLabel(score)}
+              />
+              <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-[var(--sx-border)]">
                 <div
                   className="sx-threat-fill h-full rounded-full transition-[width] duration-500"
                   style={{
@@ -423,7 +413,7 @@ export function VerdictHero({
                 Shared verdict
               </p>
               <p
-                className="sx-font-sans mt-3 text-3xl font-semibold capitalize"
+                className="mt-3 text-3xl font-semibold capitalize"
                 style={{ color }}
               >
                 {sharedVerdict}
@@ -442,10 +432,10 @@ export function VerdictHero({
                 Confidence
               </p>
               <div className="mt-3 flex items-end justify-between gap-3">
-                <p className="sx-font-sans text-2xl font-semibold text-[var(--sx-text)]">
+                <p className="text-2xl font-semibold text-[var(--sx-text)]">
                   {confidenceLabel}
                 </p>
-                <p className="sx-font-hack text-sm text-[var(--sx-text-soft)]">
+                <p className="sx-font-hack tabular-nums text-sm text-[var(--sx-text-soft)]">
                   {Math.round(confidenceValue * 100)}%
                 </p>
               </div>
@@ -483,7 +473,7 @@ export function VerdictHero({
                   <p className="text-xs text-[var(--sx-text-muted)]">
                     Coverage
                   </p>
-                  <p className="sx-font-sans mt-1 text-lg font-semibold text-[var(--sx-text)]">
+                  <p className="mt-2 text-lg font-semibold tabular-nums text-[var(--sx-text)]">
                     {completedSignalCount}/8 signals
                   </p>
                 </div>
@@ -491,23 +481,23 @@ export function VerdictHero({
                   <p className="text-xs text-[var(--sx-text-muted)]">
                     Duration
                   </p>
-                  <p className="sx-font-hack mt-1 text-sm text-[var(--sx-text)]">
-                    {result.metadata.durationMs}ms
+                  <p className="sx-font-hack mt-1 tabular-nums text-sm text-[var(--sx-text)]">
+                    {resultMetadata?.durationMs ?? 0}ms
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--sx-text-muted)]">
                     Completed
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--sx-text-soft)]">
-                    {formatTimestamp(result.metadata.completedAt)}
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-soft)]">
+                    {formatTimestamp(resultMetadata?.completedAt ?? "")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--sx-text-muted)]">
                     Evidence balance
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-[var(--sx-text-muted)]">
+                  <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
                     {threatInfo?.hasPositiveEvidence
                       ? "Direct risk indicators influenced the final score."
                       : "No direct malicious indicators across completed signals."}

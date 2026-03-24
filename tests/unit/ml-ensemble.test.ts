@@ -86,6 +86,37 @@ describe("runMlEnsembleProvider", () => {
     expect(result.consensusLabel).toBe("benign");
   });
 
+  it("elevates IP, non-default HTTPS port, and script path when hosted model is benign", async () => {
+    vi.stubEnv("HUGGINGFACE_API_KEY", "hf-test-key");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify([
+          [
+            { label: "benign", score: 0.88 },
+            { label: "malicious", score: 0.12 },
+          ],
+        ]),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        },
+      ),
+    );
+
+    const result = await runMlEnsembleProvider(
+      "https://15.58.86.110:38376/bin.sh",
+    );
+
+    expect(result.hostedModel).toMatchObject({ label: "benign" });
+    expect(result.lexicalModel.label).toBe("malicious");
+    expect(result.consensusLabel).toBe("malicious");
+    expect(result.lexicalModel.reasons.join(" ")).toMatch(
+      /literal IP|\.sh|38376/i,
+    );
+  });
+
   it("elevates literal-IP executable paths even when the hosted model is unavailable", async () => {
     vi.stubEnv("HUGGINGFACE_API_KEY", "hf-test-key");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(

@@ -2,6 +2,14 @@ import { getEnv } from "@/lib/config/env";
 import type { GoogleSafeBrowsingData } from "@/lib/domain/types";
 import { fetchWithTimeout } from "@/lib/server/http";
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
 export async function runGoogleSafeBrowsingProvider(
   url: string,
 ): Promise<GoogleSafeBrowsingData> {
@@ -46,16 +54,35 @@ export async function runGoogleSafeBrowsingProvider(
     );
   }
 
-  const payload = (await response.json()) as {
-    matches?: Array<{
-      threatType: string;
-      platformType: string;
-      threatEntryType: string;
-    }>;
-  };
+  const payload = asRecord(await response.json());
+  const matches = Array.isArray(payload?.matches)
+    ? payload.matches.flatMap((item) => {
+        const record = asRecord(item);
+        if (!record) {
+          return [];
+        }
+
+        return [
+          {
+            threatType:
+              typeof record.threatType === "string"
+                ? record.threatType
+                : "UNKNOWN",
+            platformType:
+              typeof record.platformType === "string"
+                ? record.platformType
+                : "ANY_PLATFORM",
+            threatEntryType:
+              typeof record.threatEntryType === "string"
+                ? record.threatEntryType
+                : "URL",
+          },
+        ];
+      })
+    : [];
 
   return {
     checkedAt: new Date().toISOString(),
-    matches: payload.matches ?? [],
+    matches,
   };
 }

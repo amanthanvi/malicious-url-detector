@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { AppFooter } from "@/components/scrutinix/app-footer";
@@ -10,6 +11,7 @@ interface ProofRow {
   label: string;
   value: string;
   body: string;
+  icon?: LucideIcon;
 }
 
 interface PublicPageShellProps {
@@ -31,46 +33,60 @@ export function PublicPageShell({
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <main id="main-content" className="relative z-10 flex-1">
+      <main id="main-content" className="relative z-10 flex-1 pb-10">
+        <div className="sx-atmosphere" />
+
         <section className="border-b border-border">
           <div className="relative z-10 mx-auto max-w-[1520px] px-4 pb-8 pt-6 sm:px-6 sm:pb-10 xl:px-8 xl:pt-8">
-            <Button asChild variant="ghost" className="h-8 px-3">
-              <Link href="/">
-                <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                Back to scanner
-              </Link>
-            </Button>
+            <div className="sx-stage-in" data-delay="0">
+              <Button asChild variant="ghost" className="h-8 px-3">
+                <Link href="/">
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                  Back to scanner
+                </Link>
+              </Button>
+            </div>
 
-            <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] xl:items-start">
-              <div className="space-y-5">
+            <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start">
+              <div className="sx-stage-in space-y-5" data-delay="1">
                 <p className="text-sm font-medium text-[var(--sx-accent)]">
                   {eyebrow}
                 </p>
-                <h1 className="sx-font-sans max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-[var(--sx-text)] sm:text-5xl lg:text-6xl">
+                <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-[var(--sx-text)] sm:text-5xl lg:text-6xl">
                   {title}
                 </h1>
-                <p className="sx-font-sans max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
+                <p className="max-w-3xl text-base leading-8 text-[var(--sx-text-muted)]">
                   {lead}
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
-                {proofRows.map((row) => (
-                  <div
-                    key={row.label}
-                    className="rounded-lg border border-border bg-card px-4 py-4"
-                  >
-                    <p className="text-xs text-[var(--sx-text-muted)]">
-                      {row.label}
-                    </p>
-                    <p className="sx-font-sans mt-2 text-xl font-semibold text-[var(--sx-text)]">
-                      {row.value}
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
-                      {row.body}
-                    </p>
-                  </div>
-                ))}
+              <div className="sx-stage-in grid gap-3 md:grid-cols-3 lg:grid-cols-1" data-delay="2">
+                {proofRows.map((row) => {
+                  const Icon = row.icon;
+                  return (
+                    <div
+                      key={row.label}
+                      className="rounded-lg border border-border bg-card px-4 py-4 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[var(--sx-active-accent)]"
+                    >
+                      <div className="flex items-start gap-3">
+                        {Icon ? (
+                          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sx-accent)]" aria-hidden="true" />
+                        ) : null}
+                        <div>
+                          <p className="text-xs text-[var(--sx-text-muted)]">
+                            {row.label}
+                          </p>
+                          <p className="mt-2 text-xl font-semibold text-[var(--sx-text)]">
+                            {row.value}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-[var(--sx-text-muted)]">
+                            {row.body}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

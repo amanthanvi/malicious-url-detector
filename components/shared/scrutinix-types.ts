@@ -86,13 +86,13 @@ export function getSignalSeverity(
   }
   if (name === "googleSafeBrowsing") {
     const d = data as { matches: unknown[] };
-    return d.matches.length > 0 ? "malicious" : "safe";
+    return (d.matches?.length ?? 0) > 0 ? "malicious" : "safe";
   }
   if (name === "threatFeeds") {
     const d = data as { matches: unknown[]; warnings?: string[] };
-    if (d.matches.length === 0 && (d.warnings?.length ?? 0) > 0)
+    if ((d.matches?.length ?? 0) === 0 && (d.warnings?.length ?? 0) > 0)
       return "neutral";
-    return d.matches.length > 0 ? "malicious" : "safe";
+    return (d.matches?.length ?? 0) > 0 ? "malicious" : "safe";
   }
   if (name === "mlEnsemble") {
     const d = data as { consensusLabel: string; warnings?: string[] };

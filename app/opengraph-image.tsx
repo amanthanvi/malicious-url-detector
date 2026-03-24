@@ -16,9 +16,9 @@ export default function OpenGraphImage() {
         width: "100%",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "#080c10",
+        background: "#0a0a0a",
         padding: "72px",
-        color: "#c8d6e5",
+        color: "#e5e5e5",
         fontFamily: "monospace",
       }}
     >
@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
           fontSize: 24,
           letterSpacing: "0.3em",
           textTransform: "uppercase",
-          color: "#7a8a9a",
+          color: "#737373",
         }}
       >
         SCRUTINIX
@@ -45,7 +45,7 @@ export default function OpenGraphImage() {
         >
           Stream link verdicts from 8 threat signals.
         </div>
-        <div style={{ fontSize: 30, maxWidth: "760px", color: "#7a8a9a" }}>
+        <div style={{ fontSize: 30, maxWidth: "760px", color: "#737373" }}>
           VirusTotal, Safe Browsing, community feeds, TLS, DNS, redirects,
           registration, and ML ensemble — streamed via NDJSON.
         </div>
@@ -56,7 +56,7 @@ export default function OpenGraphImage() {
           alignItems: "center",
           gap: 16,
           fontSize: 22,
-          color: "#7a8a9a",
+          color: "#737373",
         }}
       >
         <div

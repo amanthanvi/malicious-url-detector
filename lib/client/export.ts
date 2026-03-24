@@ -30,15 +30,17 @@ export function resultsToCsv(results: AnalysisResult[]) {
       result.verdict,
       String(result.threatInfo?.score ?? 0),
       String(result.threatInfo?.confidence ?? 0),
-      String(result.metadata.cacheHit),
-      result.metadata.completedAt,
+      String(result.metadata?.cacheHit ?? false),
+      result.metadata?.completedAt ?? "",
       (result.threatInfo?.reasons ?? []).slice(0, 3).join(" | "),
     ]),
   ];
 
   return rows
     .map((row) =>
-      row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","),
+      row
+        .map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`)
+        .join(","),
     )
     .join("\n");
 }

@@ -1,7 +1,10 @@
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { runThreatFeedsProvider } from "@/lib/server/providers/threat-feeds";
+import {
+  runThreatFeedsProvider,
+  URLHAUS_NO_LISTING_OBSERVATION,
+} from "@/lib/server/providers/threat-feeds";
 import { server } from "@/tests/setup/msw.server";
 
 beforeEach(() => {
@@ -31,6 +34,7 @@ describe("threat feed provider", () => {
 
     expect(urlhausHeader).toBe("urlhaus-key");
     expect(result.warnings).toEqual([]);
+    expect(result.observations).toEqual([URLHAUS_NO_LISTING_OBSERVATION]);
     expect(result.matches).toEqual([
       {
         feed: "openphish",

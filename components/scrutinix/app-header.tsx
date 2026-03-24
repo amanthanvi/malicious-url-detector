@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
@@ -9,16 +9,34 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AppHeaderProps {
   children?: ReactNode;
+  /** 0–100 threat score for the accent bar. Omit or 0 to hide. */
+  threatScore?: number;
+  /** CSS color value for the threat bar, e.g. "var(--sx-safe)" */
+  scoreColor?: string;
+  /** Whether a scan has been started (hides bar when false) */
+  hasActivity?: boolean;
 }
 
-export function AppHeader({ children }: AppHeaderProps) {
+export function AppHeader({
+  children,
+  threatScore = 0,
+  scoreColor,
+  hasActivity = false,
+}: AppHeaderProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
   const brand = (
     <>
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card">
-        <Shield className="h-4.5 w-4.5 text-[var(--sx-accent)]" />
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+        <Image
+          src="/favicon.ico"
+          alt=""
+          width={36}
+          height={36}
+          className="h-[1.35rem] w-[1.35rem] object-contain"
+          priority
+        />
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="sx-font-sans text-sm font-semibold text-[var(--sx-text)]">
@@ -51,31 +69,39 @@ export function AppHeader({ children }: AppHeaderProps) {
             </Link>
           )}
 
-          {!isHome ? (
-            <nav
-              aria-label="Primary"
-              className="hidden items-center gap-1 md:flex"
-            >
-              <Link
-                href="/"
-                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
-              >
-                Scanner
-              </Link>
-              <Link
-                href="/about"
-                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
-              >
-                Method
-              </Link>
-              <Link
-                href="/privacy"
-                className="sx-btn-press rounded-md px-2.5 py-1.5 text-sm text-[var(--sx-text-muted)] transition-colors hover:bg-muted hover:text-[var(--sx-text)]"
-              >
-                Privacy
-              </Link>
-            </nav>
-          ) : null}
+          <nav
+            aria-label="Primary"
+            className="hidden items-center gap-1 md:flex"
+          >
+            {[
+              { href: "/", label: "Scanner" },
+              { href: "/about", label: "Method" },
+              { href: "/privacy", label: "Privacy" },
+            ].map(({ href, label }) => {
+              const active = href === "/" ? isHome : pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`sx-btn-press flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${active ? "text-[var(--sx-text)]" : "text-[var(--sx-text-muted)] hover:bg-muted hover:text-[var(--sx-text)]"}`}
+                >
+                  {label}
+                  {active ? (
+                    <span
+                      className="sx-led"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        backgroundColor: hasActivity
+                          ? "var(--sx-active-accent)"
+                          : "var(--sx-border-muted)",
+                      }}
+                    />
+                  ) : null}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
         <div className="ml-auto flex flex-1 items-center justify-end gap-3">
@@ -85,13 +111,20 @@ export function AppHeader({ children }: AppHeaderProps) {
             </div>
           ) : null}
           <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-[var(--sx-text-muted)] sm:inline">
-              Multi-signal URL triage
-            </span>
             <ThemeToggle />
           </div>
         </div>
       </div>
+
+      {/* Threat bar — thin accent line that fills with score */}
+      <div
+        className="absolute bottom-0 left-0 h-[2px] transition-[width,background-color,opacity] duration-500 ease-out"
+        style={{
+          width: hasActivity ? `${Math.min(Math.max(threatScore, 0), 100)}%` : "0%",
+          backgroundColor: scoreColor ?? "var(--sx-active-accent)",
+          opacity: hasActivity ? 1 : 0,
+        }}
+      />
     </header>
   );
 }

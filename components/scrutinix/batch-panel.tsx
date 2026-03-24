@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Layers } from "lucide-react";
 
 import { formatDisplayUrl } from "@/lib/domain/url";
 import type { AnalysisResult } from "@/lib/domain/types";
@@ -31,11 +31,12 @@ export function BatchPanel({
 }: BatchPanelProps) {
   if (items.length === 0) {
     return (
-      <section className="sx-panel rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-10 text-center">
+      <section className="sx-panel flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--sx-border-muted)] px-6 py-10 text-center">
+        <Layers className="h-6 w-6 text-[var(--sx-border-muted)]" aria-hidden="true" />
         <h2 className="text-xs text-[var(--sx-text-muted)]">
           Batch results will appear here
         </h2>
-        <p className="sx-font-sans mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--sx-text-soft)]">
+        <p className="mx-auto max-w-xl text-sm leading-6 text-[var(--sx-text-soft)]">
           Queue multiple URLs, let each row resolve independently, and inspect a
           finished verdict without collapsing the rest of the stream.
         </p>
@@ -53,7 +54,7 @@ export function BatchPanel({
     >
       <div className="border-b border-border px-5 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-xs text-[var(--sx-text-muted)]">
               Batch stream
             </p>

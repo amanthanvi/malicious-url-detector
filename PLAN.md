@@ -237,3 +237,4 @@ Observed results:
 - 2026-03-23: The public-site redesign is easiest to keep coherent when the hero, scanner dock, workspace, and trust pages all share one token system and shell language; partial restyles drift quickly.
 - 2026-03-23: When a redesign is supposed to follow a shadcn preset, pull the generated preset first; matching the real token scale and control density matters more than loosely matching the mood.
 - 2026-03-23: The home route works better as a scanner-first dashboard than as a text-heavy hero; keeping the support/method layer below the workspace preserves readability on short laptop windows and mobile screens.
+- 2026-03-24: IndexedDB history and streamed NDJSON events need runtime normalization at the client boundary; stale stored entries and malformed upstream payloads can still bypass TypeScript and crash direct `.metadata`, `.signals`, `.length`, `.map`, or string-method reads.

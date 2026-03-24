@@ -9,6 +9,7 @@ import {
   useTransition,
 } from "react";
 
+import { sanitizeHistoryEntry } from "@/lib/domain/runtime-safety";
 import type { AnalysisResult, HistoryEntry, Verdict } from "@/lib/domain/types";
 
 interface HistoryDatabase extends DBSchema {
@@ -92,12 +93,17 @@ export function useScanHistory() {
   const filteredEntries = useMemo(() => {
     const query = historyQuery.trim().toLowerCase();
     return entries.filter((entry) => {
+      const url = typeof entry.url === "string" ? entry.url : "";
+      const summary =
+        typeof entry.threatInfo?.summary === "string"
+          ? entry.threatInfo.summary
+          : "";
       const matchesVerdict =
         filterVerdict === "all" || entry.verdict === filterVerdict;
       const matchesQuery =
         query.length === 0 ||
-        entry.url.toLowerCase().includes(query) ||
-        entry.threatInfo?.summary.toLowerCase().includes(query);
+        url.toLowerCase().includes(query) ||
+        summary.toLowerCase().includes(query);
       return matchesVerdict && matchesQuery;
     });
   }, [entries, filterVerdict, historyQuery]);
@@ -119,13 +125,20 @@ export function useScanHistory() {
 async function loadHistory() {
   const db = await getDatabase();
   const values = await db.getAllFromIndex(STORE_NAME, "by-saved-at");
-  return sortEntries(values);
+  return sortEntries(
+    values.flatMap((value) => {
+      const entry = sanitizeHistoryEntry(value);
+      return entry ? [entry] : [];
+    }),
+  );
 }
 
 function sortEntries(entries: HistoryEntry[]) {
-  return [...entries].sort((left, right) =>
-    right.savedAt.localeCompare(left.savedAt),
-  );
+  return [...entries].sort((left, right) => {
+    const leftSavedAt = typeof left.savedAt === "string" ? left.savedAt : "";
+    const rightSavedAt = typeof right.savedAt === "string" ? right.savedAt : "";
+    return rightSavedAt.localeCompare(leftSavedAt);
+  });
 }
 
 function getDatabase() {
@@ -201,9 +214,12 @@ async function readLegacyHistoryEntries() {
     "readonly",
   );
   const store = transaction.objectStore(STORE_NAME);
-  const entries = await requestToPromise<HistoryEntry[]>(store.getAll());
+  const entries = await requestToPromise<unknown[]>(store.getAll());
   legacyDatabase.database.close();
-  return entries;
+  return entries.flatMap((value) => {
+    const entry = sanitizeHistoryEntry(value);
+    return entry ? [entry] : [];
+  });
 }
 
 async function openLegacyDatabase() {

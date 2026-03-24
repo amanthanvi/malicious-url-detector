@@ -3,7 +3,7 @@
 
 :root {
   color-scheme: light;
-  --radius: 0.45rem;
+  --radius: 0.625rem;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -11,18 +11,18 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.488 0.243 264.376);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.49 0 0);
+  --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.97 0.014 17.04);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.898 0 0);
+  --input: oklch(0.898 0 0);
   --ring: oklch(0.708 0 0);
   --sx-focus-ring: var(--primary);
 
@@ -36,7 +36,7 @@
   --sx-border-muted: oklch(0.86 0 0);
   --sx-text: var(--foreground);
   --sx-text-muted: var(--muted-foreground);
-  --sx-text-soft: oklch(0.49 0 0);
+  --sx-text-soft: oklch(0.556 0 0);
   --sx-accent: var(--primary);
   --sx-accent-fg: var(--primary-foreground);
   --sx-safe: oklch(0.58 0.142 156.31);
@@ -63,8 +63,8 @@
   );
   --sx-error-ink: color-mix(in srgb, var(--sx-error) 70%, var(--foreground) 30%);
   --sx-info-ink: color-mix(in srgb, var(--sx-info) 64%, var(--foreground) 36%);
-  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.03), 0 12px 30px -22px rgb(0 0 0 / 0.16);
-  --sx-shadow-strong: 0 18px 42px -28px rgb(0 0 0 / 0.22);
+  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 10px 26px -20px rgb(0 0 0 / 0.18);
+  --sx-shadow-strong: 0 16px 38px -24px rgb(0 0 0 / 0.24);
   --sx-ring-safe: color-mix(in srgb, var(--sx-safe) 18%, transparent);
   --sx-ring-suspicious: color-mix(in srgb, var(--sx-suspicious) 18%, transparent);
   --sx-ring-malicious: color-mix(in srgb, var(--sx-malicious) 18%, transparent);
@@ -79,19 +79,19 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.424 0.199 265.638);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.274 0.006 286.033);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
+  --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.98 0.01 17.09);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.439 0 0);
   --sx-focus-ring: var(--primary);
 
   --sx-bg: oklch(0.145 0 0);
@@ -104,7 +104,7 @@
   --sx-border-muted: oklch(0.34 0 0);
   --sx-text: var(--foreground);
   --sx-text-muted: var(--muted-foreground);
-  --sx-text-soft: oklch(0.74 0 0);
+  --sx-text-soft: oklch(0.62 0 0);
   --sx-accent: var(--primary);
   --sx-accent-fg: var(--primary-foreground);
   --sx-safe: oklch(0.74 0.145 158.3);
@@ -119,8 +119,8 @@
   --sx-critical-ink: var(--sx-critical);
   --sx-error-ink: var(--sx-error);
   --sx-info-ink: var(--sx-info);
-  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.2), 0 14px 34px -24px rgb(0 0 0 / 0.5);
-  --sx-shadow-strong: 0 20px 44px -28px rgb(0 0 0 / 0.56);
+  --sx-shadow-soft: 0 1px 2px 0 rgb(0 0 0 / 0.22), 0 12px 30px -22px rgb(0 0 0 / 0.52);
+  --sx-shadow-strong: 0 18px 40px -26px rgb(0 0 0 / 0.58);
   --sx-ring-safe: color-mix(in srgb, var(--sx-safe) 22%, transparent);
   --sx-ring-suspicious: color-mix(in srgb, var(--sx-suspicious) 22%, transparent);
   --sx-ring-malicious: color-mix(in srgb, var(--sx-malicious) 22%, transparent);

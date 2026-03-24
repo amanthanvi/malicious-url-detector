@@ -134,16 +134,17 @@ function scoreGoogleSafeBrowsing(signals: SignalResults): Contribution[] {
   if (
     signal.status !== "success" ||
     !signal.data ||
-    signal.data.matches.length === 0
+    (signal.data.matches?.length ?? 0) === 0
   ) {
     return [];
   }
 
+  const matchCount = signal.data.matches?.length ?? 0;
   return [
     {
       score: 45,
       category: "Google Safe Browsing",
-      reason: `Google Safe Browsing reported ${signal.data.matches.length} threat match${signal.data.matches.length === 1 ? "" : "es"}.`,
+      reason: `Google Safe Browsing reported ${matchCount} threat match${matchCount === 1 ? "" : "es"}.`,
       quality: "high",
     },
   ];
@@ -154,12 +155,12 @@ function scoreThreatFeeds(signals: SignalResults): Contribution[] {
   if (
     signal.status !== "success" ||
     !signal.data ||
-    signal.data.matches.length === 0
+    (signal.data.matches?.length ?? 0) === 0
   ) {
     return [];
   }
 
-  return signal.data.matches.map((match) => ({
+  return (signal.data.matches ?? []).map((match) => ({
     score: match.confidence === "high" ? 32 : 20,
     category: "Threat Feed",
     reason: `${match.feed} listed the URL as ${match.detail}.`,
@@ -174,7 +175,7 @@ function scoreMlEnsemble(signals: SignalResults): Contribution[] {
   }
 
   const contributions: Contribution[] = [];
-  const consensusReason = signal.data.reasons.find(Boolean);
+  const consensusReason = (signal.data.reasons ?? []).find(Boolean);
 
   if (signal.data.consensusLabel === "malicious") {
     contributions.push({
@@ -212,7 +213,7 @@ function scoreSsl(signals: SignalResults): Contribution[] {
       score: 28,
       category: "TLS",
       reason:
-        signal.data.observations[0] ??
+        signal.data.observations?.[0] ??
         "The TLS certificate could not be validated cleanly.",
       quality: "low",
     });
@@ -237,7 +238,7 @@ function scoreDns(signals: SignalResults): Contribution[] {
     return [];
   }
 
-  return signal.data.anomalies.map((anomaly) => ({
+  return (signal.data.anomalies ?? []).map((anomaly) => ({
     score: anomaly.includes("punycode") ? 8 : 4,
     category: "DNS",
     reason: anomaly,
@@ -262,7 +263,7 @@ function scoreRedirects(signals: SignalResults): Contribution[] {
     });
   }
 
-  const downgradedToHttp = signal.data.hops.some((hop) =>
+  const downgradedToHttp = (signal.data.hops ?? []).some((hop) =>
     hop.location?.startsWith("http://"),
   );
   if (downgradedToHttp) {
@@ -603,7 +604,7 @@ function countCleanHighConfidenceSources(signals: SignalResults) {
   if (
     signals.googleSafeBrowsing.status === "success" &&
     signals.googleSafeBrowsing.data &&
-    signals.googleSafeBrowsing.data.matches.length === 0
+    (signals.googleSafeBrowsing.data.matches?.length ?? 0) === 0
   ) {
     count += 1;
   }
@@ -611,8 +612,8 @@ function countCleanHighConfidenceSources(signals: SignalResults) {
   if (
     signals.threatFeeds.status === "success" &&
     signals.threatFeeds.data &&
-    signals.threatFeeds.data.matches.length === 0 &&
-    signals.threatFeeds.data.warnings.length === 0
+    (signals.threatFeeds.data.matches?.length ?? 0) === 0 &&
+    (signals.threatFeeds.data.warnings?.length ?? 0) === 0
   ) {
     count += 1;
   }
@@ -635,7 +636,7 @@ function countPositiveHighConfidenceSources(signals: SignalResults) {
   if (
     signals.googleSafeBrowsing.status === "success" &&
     signals.googleSafeBrowsing.data &&
-    signals.googleSafeBrowsing.data.matches.length > 0
+    (signals.googleSafeBrowsing.data.matches?.length ?? 0) > 0
   ) {
     count += 1;
   }
@@ -643,7 +644,7 @@ function countPositiveHighConfidenceSources(signals: SignalResults) {
   if (
     signals.threatFeeds.status === "success" &&
     signals.threatFeeds.data &&
-    signals.threatFeeds.data.matches.length > 0
+    (signals.threatFeeds.data.matches?.length ?? 0) > 0
   ) {
     count += 1;
   }
@@ -679,7 +680,7 @@ function getModelAgreement(signals: SignalResults) {
     return 0.55;
   }
 
-  return signal.data.hostedModel.label === signal.data.lexicalModel.label
+  return signal.data.hostedModel.label === signal.data.lexicalModel?.label
     ? 1
     : 0.45;
 }
@@ -710,7 +711,8 @@ function countDataRichSignals(signals: SignalResults) {
         return (
           signal.status === "success" &&
           !!signal.data &&
-          (signal.data.matches.length > 0 || signal.data.warnings.length === 0)
+          ((signal.data.matches?.length ?? 0) > 0 ||
+            (signal.data.warnings?.length ?? 0) === 0)
         );
       }
       default:
@@ -772,9 +774,25 @@ export function classifyConsensus(
     hosted.score * labelRiskWeight(hosted.label) * 0.7 +
     lexical.score * labelRiskWeight(lexical.label) * 0.3;
 
+  let effectiveRisk = combinedRisk;
+  if (hosted.label === "benign" && lexical.label !== "benign") {
+    if (lexical.label === "malicious") {
+      effectiveRisk = Math.max(
+        combinedRisk,
+        Math.min(0.95, lexical.score * 0.97),
+      );
+    } else {
+      effectiveRisk = Math.max(combinedRisk, lexical.score * 0.78);
+    }
+  }
+
   const disagreementNote =
     hosted.label !== lexical.label
-      ? ["Model disagreement reduced the ensemble certainty."]
+      ? hosted.label === "benign" && lexical.label !== "benign"
+        ? [
+            "The hosted model scored this link benign, but lexical heuristics disagreed; effective risk was raised to reflect structural evidence.",
+          ]
+        : ["Model disagreement reduced the ensemble certainty."]
       : [
           "The hosted and lexical models agreed on the classification direction.",
         ];
@@ -783,13 +801,13 @@ export function classifyConsensus(
     label:
       (hosted.label === "malicious" &&
         lexical.label !== "benign" &&
-        combinedRisk >= 0.55) ||
-      combinedRisk >= 0.74
+        effectiveRisk >= 0.55) ||
+      effectiveRisk >= 0.74
         ? "malicious"
-        : combinedRisk >= 0.38
+        : effectiveRisk >= 0.38
           ? "risky"
           : "benign",
-    score: Number(combinedRisk.toFixed(2)),
+    score: Number(effectiveRisk.toFixed(2)),
     reasons: [
       ...new Set([...hosted.reasons, ...lexical.reasons, ...disagreementNote]),
     ],

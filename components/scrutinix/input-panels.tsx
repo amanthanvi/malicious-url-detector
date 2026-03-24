@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowRight, Download, Link2, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  CornerDownLeft,
+  Download,
+  Link2,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 import type { AnalysisResult } from "@/lib/domain/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,13 +43,13 @@ export function SingleInput({
   const hasUrl = url.trim().length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="text-xs text-[var(--sx-text-muted)]">
             Single target
           </h2>
-          <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
+          <p className="max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
             Run one URL, then keep the result open for export or share.
           </p>
         </div>
@@ -52,35 +59,38 @@ export function SingleInput({
         </Badge>
       </div>
 
+      <label htmlFor="sx-url-input" className="sr-only">
+        URL to analyze
+      </label>
       <div
-        className="rounded-lg border bg-card p-3"
+        className={`sx-input-glow flex items-center gap-3 rounded-lg border bg-card px-4 transition-[border-color,box-shadow] duration-200${streaming ? " sx-scan-line" : ""}`}
         style={{
-          borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
+          borderColor: error
+            ? "var(--sx-suspicious)"
+            : streaming
+              ? "var(--sx-active-accent)"
+              : "var(--sx-border)",
         }}
       >
-        <label htmlFor="sx-url-input" className="sr-only">
-          URL to analyze
-        </label>
-        <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3">
-          <Input
-            id="sx-url-input"
-            type="text"
-            value={url}
-            onChange={(e) => onUrlChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape" && streaming) {
-                onCancel();
-                return;
-              }
-              if (e.key === "Enter" && !streaming) onSubmit();
-            }}
-            placeholder="https://example.com/suspicious"
-            aria-label="URL to analyze"
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? "sx-url-error" : undefined}
-            className="h-11 border-0 bg-transparent px-0 text-[var(--sx-text)] shadow-none focus-visible:ring-0"
-          />
-        </div>
+        <Search className="h-4 w-4 shrink-0 text-[var(--sx-text-soft)]" aria-hidden="true" />
+        <Input
+          id="sx-url-input"
+          type="text"
+          value={url}
+          onChange={(e) => onUrlChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && streaming) {
+              onCancel();
+              return;
+            }
+            if (e.key === "Enter" && !streaming) onSubmit();
+          }}
+          placeholder="https://example.com/suspicious"
+          aria-label="URL to analyze"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "sx-url-error" : undefined}
+          className="h-12 border-0 bg-transparent px-0 text-[var(--sx-text)] shadow-none"
+        />
       </div>
 
       {error && (
@@ -95,11 +105,12 @@ export function SingleInput({
           onClick={onSubmit}
           disabled={streaming || !hasUrl}
           variant="terminal"
+          aria-label={streaming ? "Analyzing" : "Analyze URL, or press Enter"}
         >
           {streaming ? (
             <RefreshCw className="h-3 w-3 animate-spin" />
           ) : (
-            <ArrowRight className="h-3 w-3" />
+            <CornerDownLeft className="h-3 w-3" aria-hidden />
           )}
           Analyze
         </Button>
@@ -122,10 +133,6 @@ export function SingleInput({
           </>
         )}
       </div>
-
-      <p className="text-xs leading-5 text-[var(--sx-text-soft)]">
-        Press Enter to scan. Local history stays in your browser.
-      </p>
     </div>
   );
 }
@@ -164,13 +171,13 @@ export function BatchInput({
   const hasUrls = value.trim().length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="text-xs text-[var(--sx-text-muted)]">
             Batch queue
           </h2>
-          <p className="sx-font-sans max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
+          <p className="max-w-lg text-sm leading-6 text-[var(--sx-text-muted)]">
             Queue up to 10 URLs. Scrutinix runs 3 in parallel and isolates
             failures per row.
           </p>
@@ -186,32 +193,34 @@ export function BatchInput({
         URLs to analyze (one per line)
       </label>
       <div
-        className="rounded-lg border bg-card p-3"
+        className={`sx-input-glow rounded-lg border bg-card px-4 pt-3 pb-1 transition-[border-color,box-shadow] duration-200${streaming ? " sx-scan-line" : ""}`}
         style={{
-          borderColor: error ? "var(--sx-suspicious)" : "var(--sx-border)",
+          borderColor: error
+            ? "var(--sx-suspicious)"
+            : streaming
+              ? "var(--sx-active-accent)"
+              : "var(--sx-border)",
         }}
       >
-        <div className="flex items-start gap-3 rounded-md border border-border bg-background px-3 pt-3">
-          <Textarea
-            id="sx-batch-input"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape" && streaming) {
-                onCancel();
-                return;
-              }
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !streaming)
-                onSubmit();
-            }}
-            rows={5}
-            placeholder={"https://example.com\nhttps://malicious.test"}
-            aria-label="URLs to analyze, one per line"
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? "sx-batch-error" : undefined}
-            className="min-h-0 resize-none border-0 bg-transparent px-0 pb-3 text-[var(--sx-text)] shadow-none focus-visible:ring-0"
-          />
-        </div>
+        <Textarea
+          id="sx-batch-input"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && streaming) {
+              onCancel();
+              return;
+            }
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && !streaming)
+              onSubmit();
+          }}
+          rows={5}
+          placeholder={"https://example.com\nhttps://malicious.test"}
+          aria-label="URLs to analyze, one per line"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "sx-batch-error" : undefined}
+          className="min-h-0 resize-none border-0 bg-transparent px-0 pb-3 text-[var(--sx-text)] shadow-none"
+        />
       </div>
 
       {error && (

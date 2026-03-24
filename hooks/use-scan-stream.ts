@@ -6,10 +6,13 @@ import { readNdjsonStream } from "@/lib/client/ndjson";
 import {
   createPendingSignalResults,
   type AnalysisResult,
-  type AnalyzeEvent,
   type ApiError,
   type SignalResults,
 } from "@/lib/domain/types";
+import {
+  sanitizeAnalyzeEvent,
+  sanitizeApiErrorResponse,
+} from "@/lib/domain/runtime-safety";
 
 interface ScanState {
   url: string;
@@ -62,16 +65,25 @@ export function useScanStream(onComplete?: (result: AnalysisResult) => void) {
         });
 
         if (!response.ok) {
-          const payload = (await response.json()) as { error: ApiError };
+          const payload = await response.json().catch(() => null);
+          const error = sanitizeApiErrorResponse(
+            payload,
+            `Scan request failed with status ${response.status}.`,
+          );
           setState((previous) => ({
             ...previous,
-            error: payload.error,
+            error,
             isStreaming: false,
           }));
           return;
         }
 
-        await readNdjsonStream<AnalyzeEvent>(response, (event) => {
+        await readNdjsonStream(response, (rawEvent) => {
+          const event = sanitizeAnalyzeEvent(rawEvent);
+          if (!event) {
+            return;
+          }
+
           if (event.type === "scan_started") {
             setState((previous) => ({
               ...previous,

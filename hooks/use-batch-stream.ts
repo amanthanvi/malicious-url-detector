@@ -3,7 +3,11 @@
 import { useCallback, useRef, useState } from "react";
 
 import { readNdjsonStream } from "@/lib/client/ndjson";
-import type { AnalysisResult, ApiError, BatchEvent } from "@/lib/domain/types";
+import {
+  sanitizeApiErrorResponse,
+  sanitizeBatchEvent,
+} from "@/lib/domain/runtime-safety";
+import type { AnalysisResult, ApiError } from "@/lib/domain/types";
 
 interface BatchItem {
   index: number;
@@ -59,16 +63,25 @@ export function useBatchStream(
         });
 
         if (!response.ok) {
-          const payload = (await response.json()) as { error: ApiError };
+          const payload = await response.json().catch(() => null);
+          const error = sanitizeApiErrorResponse(
+            payload,
+            `Batch request failed with status ${response.status}.`,
+          );
           setState((previous) => ({
             ...previous,
-            error: payload.error,
+            error,
             isStreaming: false,
           }));
           return;
         }
 
-        await readNdjsonStream<BatchEvent>(response, (event) => {
+        await readNdjsonStream(response, (rawEvent) => {
+          const event = sanitizeBatchEvent(rawEvent);
+          if (!event) {
+            return;
+          }
+
           if (event.type === "url_complete") {
             setState((previous) => ({
               ...previous,

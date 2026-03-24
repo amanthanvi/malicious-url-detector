@@ -4,9 +4,19 @@ import type { WhoisData } from "@/lib/domain/types";
 import { fetchWithTimeout } from "@/lib/server/http";
 import { getErrorMessage, SignalSkipError } from "@/lib/server/signal-error";
 
-interface RdapEvent {
-  eventAction: string;
-  eventDate?: string;
+/* RdapEvent interface removed — RDAP fields are now validated at runtime via asRecord(). */
+
+interface RdapEntity {
+  roles?: string[];
+  vcardArray?: unknown[];
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
 }
 
 export async function runWhoisSignal(url: string): Promise<WhoisData> {
@@ -34,21 +44,21 @@ export async function runWhoisSignal(url: string): Promise<WhoisData> {
       throw new Error(`RDAP lookup failed with status ${response.status}.`);
     }
 
-    const payload = (await response.json()) as {
-      handle?: string;
-      links?: Array<{ href?: string }>;
-      entities?: Array<{ roles?: string[]; vcardArray?: unknown[] }>;
-      country?: string;
-      events?: RdapEvent[];
-    };
-
-    const registrationDate = getEventDate(payload.events ?? [], "registration");
-    const updatedAt = getEventDate(payload.events ?? [], "last changed");
-    const expiresAt = getEventDate(payload.events ?? [], "expiration");
-    const registrarEntity = payload.entities?.find((entity) =>
-      entity.roles?.includes("registrar"),
+    const payload = asRecord(await response.json());
+    const events = Array.isArray(payload?.events) ? payload.events : [];
+    const entities = Array.isArray(payload?.entities) ? payload.entities : [];
+    const links = Array.isArray(payload?.links) ? payload.links : [];
+    const registrationDate = getEventDate(events, "registration");
+    const updatedAt = getEventDate(events, "last changed");
+    const expiresAt = getEventDate(events, "expiration");
+    const registrarEntity = entities.find((entity) => {
+      const record = asRecord(entity);
+      return Array.isArray(record?.roles) && record.roles.includes("registrar");
+    });
+    const registrar = readVcardField(
+      readEntity(registrarEntity)?.vcardArray,
+      "fn",
     );
-    const registrar = readVcardField(registrarEntity?.vcardArray, "fn");
     const ageDays = registrationDate
       ? Math.round(
           (Date.now() - new Date(registrationDate).getTime()) /
@@ -64,9 +74,9 @@ export async function runWhoisSignal(url: string): Promise<WhoisData> {
       updatedAt,
       expiresAt,
       ageDays,
-      country: payload.country ?? null,
-      handle: payload.handle ?? null,
-      rdapUrl: payload.links?.[0]?.href ?? rdapUrl,
+      country: typeof payload?.country === "string" ? payload.country : null,
+      handle: typeof payload?.handle === "string" ? payload.handle : null,
+      rdapUrl: readHref(links[0]) ?? rdapUrl,
       observations:
         registrar === null
           ? ["The RDAP response did not identify a registrar name."]
@@ -94,11 +104,16 @@ export async function runWhoisSignal(url: string): Promise<WhoisData> {
   }
 }
 
-function getEventDate(events: RdapEvent[], action: string) {
-  return (
-    events.find((event) => event.eventAction.toLowerCase() === action)
-      ?.eventDate ?? null
-  );
+function getEventDate(events: unknown[], action: string) {
+  const event = events.find((item) => {
+    const record = asRecord(item);
+    return (
+      typeof record?.eventAction === "string" &&
+      record.eventAction.toLowerCase() === action
+    );
+  });
+  const record = asRecord(event);
+  return typeof record?.eventDate === "string" ? record.eventDate : null;
 }
 
 function readVcardField(vcardArray: unknown[] | undefined, name: string) {
@@ -106,10 +121,30 @@ function readVcardField(vcardArray: unknown[] | undefined, name: string) {
     return null;
   }
 
-  const record = (vcardArray[1] as unknown[]).find(
+  const entries = vcardArray[1];
+  const record = entries.find(
     (entry): entry is [string, unknown, unknown, string] =>
       Array.isArray(entry) && entry[0] === name,
   );
 
   return record?.[3] ?? null;
+}
+
+function readHref(value: unknown) {
+  const record = asRecord(value);
+  return typeof record?.href === "string" ? record.href : null;
+}
+
+function readEntity(value: unknown): RdapEntity | null {
+  const record = asRecord(value);
+  if (!record) {
+    return null;
+  }
+
+  return {
+    roles: Array.isArray(record.roles)
+      ? record.roles.filter((role): role is string => typeof role === "string")
+      : undefined,
+    vcardArray: Array.isArray(record.vcardArray) ? record.vcardArray : undefined,
+  };
 }

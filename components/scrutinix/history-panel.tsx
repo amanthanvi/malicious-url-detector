@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Trash2 } from "lucide-react";
+import { Database, Download, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -121,15 +121,15 @@ export function HistoryPanel({
     >
       <div className="border-b border-border px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <p className="text-xs text-[var(--sx-text-muted)]">
                 History rail
               </p>
               <Badge variant="neutral">{entries.length}</Badge>
             </div>
-            <h2 className="sx-font-sans text-xl font-semibold text-[var(--sx-text)]">
-              Recent verdicts stay local.
+            <h2 className="text-xl font-semibold text-[var(--sx-text)]">
+              Scan history
             </h2>
             <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
               {statusText}
@@ -229,18 +229,21 @@ export function HistoryPanel({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 px-3 py-3">
+      <div className="min-h-0 flex-1 px-4 py-4">
         {entries.length === 0 ? (
-          <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[var(--sx-border-muted)] px-5 py-8 text-center text-sm leading-6 text-[var(--sx-text-soft)]">
-            {historyQuery || filterVerdict !== "all"
-              ? "No scans match the current filter."
-              : canUndoClear
-                ? "History cleared locally. Undo is still available."
-                : "Completed scans persist here via IndexedDB."}
+          <div className="flex h-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[var(--sx-border-muted)] px-5 py-8 text-center">
+            <Database className="h-6 w-6 text-[var(--sx-border-muted)]" aria-hidden="true" />
+            <p className="text-sm leading-6 text-[var(--sx-text-soft)]">
+              {historyQuery || filterVerdict !== "all"
+                ? "No scans match the current filter."
+                : canUndoClear
+                  ? "History cleared locally. Undo is still available."
+                  : "Completed scans persist here via IndexedDB."}
+            </p>
           </div>
         ) : (
           <ScrollArea className="h-full pr-1">
-            <div className="space-y-2 pr-2">
+            <div className="space-y-3 pr-2">
               {entries.map((entry) => (
                 <button
                   key={entry.id}

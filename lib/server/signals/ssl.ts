@@ -3,13 +3,24 @@ import { isIP } from "node:net";
 
 import type { SSLData } from "@/lib/domain/types";
 
+/** Resolves host/port for the TLS probe (exported for unit tests). */
+export function getTlsProbeTarget(url: string): { hostname: string; port: number } {
+  const target = new URL(url);
+  const hostname = target.hostname;
+  const defaultPort = target.protocol === "https:" ? 443 : 80;
+  const port =
+    target.port !== "" ? Number(target.port) || defaultPort : defaultPort;
+
+  return { hostname, port };
+}
+
 export async function runSslSignal(url: string): Promise<SSLData> {
-  const hostname = new URL(url).hostname;
+  const { hostname, port } = getTlsProbeTarget(url);
 
   return new Promise<SSLData>((resolve) => {
     const socket = tls.connect({
       host: hostname,
-      port: 443,
+      port,
       servername: isIP(hostname) ? undefined : hostname,
       rejectUnauthorized: false,
     });
@@ -89,7 +100,7 @@ export async function runSslSignal(url: string): Promise<SSLData> {
 
     socket.once("error", (error) => {
       socket.destroy();
-      resolve(createUnavailableSslData(describeTlsFailure(error)));
+      resolve(createUnavailableSslData(describeTlsFailure(error, port)));
     });
   });
 }
@@ -177,7 +188,7 @@ function getValidationState(
   return "invalid";
 }
 
-function describeTlsFailure(error: unknown) {
+function describeTlsFailure(error: unknown, port: number) {
   if (!(error instanceof Error)) {
     return "The TLS probe failed unexpectedly.";
   }
@@ -187,7 +198,7 @@ function describeTlsFailure(error: unknown) {
 
   switch (code) {
     case "ECONNREFUSED":
-      return "The host refused a TLS connection on port 443.";
+      return `The host refused a TLS connection on port ${port}.`;
     case "ENOTFOUND":
       return "The hostname could not be resolved for the TLS probe.";
     case "ECONNRESET":

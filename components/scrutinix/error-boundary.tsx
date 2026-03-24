@@ -24,8 +24,8 @@ export class ScrutinixErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="scrutinix-theme flex min-h-screen items-center justify-center">
-          <div className="max-w-md rounded border border-[var(--sx-malicious)] bg-[var(--sx-surface)] p-6 text-center">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="sx-panel max-w-md rounded-xl border border-[var(--sx-malicious)] p-6 text-center">
             <p className="text-sm font-semibold text-[var(--sx-malicious)]">
               Workspace fault
             </p>

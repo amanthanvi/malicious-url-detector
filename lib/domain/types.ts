@@ -84,6 +84,8 @@ export interface ThreatFeedsData {
     detail: string;
     confidence: "medium" | "high";
   }>;
+  /** Informational notes (e.g. URLhaus responded but this exact URL is not listed). */
+  observations: string[];
   warnings: string[];
 }
 

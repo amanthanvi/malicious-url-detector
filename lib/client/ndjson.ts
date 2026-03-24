@@ -1,6 +1,6 @@
-export async function readNdjsonStream<T>(
+export async function readNdjsonStream(
   response: Response,
-  onEvent: (event: T) => void,
+  onEvent: (event: unknown) => void,
 ) {
   const reader = response.body?.getReader();
   if (!reader) {
@@ -25,11 +25,11 @@ export async function readNdjsonStream<T>(
         continue;
       }
 
-      onEvent(JSON.parse(line) as T);
+      onEvent(JSON.parse(line));
     }
   }
 
   if (buffer.trim()) {
-    onEvent(JSON.parse(buffer) as T);
+    onEvent(JSON.parse(buffer));
   }
 }

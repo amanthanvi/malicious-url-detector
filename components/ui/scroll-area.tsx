@@ -43,7 +43,7 @@ function ScrollBar({
       )}
       {...props}
     >
-      <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-[var(--sx-border-muted)]" />
+      <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-[var(--sx-text-soft)] opacity-50 transition-opacity hover:opacity-70" />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   );
 }
