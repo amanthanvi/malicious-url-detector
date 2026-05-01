@@ -1,4 +1,11 @@
-import type { SignalName, SignalPayloadMap, Verdict } from "@/lib/domain/types";
+import {
+  signalNames,
+  type SignalName,
+  type SignalPayloadMap,
+  type Verdict,
+} from "@/lib/domain/types";
+
+export const SIGNAL_COUNT = signalNames.length;
 
 export interface SharedSnapshot {
   verdict: Verdict;

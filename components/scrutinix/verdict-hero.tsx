@@ -14,6 +14,7 @@ import { threatScoreBandLabel } from "@/lib/domain/score-bands";
 import { formatDisplayUrl } from "@/lib/domain/url";
 import { createPendingSignalResults, type AnalysisResult } from "@/lib/domain/types";
 import {
+  SIGNAL_COUNT,
   verdictColor,
   verdictInk,
   type SharedSnapshot,
@@ -121,7 +122,9 @@ export function VerdictHero({
             <div className="max-w-xl">
               <div className="flex items-center justify-between gap-3 text-xs text-[var(--sx-text-muted)]">
                 <span>Signal coverage</span>
-                <span>{completedSignals}/8 complete</span>
+                <span>
+                  {completedSignals}/{SIGNAL_COUNT} complete
+                </span>
               </div>
               <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[var(--sx-border)]">
                 <div
@@ -142,7 +145,7 @@ export function VerdictHero({
               isStreaming
             />
             <p className="sx-font-hack text-sm tabular-nums text-[var(--sx-text-soft)]">
-              {completedSignals}/8 signals
+              {completedSignals}/{SIGNAL_COUNT} signals
             </p>
           </div>
         </div>
@@ -204,10 +207,10 @@ export function VerdictHero({
                 : "Limited coverage",
           body:
             showLimitedCoverage && showProvisionalSafe
-              ? `This verdict is based on ${completedSignalCount}/8 completed signals. ${failedSignals > 0 ? `${failedSignals} failed` : "No signals failed"}${skippedSignals > 0 ? ` and ${skippedSignals} were not applicable` : ""}. The completed signals did not show direct malicious indicators, but the confidence is still low enough that this result should not be treated as a clean bill of health.`
+              ? `This verdict is based on ${completedSignalCount}/${SIGNAL_COUNT} completed signals. ${failedSignals > 0 ? `${failedSignals} failed` : "No signals failed"}${skippedSignals > 0 ? ` and ${skippedSignals} were not applicable` : ""}. The completed signals did not show direct malicious indicators, but the confidence is still low enough that this result should not be treated as a clean bill of health.`
               : showProvisionalSafe
                 ? "The completed signals did not show direct malicious indicators, but the confidence is low enough that this result should not be treated as a clean bill of health."
-                : `This verdict is based on ${completedSignalCount}/8 completed signals. ${failedSignals > 0 ? `${failedSignals} failed` : "No signals failed"}${skippedSignals > 0 ? ` and ${skippedSignals} were not applicable` : ""}.`,
+                : `This verdict is based on ${completedSignalCount}/${SIGNAL_COUNT} completed signals. ${failedSignals > 0 ? `${failedSignals} failed` : "No signals failed"}${skippedSignals > 0 ? ` and ${skippedSignals} were not applicable` : ""}.`,
         }
       : null;
 
@@ -474,7 +477,7 @@ export function VerdictHero({
                     Coverage
                   </p>
                   <p className="mt-2 text-lg font-semibold tabular-nums text-[var(--sx-text)]">
-                    {completedSignalCount}/8 signals
+                    {completedSignalCount}/{SIGNAL_COUNT} signals
                   </p>
                 </div>
                 <div>
