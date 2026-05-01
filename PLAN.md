@@ -213,6 +213,16 @@ Observed results:
 - [x] Add npm overrides for vulnerable transitive leaf packages where upstream parents still pin stale versions.
 - [x] Re-run npm install, audit, typecheck, lint, unit tests, integration tests, and production build after the refresh.
 
+### P19 Parallel audit remediation pass
+
+- [x] Fix Redis REST env resolution so both Upstash and Vercel KV aliases construct a client explicitly.
+- [x] Prevent incomplete partial-failure scan results from being cached as reusable successful results.
+- [x] Harden active TLS and redirect probes against private, local, reserved, rebinding, IPv4-mapped, and private NAT64 targets.
+- [x] Move runtime result and stream-event boundaries to Zod schemas while preserving the existing sanitizer APIs.
+- [x] Split the analyzer client island into smaller runtime, chrome, workspace, history, and footer modules.
+- [x] Add a minimal GitHub Actions CI workflow for install, audit, lint, typecheck, unit/integration tests, and build.
+- [x] Run focused checks on each branch, external PR review loops, Vercel previews, and a final merged verification pass.
+
 ## Notes / Discoveries
 
 - 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
@@ -245,3 +255,6 @@ Observed results:
 - 2026-03-23: The home route works better as a scanner-first dashboard than as a text-heavy hero; keeping the support/method layer below the workspace preserves readability on short laptop windows and mobile screens.
 - 2026-03-24: IndexedDB history and streamed NDJSON events need runtime normalization at the client boundary; stale stored entries and malformed upstream payloads can still bypass TypeScript and crash direct `.metadata`, `.signals`, `.length`, `.map`, or string-method reads.
 - 2026-05-01: Next `16.2.4` resolves the direct Next advisories but still pins vulnerable `postcss`; keep the npm `overrides` block until upstream package pins move past the audited vulnerable leaves.
+- 2026-05-01: Active network probes must validate every resolved address and pin outbound sockets to the validated public address; checking only the hostname or first DNS answer leaves room for private-address redirects and rebinding.
+- 2026-05-01: Cache only complete non-error analysis results; a clean verdict with provider partial failures can otherwise mask upstream outages for the full cache TTL.
+- 2026-05-01: Keeping parallel PRs out of `PLAN.md` avoided artificial merge conflicts; use one consolidated plan update after the code branches land.
