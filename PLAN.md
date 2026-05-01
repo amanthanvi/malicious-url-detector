@@ -13,10 +13,10 @@ cleanup.
 
 ## Current Snapshot
 
-- Date: 2026-03-23
-- Execution status: `P17 completed and verified`
+- Date: 2026-05-01
+- Execution status: `P18 completed and verified`
 - Platform:
-  - Next.js `16.1.6`
+  - Next.js `16.2.4`
   - React `19.2.x`
   - Node `22 LTS`
   - NDJSON streaming over `fetch`
@@ -61,7 +61,7 @@ Observed results:
 - Integration tests: `2` files passed, `6` tests passed, including batch per-URL failure isolation.
 - Playwright smoke: `6` tests passed, covering legacy history migration, single-scan, batch-scan, accessibility, keyboard navigation, and history clear undo.
 - Production build: passed with static metadata routes for `/icon`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
-- Security audit: `0` vulnerabilities reported across prod and dev dependencies.
+- Security audit: `0` vulnerabilities reported across prod and dev dependencies after the 2026-05-01 dependency refresh.
 - Lighthouse:
   - Performance `0.91`
   - Accessibility `1.00`
@@ -207,6 +207,12 @@ Observed results:
 - [x] Update smoke assertions to target stable functional affordances instead of removed marketing copy.
 - [x] Re-run lint, typecheck, build, favicon endpoint checks, and Playwright smoke after the cleanup pass.
 
+### P18 Refresh dependency advisories
+
+- [x] Update Next/eslint-config-next, PostCSS, Vitest/Vite, Playwright, Lighthouse, and MSW patch/minor lanes for Node 22 compatibility.
+- [x] Add npm overrides for vulnerable transitive leaf packages where upstream parents still pin stale versions.
+- [x] Re-run npm install, audit, typecheck, lint, unit tests, integration tests, and production build after the refresh.
+
 ## Notes / Discoveries
 
 - 2026-03-06: Next.js `16.1.6` deprecates the `middleware.ts` convention in favor of `proxy.ts`; the rebuilt app follows the new convention while preserving the same request-gating role.
@@ -238,3 +244,4 @@ Observed results:
 - 2026-03-23: When a redesign is supposed to follow a shadcn preset, pull the generated preset first; matching the real token scale and control density matters more than loosely matching the mood.
 - 2026-03-23: The home route works better as a scanner-first dashboard than as a text-heavy hero; keeping the support/method layer below the workspace preserves readability on short laptop windows and mobile screens.
 - 2026-03-24: IndexedDB history and streamed NDJSON events need runtime normalization at the client boundary; stale stored entries and malformed upstream payloads can still bypass TypeScript and crash direct `.metadata`, `.signals`, `.length`, `.map`, or string-method reads.
+- 2026-05-01: Next `16.2.4` resolves the direct Next advisories but still pins vulnerable `postcss`; keep the npm `overrides` block until upstream package pins move past the audited vulnerable leaves.
