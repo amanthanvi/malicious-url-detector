@@ -1,8 +1,42 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const redisConstructor = vi.hoisted(() =>
+  vi.fn(function Redis() {
+    return {};
+  }),
+);
+
+vi.mock("@upstash/redis", () => ({
+  Redis: redisConstructor,
+}));
+
+vi.mock("@upstash/ratelimit", () => {
+  class MockRatelimit {
+    static slidingWindow(limit: number, window: string) {
+      return { limit, window };
+    }
+
+    async limit() {
+      return {
+        success: true,
+        remaining: 9,
+        reset: 1_900_000_000_000,
+      };
+    }
+  }
+
+  return {
+    Ratelimit: MockRatelimit,
+  };
+});
 
 import { applyRateLimit, getRedisRestConfig } from "@/lib/server/rate-limit";
 
 describe("applyRateLimit", () => {
+  beforeEach(() => {
+    redisConstructor.mockClear();
+  });
+
   it("enforces the per-minute limit in development mode", async () => {
     vi.stubEnv("NODE_ENV", "development");
 
@@ -39,6 +73,22 @@ describe("applyRateLimit", () => {
     vi.stubEnv("KV_REST_API_TOKEN", "kv-token");
 
     expect(getRedisRestConfig()).toEqual({
+      url: "https://example-kv.upstash.io",
+      token: "kv-token",
+    });
+  });
+
+  it("constructs Redis from Vercel KV aliases in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    vi.stubEnv("KV_REST_API_URL", "https://example-kv.upstash.io");
+    vi.stubEnv("KV_REST_API_TOKEN", "kv-token");
+
+    const result = await applyRateLimit("203.0.113.20");
+
+    expect(result.success).toBe(true);
+    expect(redisConstructor).toHaveBeenCalledWith({
       url: "https://example-kv.upstash.io",
       token: "kv-token",
     });

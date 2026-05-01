@@ -53,7 +53,10 @@ export async function applyRateLimit(identifier: string): Promise<LimitResult> {
     return applyInMemoryLimit(identifier);
   }
 
-  const redis = Redis.fromEnv();
+  const redis = new Redis({
+    url: redisUrl,
+    token: redisToken,
+  });
   const minuteLimiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(MINUTE_LIMIT, "1 m"),
