@@ -48,7 +48,7 @@
     "hack-font": "^3.3.0",
     "idb": "^8.0.3",
     "lucide-react": "^0.577.0",
-    "next": "16.1.6",
+    "next": "16.2.4",
     "next-themes": "^0.4.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -58,21 +58,42 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "chrome-launcher": "^1.2.1",
     "eslint": "^9.38.0",
-    "eslint-config-next": "16.1.6",
-    "lighthouse": "^13.0.3",
-    "msw": "^2.12.10",
-    "postcss": "^8.5.8",
+    "eslint-config-next": "16.2.4",
+    "lighthouse": "^13.2.0",
+    "msw": "^2.14.2",
+    "postcss": "8.5.13",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "flat-cache": {
+      "flatted": "3.4.2"
+    },
+    "lighthouse": {
+      "lodash-es": "4.18.1"
+    },
+    "minimatch@^3.1.0": {
+      "brace-expansion": "1.1.14"
+    },
+    "minimatch@^9.0.0": {
+      "brace-expansion": "2.1.0"
+    },
+    "minimatch@^10.0.0": {
+      "brace-expansion": "5.0.5"
+    },
+    "postcss": "8.5.13",
+    "vitest": {
+      "picomatch": "4.0.4"
+    }
   }
 }
