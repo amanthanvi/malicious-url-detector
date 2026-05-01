@@ -1,122 +1,41 @@
-import fs from "node:fs";
+import { lookup } from "node:dns/promises";
 import http from "node:http";
-import https from "node:https";
-import path from "node:path";
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { runRedirectSignal } from "@/lib/server/signals/redirect-chain";
 
-const fixturesDir = path.join(process.cwd(), "tests/fixtures");
-const key = fs.readFileSync(
-  path.join(fixturesDir, "localhost-self-signed.key.pem"),
-  "utf8",
-);
-const cert = fs.readFileSync(
-  path.join(fixturesDir, "localhost-self-signed.cert.pem"),
-  "utf8",
-);
+vi.mock("node:dns/promises", () => ({
+  lookup: vi.fn(),
+}));
 
-let httpServer: http.Server | undefined;
-let httpsServer: https.Server | undefined;
-let httpUrl = "";
-let httpsUrl = "";
+vi.mock("node:http", () => ({
+  default: {
+    request: vi.fn(),
+  },
+}));
 
-beforeAll(async () => {
-  httpsServer = https.createServer({ key, cert }, (_request, response) => {
-    response.writeHead(200, {
-      "content-type": "text/plain",
-    });
-    response.end("ok");
-  });
+vi.mock("node:https", () => ({
+  default: {
+    request: vi.fn(),
+  },
+}));
 
-  await new Promise<void>((resolve) => {
-    httpsServer?.listen(0, "127.0.0.1", () => {
-      resolve();
-    });
-  });
+const lookupMock = vi.mocked(lookup);
+const requestMock = vi.mocked(http.request);
 
-  const httpsAddress = httpsServer.address();
-  if (!httpsAddress || typeof httpsAddress === "string") {
-    throw new Error("Failed to determine HTTPS test server port.");
-  }
-
-  httpsUrl = `https://127.0.0.1:${httpsAddress.port}/secure`;
-
-  httpServer = http.createServer((_request, response) => {
-    response.writeHead(301, {
-      location: httpsUrl,
-    });
-    response.end();
-  });
-
-  await new Promise<void>((resolve) => {
-    httpServer?.listen(0, "127.0.0.1", () => {
-      resolve();
-    });
-  });
-
-  const httpAddress = httpServer.address();
-  if (!httpAddress || typeof httpAddress === "string") {
-    throw new Error("Failed to determine HTTP test server port.");
-  }
-
-  httpUrl = `http://127.0.0.1:${httpAddress.port}/start`;
-});
-
-afterAll(async () => {
-  await Promise.all([
-    new Promise<void>((resolve, reject) => {
-      httpServer?.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve();
-      });
-    }),
-    new Promise<void>((resolve, reject) => {
-      httpsServer?.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve();
-      });
-    }),
-  ]);
+afterEach(() => {
+  vi.clearAllMocks();
 });
 
 describe("runRedirectSignal", () => {
-  it("follows an HTTP redirect into a self-signed HTTPS endpoint", async () => {
-    const result = await runRedirectSignal(httpUrl);
+  it("records a reachable public target", async () => {
+    mockLookupAll([{ address: "93.184.216.34", family: 4 }]);
+    mockHttpResponse(200);
 
-    expect(result.finalUrl).toBe(httpsUrl);
-    expect(result.totalHops).toBe(1);
-    expect(result.httpsUpgraded).toBe(true);
-    expect(result.reachable).toBe(true);
-    expect(result.terminalStatus).toBe(200);
-    expect(result.terminalError).toBeNull();
-    expect(result.observations).toEqual([]);
-    expect(result.hops).toEqual([
-      {
-        url: httpUrl,
-        status: 301,
-        location: httpsUrl,
-      },
-      {
-        url: httpsUrl,
-        status: 200,
-      },
-    ]);
-  });
+    const result = await runRedirectSignal("http://example.test/start");
 
-  it("can inspect a self-signed HTTPS URL without failing the signal", async () => {
-    const result = await runRedirectSignal(httpsUrl);
-
-    expect(result.finalUrl).toBe(httpsUrl);
+    expect(result.finalUrl).toBe("http://example.test/start");
     expect(result.totalHops).toBe(0);
     expect(result.httpsUpgraded).toBe(false);
     expect(result.reachable).toBe(true);
@@ -125,9 +44,82 @@ describe("runRedirectSignal", () => {
     expect(result.observations).toEqual([]);
     expect(result.hops).toEqual([
       {
-        url: httpsUrl,
+        url: "http://example.test/start",
         status: 200,
       },
     ]);
   });
+
+  it("blocks a redirect target that resolves to a private address", async () => {
+    mockLookupAll([{ address: "93.184.216.34", family: 4 }]);
+    mockLookupAll([{ address: "10.0.0.8", family: 4 }]);
+    mockHttpResponse(302, "http://internal.example.test/admin");
+
+    const result = await runRedirectSignal("http://example.test/start");
+
+    expect(requestMock).toHaveBeenCalledTimes(1);
+    expect(result.finalUrl).toBe("http://internal.example.test/admin");
+    expect(result.totalHops).toBe(1);
+    expect(result.reachable).toBe(false);
+    expect(result.terminalStatus).toBe(302);
+    expect(result.terminalError).toContain("private");
+    expect(result.observations).toEqual([result.terminalError]);
+    expect(result.hops).toEqual([
+      {
+        url: "http://example.test/start",
+        status: 302,
+        location: "http://internal.example.test/admin",
+      },
+    ]);
+  });
+
+  it("blocks an initial private literal target before a request", async () => {
+    const result = await runRedirectSignal("http://127.0.0.1:3000/start");
+
+    expect(lookupMock).not.toHaveBeenCalled();
+    expect(requestMock).not.toHaveBeenCalled();
+    expect(result.reachable).toBe(false);
+    expect(result.terminalStatus).toBeNull();
+    expect(result.terminalError).toContain("private");
+    expect(result.hops).toEqual([]);
+  });
 });
+
+function mockHttpResponse(statusCode: number, location?: string) {
+  requestMock.mockImplementationOnce((...args: unknown[]) => {
+    const options = args[0];
+    const callback = args.find(
+      (arg): arg is (response: unknown) => void => typeof arg === "function",
+    );
+
+    expect(options).toEqual(
+      expect.objectContaining({
+        hostname: "93.184.216.34",
+        headers: expect.objectContaining({
+          host: "example.test",
+        }),
+      }),
+    );
+    const response = {
+      headers: location ? { location } : {},
+      statusCode,
+      resume: vi.fn(),
+    };
+    const request = {
+      once: vi.fn(),
+      setTimeout: vi.fn(),
+      destroy: vi.fn(),
+      end: vi.fn(() => {
+        queueMicrotask(() => {
+          callback?.(response as never);
+        });
+      }),
+    };
+
+    return request as never;
+  });
+}
+
+function mockLookupAll(records: Array<{ address: string; family: 4 | 6 }>) {
+  lookupMock.mockResolvedValueOnce(records as never);
+}
