@@ -134,6 +134,52 @@ describe("analysis routes", () => {
     });
   });
 
+  it("does not cache partial-failure scan results", async () => {
+    const { POST } = await import("@/app/api/analyze/route");
+    installHandlers({ virusTotalStatus: 503 });
+
+    const requestBody = JSON.stringify({ url: "partial.example" });
+    const firstResponse = await POST(
+      new Request("http://localhost/api/analyze", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: requestBody,
+      }),
+    );
+    const secondResponse = await POST(
+      new Request("http://localhost/api/analyze", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: requestBody,
+      }),
+    );
+
+    const firstEvents = await parseNdjsonEvents(firstResponse);
+    const secondEvents = await parseNdjsonEvents(secondResponse);
+    const firstCompletion = firstEvents.at(-1);
+    const secondCompletion = secondEvents.at(-1);
+
+    expect(firstCompletion?.result).toMatchObject({
+      metadata: {
+        cacheHit: false,
+        partialFailure: true,
+      },
+    });
+    expect(secondCompletion?.result).toMatchObject({
+      metadata: {
+        cacheHit: false,
+        partialFailure: true,
+      },
+    });
+    expect(
+      secondEvents.filter((event) => event.type === "signal_result"),
+    ).toHaveLength(8);
+  });
+
   it("streams batch analysis events", async () => {
     const { POST } = await import("@/app/api/analyze/batch/route");
     installHandlers();
@@ -243,23 +289,46 @@ describe("analysis routes", () => {
   });
 });
 
-function installHandlers(options: { rdapStatus?: number } = {}) {
+async function parseNdjsonEvents(response: Response) {
+  const text = await response.text();
+  return text.trim().length === 0
+    ? []
+    : text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map(
+      (line) =>
+        JSON.parse(line) as {
+          type: string;
+          result?: {
+            metadata?: { cacheHit?: boolean; partialFailure?: boolean };
+          };
+        },
+    );
+}
+
+function installHandlers(
+  options: { rdapStatus?: number; virusTotalStatus?: number } = {},
+) {
   server.use(
     http.get("https://www.virustotal.com/api/v3/urls/:id", () =>
-      HttpResponse.json({
-        data: {
-          attributes: {
-            last_analysis_stats: {
-              malicious: 0,
-              suspicious: 0,
-              harmless: 5,
-              undetected: 20,
-              timeout: 0,
+      options.virusTotalStatus
+        ? new HttpResponse(null, { status: options.virusTotalStatus })
+        : HttpResponse.json({
+            data: {
+              attributes: {
+                last_analysis_stats: {
+                  malicious: 0,
+                  suspicious: 0,
+                  harmless: 5,
+                  undetected: 20,
+                  timeout: 0,
+                },
+                last_analysis_results: {},
+              },
             },
-            last_analysis_results: {},
-          },
-        },
-      }),
+          }),
     ),
     http.post("https://safebrowsing.googleapis.com/v4/threatMatches:find", () =>
       HttpResponse.json({ matches: [] }),

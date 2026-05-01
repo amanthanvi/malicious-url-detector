@@ -135,7 +135,7 @@ export async function runAnalysis(input: string, options: AnalyzeOptions = {}) {
     },
   };
 
-  if (verdict !== "error") {
+  if (verdict !== "error" && !result.metadata?.partialFailure) {
     analysisCache.set(cacheKey, result);
   }
 
