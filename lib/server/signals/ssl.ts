@@ -2,6 +2,10 @@ import tls from "node:tls";
 import { isIP } from "node:net";
 
 import type { SSLData } from "@/lib/domain/types";
+import {
+  assertPublicNetworkTarget,
+  selectPublicProbeAddresses,
+} from "@/lib/server/public-network-target";
 
 /** Resolves host/port for the TLS probe (exported for unit tests). */
 export function getTlsProbeTarget(url: string): { hostname: string; port: number } {
@@ -16,10 +20,45 @@ export function getTlsProbeTarget(url: string): { hostname: string; port: number
 
 export async function runSslSignal(url: string): Promise<SSLData> {
   const { hostname, port } = getTlsProbeTarget(url);
+  const publicTarget = await assertPublicNetworkTarget(hostname);
 
+  if (!publicTarget.ok) {
+    return createUnavailableSslData(publicTarget.error);
+  }
+  const probeAddresses = selectPublicProbeAddresses(publicTarget.resolution);
+
+  if (probeAddresses.length === 0) {
+    return createUnavailableSslData(
+      "The hostname did not resolve to an address for the TLS probe.",
+    );
+  }
+
+  let lastResult: SSLData | null = null;
+
+  for (const probeAddress of probeAddresses) {
+    const result = await runSslProbe(hostname, port, probeAddress);
+    if (result.available) {
+      return result;
+    }
+    lastResult = result;
+  }
+
+  return (
+    lastResult ??
+    createUnavailableSslData(
+      "The TLS probe failed for every resolved address.",
+    )
+  );
+}
+
+function runSslProbe(
+  hostname: string,
+  port: number,
+  probeAddress: string,
+): Promise<SSLData> {
   return new Promise<SSLData>((resolve) => {
     const socket = tls.connect({
-      host: hostname,
+      host: probeAddress,
       port,
       servername: isIP(hostname) ? undefined : hostname,
       rejectUnauthorized: false,

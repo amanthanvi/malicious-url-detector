@@ -2,6 +2,11 @@ import http from "node:http";
 import https from "node:https";
 
 import type { RedirectData } from "@/lib/domain/types";
+import {
+  assertPublicNetworkTarget,
+  selectPublicProbeAddresses,
+  type PublicNetworkTargetResolution,
+} from "@/lib/server/public-network-target";
 
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const MAX_REDIRECTS = 5;
@@ -13,10 +18,22 @@ export async function runRedirectSignal(url: string): Promise<RedirectData> {
   let reachable = true;
   let terminalStatus: number | null = null;
   let terminalError: string | null = null;
+  let currentResolution: PublicNetworkTargetResolution | null = null;
   const observations: string[] = [];
 
   for (let attempt = 0; attempt < MAX_REDIRECTS; attempt += 1) {
-    const outcome = await requestRedirectHop(currentUrl);
+    if (!currentResolution) {
+      const publicTarget = await assertPublicNetworkTarget(currentUrl);
+      if (!publicTarget.ok) {
+        reachable = false;
+        terminalError = publicTarget.error;
+        observations.push(publicTarget.error);
+        break;
+      }
+      currentResolution = publicTarget.resolution;
+    }
+
+    const outcome = await requestRedirectHop(currentUrl, currentResolution);
     if ("error" in outcome) {
       reachable = false;
       terminalError = outcome.error;
@@ -36,12 +53,26 @@ export async function runRedirectSignal(url: string): Promise<RedirectData> {
       break;
     }
 
-    currentUrl = new URL(location, currentUrl).toString();
+    const nextUrl = new URL(location, currentUrl).toString();
+    const publicRedirectTarget = await assertPublicNetworkTarget(nextUrl);
+
+    if (!publicRedirectTarget.ok) {
+      currentUrl = nextUrl;
+      reachable = false;
+      terminalError = publicRedirectTarget.error;
+      observations.push(publicRedirectTarget.error);
+      break;
+    }
+
+    currentUrl = nextUrl;
+    currentResolution = publicRedirectTarget.resolution;
   }
 
   return {
     finalUrl: currentUrl,
-    totalHops: Math.max(0, hops.length - 1),
+    totalHops: hops.filter(
+      (hop) => hop.location && REDIRECT_STATUSES.has(hop.status),
+    ).length,
     httpsUpgraded:
       new URL(url).protocol === "http:" &&
       new URL(currentUrl).protocol === "https:",
@@ -53,19 +84,60 @@ export async function runRedirectSignal(url: string): Promise<RedirectData> {
   };
 }
 
-async function requestRedirectHop(url: string) {
+async function requestRedirectHop(
+  url: string,
+  resolution: PublicNetworkTargetResolution,
+) {
   const target = new URL(url);
   const client = target.protocol === "https:" ? https : http;
+  const addresses = selectPublicProbeAddresses(resolution);
 
+  if (addresses.length === 0) {
+    return {
+      error: "The hostname did not resolve to an address for the redirect probe.",
+    };
+  }
+
+  let lastError: string | null = null;
+
+  for (const address of addresses) {
+    const outcome = await requestRedirectHopAtAddress(
+      client,
+      target,
+      resolution.hostname,
+      address,
+    );
+    if (!("error" in outcome)) {
+      return outcome;
+    }
+    lastError = outcome.error;
+  }
+
+  return {
+    error: lastError ?? "The redirect probe failed for every resolved address.",
+  };
+}
+
+async function requestRedirectHopAtAddress(
+  client: typeof http | typeof https,
+  target: URL,
+  servername: string,
+  address: string,
+) {
   return await new Promise<
     { status: number; location: string | null } | { error: string }
   >((resolve) => {
     const request = client.request(
-      target,
       {
+        protocol: target.protocol,
+        hostname: address,
+        port: target.port || (target.protocol === "https:" ? 443 : 80),
+        path: `${target.pathname}${target.search}`,
         method: "GET",
         rejectUnauthorized: false,
+        servername,
         headers: {
+          host: target.host,
           "user-agent": "scrutinix/3.0",
         },
       },

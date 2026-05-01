@@ -60,4 +60,14 @@ describe("runSslSignal", () => {
     expect(result.available).toBe(false);
     expect(result.observations[0]).toContain("38376");
   });
+
+  it("blocks private literal IPs before opening a TLS socket", async () => {
+    const connectSpy = vi.spyOn(tls, "connect");
+
+    const result = await runSslSignal("https://127.0.0.1:443/");
+
+    expect(connectSpy).not.toHaveBeenCalled();
+    expect(result.available).toBe(false);
+    expect(result.observations[0]).toContain("private");
+  });
 });
