@@ -15,6 +15,7 @@ import {
   type ThreatInfo,
   type Verdict,
 } from "@/lib/domain/types";
+import { z } from "zod";
 
 const validVerdicts = new Set<Verdict>([
   "safe",
@@ -478,28 +479,202 @@ function sanitizeMetadata(
   };
 }
 
+const boundaryRecordSchema = z.record(z.string(), z.unknown());
+const signalNameSchema = z.enum(signalNames);
+
+function addBoundaryIssue(
+  ctx: z.RefinementCtx,
+  message: string,
+): typeof z.NEVER {
+  ctx.addIssue({
+    code: "custom",
+    message,
+  });
+
+  return z.NEVER;
+}
+
+function createAnalysisResultSchema(fallbackTimestamp: string) {
+  return boundaryRecordSchema.transform((record): AnalysisResult => {
+    const threatInfo = sanitizeThreatInfo(record.threatInfo);
+    const metadata = sanitizeMetadata(record.metadata, fallbackTimestamp);
+
+    return {
+      id:
+        readString(record.id) ||
+        `restored-${metadata.completedAt}-${Math.random().toString(16).slice(2, 8)}`,
+      url: readString(record.url, ""),
+      verdict: readVerdict(record.verdict, threatInfo?.verdict ?? "error"),
+      signals: sanitizeSignalResults(record.signals),
+      threatInfo,
+      metadata,
+    };
+  });
+}
+
+function createApiErrorSchema(fallbackMessage: string) {
+  return z.unknown().transform((value) => {
+    const record = asRecord(value);
+
+    return {
+      code: readString(record?.code, "unexpected_error"),
+      message: readString(record?.message, fallbackMessage),
+      retryable: readBoolean(record?.retryable, false),
+    } satisfies ApiError;
+  });
+}
+
+const analyzeEventSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("scan_started"),
+      scanId: z.string().min(1),
+      url: z.string().min(1),
+      cached: z.unknown().optional(),
+      startedAt: z.string().min(1),
+    })
+    .passthrough()
+    .transform(
+      (record): AnalyzeEvent => ({
+        type: "scan_started",
+        scanId: record.scanId,
+        url: record.url,
+        cached: readBoolean(record.cached, false),
+        startedAt: record.startedAt,
+      }),
+    ),
+  z
+    .object({
+      type: z.literal("signal_result"),
+      name: signalNameSchema,
+      result: z.unknown().optional(),
+    })
+    .passthrough()
+    .transform(
+      (record): AnalyzeEvent => ({
+        type: "signal_result",
+        name: record.name,
+        result: sanitizeSignalResult(record.name, record.result),
+      }),
+    ),
+  z
+    .object({
+      type: z.literal("scan_complete"),
+      result: z.unknown(),
+    })
+    .passthrough()
+    .transform((record, ctx): AnalyzeEvent => {
+      const result = sanitizeAnalysisResult(record.result);
+      if (!result) {
+        return addBoundaryIssue(ctx, "Scan completion result is invalid.");
+      }
+
+      return {
+        type: "scan_complete",
+        result,
+      };
+    }),
+  z
+    .object({
+      type: z.literal("scan_error"),
+      error: z.unknown().optional(),
+    })
+    .passthrough()
+    .transform(
+      (record): AnalyzeEvent => ({
+        type: "scan_error",
+        error: sanitizeApiError(record.error, "The scan failed."),
+      }),
+    ),
+]);
+
+const batchEventSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("batch_started"),
+      total: z.unknown().optional(),
+      startedAt: z.string().min(1),
+    })
+    .passthrough()
+    .transform(
+      (record): BatchEvent => ({
+        type: "batch_started",
+        total: Math.max(0, readNumber(record.total, 0)),
+        startedAt: record.startedAt,
+      }),
+    ),
+  z
+    .object({
+      type: z.literal("url_started"),
+      index: z.unknown().optional(),
+      url: z.string().min(1),
+    })
+    .passthrough()
+    .transform(
+      (record): BatchEvent => ({
+        type: "url_started",
+        index: Math.max(0, readNumber(record.index, 0)),
+        url: record.url,
+      }),
+    ),
+  z
+    .object({
+      type: z.literal("url_complete"),
+      index: z.unknown().optional(),
+      url: z.unknown().optional(),
+      result: z.unknown(),
+    })
+    .passthrough()
+    .transform((record, ctx): BatchEvent => {
+      const result = sanitizeAnalysisResult(record.result);
+      if (!result) {
+        return addBoundaryIssue(ctx, "Batch URL result is invalid.");
+      }
+
+      return {
+        type: "url_complete",
+        index: Math.max(0, readNumber(record.index, 0)),
+        url: readString(record.url, result.url),
+        result,
+      };
+    }),
+  z
+    .object({
+      type: z.literal("batch_complete"),
+      results: z.unknown().optional(),
+    })
+    .passthrough()
+    .transform(
+      (record): BatchEvent => ({
+        type: "batch_complete",
+        results: Array.isArray(record.results)
+          ? record.results.flatMap((item) => {
+              const result = sanitizeAnalysisResult(item);
+              return result ? [result] : [];
+            })
+          : [],
+      }),
+    ),
+  z
+    .object({
+      type: z.literal("batch_error"),
+      error: z.unknown().optional(),
+    })
+    .passthrough()
+    .transform(
+      (record): BatchEvent => ({
+        type: "batch_error",
+        error: sanitizeApiError(record.error, "The batch scan failed."),
+      }),
+    ),
+]);
+
 export function sanitizeAnalysisResult(
   value: unknown,
   fallbackTimestamp = new Date().toISOString(),
 ): AnalysisResult | null {
-  const record = asRecord(value);
-  if (!record) {
-    return null;
-  }
-
-  const threatInfo = sanitizeThreatInfo(record.threatInfo);
-  const metadata = sanitizeMetadata(record.metadata, fallbackTimestamp);
-
-  return {
-    id:
-      readString(record.id) ||
-      `restored-${metadata.completedAt}-${Math.random().toString(16).slice(2, 8)}`,
-    url: readString(record.url, ""),
-    verdict: readVerdict(record.verdict, threatInfo?.verdict ?? "error"),
-    signals: sanitizeSignalResults(record.signals),
-    threatInfo,
-    metadata,
-  };
+  const result = createAnalysisResultSchema(fallbackTimestamp).safeParse(value);
+  return result.success ? result.data : null;
 }
 
 export function sanitizeHistoryEntry(value: unknown): HistoryEntry | null {
@@ -525,13 +700,14 @@ export function sanitizeApiError(
   value: unknown,
   fallbackMessage: string,
 ): ApiError {
-  const record = asRecord(value);
-
-  return {
-    code: readString(record?.code, "unexpected_error"),
-    message: readString(record?.message, fallbackMessage),
-    retryable: readBoolean(record?.retryable, false),
-  };
+  const result = createApiErrorSchema(fallbackMessage).safeParse(value);
+  return result.success
+    ? result.data
+    : {
+        code: "unexpected_error",
+        message: fallbackMessage,
+        retryable: false,
+      };
 }
 
 export function sanitizeApiErrorResponse(
@@ -542,131 +718,12 @@ export function sanitizeApiErrorResponse(
   return sanitizeApiError(record?.error ?? value, fallbackMessage);
 }
 
-function readSignalName(value: unknown): SignalName | null {
-  return typeof value === "string" &&
-    signalNames.includes(value as SignalName)
-    ? (value as SignalName)
-    : null;
-}
-
 export function sanitizeAnalyzeEvent(value: unknown): AnalyzeEvent | null {
-  const record = asRecord(value);
-  if (!record) {
-    return null;
-  }
-
-  const type = readString(record.type, "");
-  switch (type) {
-    case "scan_started": {
-      const scanId = readString(record.scanId, "");
-      const url = readString(record.url, "");
-      const startedAt = readString(record.startedAt, "");
-      if (!scanId || !url || !startedAt) {
-        return null;
-      }
-
-      return {
-        type,
-        scanId,
-        url,
-        cached: readBoolean(record.cached, false),
-        startedAt,
-      };
-    }
-    case "signal_result": {
-      const name = readSignalName(record.name);
-      if (!name) {
-        return null;
-      }
-
-      return {
-        type,
-        name,
-        result: sanitizeSignalResult(name, record.result),
-      };
-    }
-    case "scan_complete": {
-      const result = sanitizeAnalysisResult(record.result);
-      if (!result) {
-        return null;
-      }
-
-      return {
-        type,
-        result,
-      };
-    }
-    case "scan_error":
-      return {
-        type,
-        error: sanitizeApiError(record.error, "The scan failed."),
-      };
-    default:
-      return null;
-  }
+  const result = analyzeEventSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
 export function sanitizeBatchEvent(value: unknown): BatchEvent | null {
-  const record = asRecord(value);
-  if (!record) {
-    return null;
-  }
-
-  const type = readString(record.type, "");
-  switch (type) {
-    case "batch_started": {
-      const startedAt = readString(record.startedAt, "");
-      if (!startedAt) {
-        return null;
-      }
-
-      return {
-        type,
-        total: Math.max(0, readNumber(record.total, 0)),
-        startedAt,
-      };
-    }
-    case "url_started": {
-      const url = readString(record.url, "");
-      if (!url) {
-        return null;
-      }
-
-      return {
-        type,
-        index: Math.max(0, readNumber(record.index, 0)),
-        url,
-      };
-    }
-    case "url_complete": {
-      const result = sanitizeAnalysisResult(record.result);
-      if (!result) {
-        return null;
-      }
-
-      return {
-        type,
-        index: Math.max(0, readNumber(record.index, 0)),
-        url: readString(record.url, result.url),
-        result,
-      };
-    }
-    case "batch_complete":
-      return {
-        type,
-        results: Array.isArray(record.results)
-          ? record.results.flatMap((item) => {
-              const result = sanitizeAnalysisResult(item);
-              return result ? [result] : [];
-            })
-          : [],
-      };
-    case "batch_error":
-      return {
-        type,
-        error: sanitizeApiError(record.error, "The batch scan failed."),
-      };
-    default:
-      return null;
-  }
+  const result = batchEventSchema.safeParse(value);
+  return result.success ? result.data : null;
 }
